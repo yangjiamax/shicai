@@ -33,7 +33,11 @@
     
     <view wx:if="{{analyzing}}" class="loading-state">
       <view class="loading-spinner"></view>
-      <text>正在分析食材特征...</text>
+      <text class="loading-text">正在分析食材特征...</text>
+      <view class="loading-hint">
+        <text class="hint-dot">•</text>
+        <text>大模型运行中，请等待15秒-30秒</text>
+      </view>
     </view>
   </view>
 </view>

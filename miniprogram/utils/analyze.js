@@ -50,70 +50,84 @@ async function analyzeImage(filePath, forceMock = false) {
       reject(new Error('timeout'));
     }, TIMEOUT_MS);
 
-    // 首先读取文件转换为 base64
-    const fileSystemManager = wx.getFileSystemManager();
-    fileSystemManager.readFile({
-      filePath: filePath,
-      encoding: 'base64',
-      success: (fileRes) => {
-        if (isTimeout) return;
-        
-        wx.cloud.callFunction({
-          name: 'analyze',
-          data: {
-            action: 'analyze',
-            imageBase64: fileRes.data,
-            userId: userId,
-            source: 'wx_miniprogram'
-          },
-          success: (res) => {
-            if (isTimeout) return;
-            clearTimeout(timer);
-            
-            if (res.result) {
-              if (res.result.error) {
-                // 如果云函数显式返回了错误
-                reject(new Error(res.result.errorType || 'model_error'));
-                return;
-              }
-              
-              // 结构兜底补齐
-              const data = res.result;
-              const result = {
-                ingredient_name: data.ingredient_name || '未知食材',
-                ingredient_desc: data.ingredient_desc || '暂无描述',
-                freshness_level: data.freshness_level || '未知',
-                freshness_reason: data.freshness_reason || '未能识别鲜度原因',
-                recipes: Array.isArray(data.recipes) && data.recipes.length > 0 ? data.recipes.map(r => ({
-                  recipe_name: r.recipe_name || '未知做法',
-                  ingredients_needed: Array.isArray(r.ingredients_needed) ? r.ingredients_needed : ['未知佐料']
-                })) : []
-              };
-              resolve(result);
-            } else {
-              reject(new Error('bad_response'));
-            }
-          },
-          fail: (err) => {
-            if (isTimeout) return;
-            clearTimeout(timer);
-            console.error('[Analyze] Cloud function failed:', err);
-            // 区分网络错误和其他错误
-            if (err.errMsg && (err.errMsg.includes('request:fail') || err.errMsg.includes('timeout'))) {
-              reject(new Error('network_error'));
-            } else {
-              reject(new Error('network_error')); // 默认当做网络或云调用失败
-            }
-          }
-        });
+    // 1. 压缩图片
+    wx.compressImage({
+      src: filePath,
+      quality: 60,
+      success: (compressRes) => {
+        const compressedPath = compressRes.tempFilePath;
+        uploadAndAnalyze(compressedPath);
       },
       fail: (err) => {
-        if (isTimeout) return;
-        clearTimeout(timer);
-        console.error('[Analyze] Read file failed:', err);
-        reject(new Error('file_read_error'));
+        console.error('[Analyze] Compress image failed, use original:', err);
+        // 压缩失败则回退到直接使用原图
+        uploadAndAnalyze(filePath);
       }
     });
+
+    function uploadAndAnalyze(targetPath) {
+      // 2. 上传图片到云存储
+      const ext = targetPath.match(/\.([^.]+)$/)?.[1] || 'jpg';
+      const cloudPath = `uploads/${userId}_${Date.now()}_${Math.floor(Math.random()*1000)}.${ext}`;
+      
+      wx.cloud.uploadFile({
+        cloudPath: cloudPath,
+        filePath: targetPath,
+        success: (uploadRes) => {
+          if (isTimeout) return;
+          const fileID = uploadRes.fileID;
+          
+          // 3. 调用云函数，传递 fileID
+          wx.cloud.callFunction({
+            name: 'analyze',
+            data: {
+              action: 'analyze',
+              fileID: fileID,
+              userId: userId,
+              source: 'wx_miniprogram'
+            },
+            success: (res) => {
+              if (isTimeout) return;
+              clearTimeout(timer);
+              
+              if (res.result) {
+                if (res.result.error) {
+                  reject(new Error(res.result.errorType || 'model_error'));
+                  return;
+                }
+                
+                const data = res.result;
+                const result = {
+                  ingredient_name: data.ingredient_name || '未知食材',
+                  ingredient_desc: data.ingredient_desc || '暂无描述',
+                  freshness_level: data.freshness_level || '未知',
+                  freshness_reason: data.freshness_reason || '未能识别鲜度原因',
+                  recipes: Array.isArray(data.recipes) && data.recipes.length > 0 ? data.recipes.map(r => ({
+                    recipe_name: r.recipe_name || '未知做法',
+                    ingredients_needed: Array.isArray(r.ingredients_needed) ? r.ingredients_needed : ['未知佐料']
+                  })) : []
+                };
+                resolve(result);
+              } else {
+                reject(new Error('bad_response'));
+              }
+            },
+            fail: (err) => {
+              if (isTimeout) return;
+              clearTimeout(timer);
+              console.error('[Analyze] Cloud function failed:', err);
+              reject(new Error('network_error: ' + (err.errMsg || JSON.stringify(err))));
+            }
+          });
+        },
+        fail: (err) => {
+          if (isTimeout) return;
+          clearTimeout(timer);
+          console.error('[Analyze] Upload file failed:', err);
+          reject(new Error('network_error: 上传图片失败 ' + (err.errMsg || '')));
+        }
+      });
+    }
   });
 }
 

@@ -188,7 +188,7 @@ page {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20rpx;
+  gap: 16rpx;
 }
 
 .loading-spinner {
@@ -198,12 +198,32 @@ page {
   border-top-color: #4b6338;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  margin-bottom: 8rpx;
 }
 
-.loading-state text {
-  font-size: 26rpx;
+.loading-text {
+  font-size: 28rpx;
   color: #4b6338;
-  font-weight: 500;
+  font-weight: 600;
+}
+
+.loading-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  margin-top: 4rpx;
+}
+
+.hint-dot {
+  font-size: 24rpx;
+  color: #8b9285;
+}
+
+.loading-hint text:last-child {
+  font-size: 24rpx;
+  color: #8b9285;
+  font-weight: 400;
 }
 
 @keyframes spin {

@@ -1,9 +1,30 @@
 const axios = require('axios');
+const cloud = require('wx-server-sdk');
+
+cloud.init({
+  env: cloud.DYNAMIC_CURRENT_ENV
+});
 
 exports.main = async (event, context) => {
-  const { imageBase64, userId, source } = event;
+  const { imageBase64, fileID, userId, source } = event;
   
-  if (!imageBase64 || typeof imageBase64 !== 'string') {
+  let finalBase64 = imageBase64;
+
+  if (fileID) {
+    try {
+      // 从云存储下载图片
+      const res = await cloud.downloadFile({
+        fileID: fileID
+      });
+      const buffer = res.fileContent;
+      finalBase64 = buffer.toString('base64');
+    } catch (err) {
+      console.error('下载云存储图片失败:', err);
+      return { error: true, errorType: 'file_read_error', message: '读取云端图片失败' };
+    }
+  }
+
+  if (!finalBase64 || typeof finalBase64 !== 'string') {
     return { error: true, errorType: 'bad_response', message: '未收到图片数据' };
   }
 
@@ -34,7 +55,7 @@ exports.main = async (event, context) => {
           role: 'user',
           content: [
             { type: 'text', text: prompt },
-            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }
+            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${finalBase64}` } }
           ]
         }
       ]

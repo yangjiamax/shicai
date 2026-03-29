@@ -54,6 +54,14 @@ Page({
       
       if (err.message === 'timeout') {
         title = '请求超时，请重试';
+      } else if (err.message && err.message.startsWith('network_error:')) {
+        title = '网络错误，请重试';
+        // 弹出具体错误以便真机排查
+        wx.showModal({
+          title: '云函数调用失败',
+          content: err.message,
+          showCancel: false
+        });
       } else if (err.message === 'network_error') {
         title = '网络错误，请重试';
       } else if (err.message === 'model_error') {
