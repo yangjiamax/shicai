@@ -1,0 +1,81 @@
+<view class="container">
+  <view wx:if="{{result}}" class="result-card">
+    <view class="ingredient-info">
+      <view class="ingredient-header">
+        <text class="ingredient-name">{{result.ingredient_name}}</text>
+        <view class="confidence-badge">
+          <image class="icon-verified" src="/images/icons/verified.svg" mode="aspectFit"></image>
+          <text>高置信度</text>
+        </view>
+      </view>
+      <text class="ingredient-desc">{{result.ingredient_desc}}</text>
+    </view>
+
+    <view class="analysis-section">
+      <view class="section-header">
+        <image class="icon-eco" src="/images/icons/eco.svg" mode="aspectFit"></image>
+        <text class="section-title">新鲜度深度分析</text>
+        <view class="freshness-badge freshness-{{result.freshness_class}}">
+          {{result.freshness_level}}
+        </view>
+      </view>
+      
+      <view class="freshness-clue">
+        <view class="clue-icon-wrapper">
+          <image class="icon-clue" src="/images/icons/beaker.svg" mode="aspectFit"></image>
+        </view>
+        <view class="clue-text">
+          <text class="clue-title">主要依据</text>
+          <text class="clue-desc">{{result.freshness_reason}}</text>
+        </view>
+        <image class="icon-check" src="/images/icons/check_circle.svg" mode="aspectFit"></image>
+      </view>
+    </view>
+
+    <view class="recipes-section" wx:if="{{result.recipes && result.recipes.length > 0}}">
+      <view class="section-header">
+        <image class="icon-recipe" src="/images/icons/restaurant_menu.svg" mode="aspectFit"></image>
+        <text class="section-title">推荐料理方案</text>
+      </view>
+      <view class="recipe-grid">
+        <view 
+          wx:for="{{result.recipes}}" 
+          wx:key="index"
+          class="recipe-card {{selectedIndex === index ? 'selected' : ''}}"
+          bindtap="selectRecipe"
+          data-index="{{index}}">
+          <view class="recipe-card-icon-wrapper">
+            <image class="recipe-card-icon" src="/images/icons/cooking-{{index % 3 + 1}}.svg" mode="aspectFit"></image>
+          </view>
+          <text class="recipe-name">{{item.recipe_name}}</text>
+          <text class="recipe-ingredients" wx:if="{{item.ingredients_summary}}">{{item.ingredients_summary}}</text>
+          <image wx:if="{{selectedIndex === index}}" class="recipe-selected-icon" src="/images/icons/check_circle.svg" mode="aspectFit"></image>
+        </view>
+      </view>
+    </view>
+
+    <view class="action-bar" wx:if="{{result.recipes && result.recipes.length > 0}}">
+      <button class="btn-primary" bindtap="generateList">
+        <image class="btn-icon" src="/images/icons/shopping_cart.svg" mode="aspectFit"></image>
+        生成佐料采购单
+      </button>
+      <button class="btn-secondary" bindtap="retry">
+        重新识别
+      </button>
+    </view>
+
+    <view class="incomplete-state" wx:else>
+      <text class="incomplete-tips">结果不完整，建议换角度再拍</text>
+      <view class="action-bar">
+        <button class="btn-primary" bindtap="retry">再拍一次</button>
+        <button class="btn-secondary" bindtap="goHome">返回首页</button>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else class="error-state">
+    <image class="error-icon" src="/images/icons/error.svg" mode="aspectFit"></image>
+    <text>结果加载失败</text>
+    <button class="btn-primary" bindtap="goHome">返回首页</button>
+  </view>
+</view>

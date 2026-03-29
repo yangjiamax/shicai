@@ -1,0 +1,19 @@
+# 识材小程序开发规则
+
+## 1. PRD 为准
+- 每次执行 task 严格按照 `docs/mvp-prd.md` 规划
+- 有新想法/建议，先和用户达成一致，修改 PRD 后再执行
+- 不允许擅自偏离 PRD 范围
+
+## 2. 小步快跑
+- 每次只做 `docs/mvp-dev-plan-beginner.md` 中的一项，或一项中的一小部分
+- 步步优化，处处闭环，确保开发完整性
+- 每个阶段完成后对照 PRD 验收用例自测
+
+## 3. 设计参照
+- 涉及前端设计参照 `design/` 中的设计图（花钱买的，必须用好）
+- 确保生成的前端效果与设计一致
+- 设计文件路径：
+  - 首页：`design/index-page.html`
+  - 结果页：`design/result-page.html`
+  - 采购单页：`design/shopping-list-page.html`

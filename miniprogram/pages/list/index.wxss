@@ -1,0 +1,208 @@
+page {
+  background: #fcf9f8;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;
+  padding-bottom: 200rpx;
+}
+
+.container {
+  padding: 30rpx;
+}
+
+.list-card {
+  background: #ffffff;
+  border-radius: 32rpx;
+  padding: 40rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.02);
+  margin-bottom: 40rpx;
+}
+
+.header {
+  margin-bottom: 40rpx;
+  padding-bottom: 30rpx;
+  border-bottom: 2rpx dashed rgba(196, 200, 187, 0.3);
+}
+
+.title-group {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 12rpx;
+}
+
+.title {
+  font-size: 48rpx;
+  font-weight: 800;
+  color: #1b1c1c;
+  letter-spacing: -0.5px;
+}
+
+.recipe-badge {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  background: rgba(75, 99, 56, 0.1);
+  padding: 8rpx 20rpx;
+  border-radius: 100rpx;
+}
+
+.icon-restaurant {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+.recipe-badge text {
+  font-size: 22rpx;
+  color: #4b6338;
+  font-weight: bold;
+}
+
+.subtitle-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.subtitle {
+  font-size: 26rpx;
+  color: #74796d;
+}
+
+.hint-text {
+  font-size: 24rpx;
+  color: #a3a69d;
+}
+
+.ingredient-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.ingredient-item {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  border: 2rpx solid rgba(196, 200, 187, 0.2);
+  transition: all 0.2s ease;
+}
+
+.item-content {
+  display: flex;
+  align-items: center;
+}
+
+.ingredient-item.checked {
+  background: rgba(75, 99, 56, 0.02);
+  border-color: rgba(75, 99, 56, 0.2);
+}
+
+.checkbox {
+  width: 44rpx;
+  height: 44rpx;
+  border: 3rpx solid #c4c8bb;
+  border-radius: 12rpx;
+  margin-right: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.checkbox-checked {
+  background: #4b6338;
+  border-color: #4b6338;
+}
+
+.check-icon {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+.ingredient-name {
+  font-size: 32rpx;
+  color: #1b1c1c;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.ingredient-item.checked .ingredient-name {
+  color: #74796d;
+  text-decoration: line-through;
+}
+
+/* Action Bar */
+.action-bar {
+  position: fixed;
+  bottom: calc(140rpx + env(safe-area-inset-bottom));
+  left: 0;
+  width: 100%;
+  padding: 0 40rpx;
+  display: flex;
+  gap: 20rpx;
+  box-sizing: border-box;
+  z-index: 100;
+}
+
+.btn-primary {
+  flex: 1.5;
+  height: 100rpx;
+  background: linear-gradient(to right, #4b6338, #637c4e);
+  color: white;
+  font-size: 32rpx;
+  font-weight: bold;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12rpx 32rpx rgba(75, 99, 56, 0.15);
+  padding: 0;
+  white-space: nowrap;
+}
+
+.btn-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 12rpx;
+}
+
+.btn-secondary {
+  flex: 1;
+  height: 100rpx;
+  background: #ffffff;
+  color: #4b6338;
+  font-size: 30rpx;
+  font-weight: bold;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+  padding: 0;
+  white-space: nowrap;
+}
+
+.btn-primary::after, .btn-secondary::after {
+  border: none;
+}
+
+.clear-data-wrapper {
+  position: fixed;
+  bottom: calc(40rpx + env(safe-area-inset-bottom));
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  z-index: 90;
+}
+
+.clear-btn {
+  background: transparent;
+  color: #a3a69d;
+  font-size: 24rpx;
+  padding: 10rpx 30rpx;
+}
+
+.clear-btn::after {
+  border: none;
+}

@@ -1,0 +1,9 @@
+{
+  "name": "analyze",
+  "version": "1.0.0",
+  "description": "食材分析与鲜度判断",
+  "main": "index.js",
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}

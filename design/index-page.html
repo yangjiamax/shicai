@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-fixed-dim": "#b3cf9a",
+              "tertiary": "#7c4e68",
+              "tertiary-container": "#976682",
+              "inverse-primary": "#b3cf9a",
+              "secondary-container": "#d5e1c7",
+              "background": "#faf9f3",
+              "tertiary-fixed": "#ffd8eb",
+              "surface-tint": "#4d653a",
+              "on-primary-fixed-variant": "#364d24",
+              "secondary-fixed": "#dbe6cc",
+              "primary-container": "#637c4e",
+              "surface-container": "#efeee8",
+              "primary-fixed": "#cfecb4",
+              "on-tertiary-container": "#fffbff",
+              "outline": "#74796d",
+              "surface-container-lowest": "#ffffff",
+              "surface-dim": "#dbdad4",
+              "surface-container-highest": "#e3e3dc",
+              "secondary-fixed-dim": "#bfcab1",
+              "surface-container-high": "#e9e8e2",
+              "on-secondary-fixed": "#151e0e",
+              "secondary": "#57624d",
+              "on-secondary": "#ffffff",
+              "outline-variant": "#c4c8bb",
+              "on-primary-container": "#f9ffec",
+              "inverse-surface": "#30312d",
+              "on-background": "#1b1c18",
+              "on-surface-variant": "#44483e",
+              "on-secondary-fixed-variant": "#404a36",
+              "surface-variant": "#e3e3dc",
+              "on-tertiary": "#ffffff",
+              "error-container": "#ffdad6",
+              "primary": "#4b6338",
+              "error": "#ba1a1a",
+              "on-tertiary-fixed": "#320e26",
+              "surface": "#faf9f3",
+              "on-surface": "#1b1c18",
+              "on-tertiary-fixed-variant": "#643953",
+              "on-primary-fixed": "#0c2000",
+              "surface-bright": "#faf9f3",
+              "on-secondary-container": "#5a644f",
+              "surface-container-low": "#f5f4ed",
+              "on-error": "#ffffff",
+              "on-error-container": "#93000a",
+              "tertiary-fixed-dim": "#f0b6d5",
+              "on-primary": "#ffffff",
+              "inverse-on-surface": "#f2f1ea"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="bg-[#faf9f3] dark:bg-stone-950 docked full-width top-0 sticky z-50 transition-colors">
+<div class="flex items-center justify-between px-4 h-16 w-full max-w-screen-xl mx-auto">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-[#f5f4ed] dark:hover:bg-stone-900 transition-colors text-[#4b6338] dark:text-[#789262]">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] font-bold tracking-tight text-xl font-extrabold tracking-tighter text-[#4b6338] dark:text-[#789262]">
+                识材 SHI CAI
+            </h1>
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-[#f5f4ed] dark:hover:bg-stone-900 transition-colors text-[#4b6338] dark:text-[#789262]">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+</div>
+</header>
+<main class="px-4 py-6 space-y-8 max-w-screen-xl mx-auto">
+<!-- Hero Camera Section -->
+<section class="space-y-4">
+<div class="relative group cursor-pointer overflow-hidden rounded-[2rem] bg-surface-container-low p-1 shadow-sm transition-all hover:shadow-md active:scale-[0.98]">
+<div class="aspect-[4/5] w-full rounded-[1.8rem] bg-primary relative overflow-hidden flex flex-col items-center justify-center text-on-primary">
+<!-- Glass Background Decor -->
+<div class="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
+<div class="z-10 flex flex-col items-center space-y-6">
+<div class="w-24 h-24 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-xl">
+<span class="material-symbols-outlined text-5xl" data-icon="photo_camera" style="font-variation-settings: 'FILL' 1;">photo_camera</span>
+</div>
+<div class="text-center">
+<h2 class="text-2xl font-bold tracking-tight">拍照识别</h2>
+<p class="text-white/80 text-sm mt-1 font-medium">快速了解食材的新鲜度与营养</p>
+</div>
+</div>
+<!-- Ambient Photography Background (Subtle Overlay) -->
+<img alt="Fresh ingredients" class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay" data-alt="Close-up of vibrant fresh vegetables including greens and tomatoes with soft natural morning light for a fresh professional look" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFPJgZaucnvWUnWau7SL5zGSbqwJDPljN0uVkAWw2Zhf4eivaDTLvq0GPsm0KRI0WV2EjhOmgoB1lOqyRzNUVirUrTWGsM7qur14GyomwXicsJDQ8sj3XnUiZfQhVBLqBPbNAL-WJrrNLAKkeakmBkZDiAQdLj7fdrZI5aMHh4pqFYuZNyX-fG2DAnlacluw5CuMW8B5isYBoztdC3yrzo0XBQ80iRX53OOlDE05_-3_rI7tN4d8GXp2MhdH0aLaDqAevADOuF4nk"/>
+</div>
+</div>
+<!-- Upload Entry -->
+<button class="w-full h-16 bg-surface-container-lowest rounded-2xl flex items-center justify-between px-6 shadow-sm border border-outline-variant/10 hover:bg-surface-container transition-colors">
+<div class="flex items-center space-y-0 space-x-4">
+<span class="material-symbols-outlined text-primary" data-icon="image">image</span>
+<span class="text-on-surface font-semibold">从相册导入识别</span>
+</div>
+<span class="material-symbols-outlined text-outline" data-icon="chevron_right">chevron_right</span>
+</button>
+</section>
+<!-- Quick Tips / Seasonal Bento -->
+<section class="grid grid-cols-2 gap-4">
+<div class="col-span-1 bg-secondary-container/30 rounded-2xl p-4 flex flex-col justify-between h-32 border border-secondary-container/10">
+<span class="material-symbols-outlined text-primary-container" data-icon="calendar_today">calendar_today</span>
+<div>
+<h3 class="font-bold text-on-secondary-container">时令蔬菜</h3>
+<p class="text-xs text-on-secondary-container/70">春天宜食春笋</p>
+</div>
+</div>
+<div class="col-span-1 bg-tertiary-fixed/30 rounded-2xl p-4 flex flex-col justify-between h-32 border border-tertiary-fixed/10">
+<span class="material-symbols-outlined text-tertiary" data-icon="health_and_safety">health_and_safety</span>
+<div>
+<h3 class="font-bold text-on-tertiary-fixed-variant">避雷手册</h3>
+<p class="text-xs text-on-tertiary-fixed-variant/70">识别发芽食材</p>
+</div>
+</div>
+</section>
+<!-- Recent Identifications -->
+<section class="space-y-4 pb-4">
+<div class="flex items-center justify-between">
+<h3 class="text-lg font-bold text-on-surface tracking-tight">最近识别</h3>
+<button class="text-primary text-sm font-semibold">查看全部</button>
+</div>
+<div class="space-y-3">
+<!-- Item 1 -->
+<div class="bg-surface-container-lowest rounded-2xl p-3 flex items-center space-x-4 shadow-sm border border-outline-variant/5">
+<div class="w-16 h-16 rounded-xl overflow-hidden bg-surface-variant flex-shrink-0">
+<img alt="Bok Choy" class="w-full h-full object-cover" data-alt="Professional studio shot of a fresh green bok choy on a neutral light background with soft shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtGkv7wv8NxhMTlZtbniqiSC1mzTIpSZH_xfFBHWik7M4Q2uKNT3MjjzJoY4Ob6h7B3aJRIzkSFkfhISfIwmy_wIkPNRW9SwmLHgr5Q_I6SrUgoNkgovdyk8diopgzGSNMjK4pVg34ZH-YfpL6Dmd5Wvhcwq949o4dY6ts9jkldO-e9m77oz_bnHtNVW3G-XJYdtu4lJirR9q5iONRP9hrDGAz4aBklYGmrNdFJOLut0RCwGCCoedUlOQe9ET5lq7K5pzsHlcPHAk"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<h4 class="font-bold text-on-surface">上海青 (青江菜)</h4>
+<span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">新鲜</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-1 line-clamp-1">识别于 2小时前 • 产地: 浙江省</p>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="bg-surface-container-lowest rounded-2xl p-3 flex items-center space-x-4 shadow-sm border border-outline-variant/5">
+<div class="w-16 h-16 rounded-xl overflow-hidden bg-surface-variant flex-shrink-0">
+<img alt="Tomato" class="w-full h-full object-cover" data-alt="Two ripe bright red tomatoes with green stems, dew drops on the skin, editorial high-end food photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDisSHhOyKC_s-UwbpkyLSsUEYJTSIXSLmKQtz_ddbYabnjZtIFa-eTl5YB1WSQdENp9g3ngMzWuLGLUgM1HbBEDLX-eXxjitc6DwFKLWPTspxx7VlEY8ZlKpMtiKWdTy4f6hjY5-wzN6vzAg944wJw-aqMEhC8YoZ-L5qt_gZ6R_PoxtumZIGpxcVu9lfY1sE2U9T7BeqNtAIgCIVHBdzwUWJQepCm0-wN9xpFvpFN902nu1QcZf0PpVSomkYajJbiOvTDcr_9Jy4"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<h4 class="font-bold text-on-surface">番茄 (普罗旺斯)</h4>
+<span class="text-[10px] bg-tertiary/10 text-tertiary px-2 py-0.5 rounded-full font-bold">建议储存</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-1 line-clamp-1">识别于 昨天 • 产地: 云南省</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 pb-safe pt-2 h-20 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md rounded-t-2xl shadow-[0_-4px_20px_rgba(75,99,56,0.05)] border-t border-stone-100 dark:border-stone-800">
+<!-- Active Nav Item -->
+<a class="flex flex-col items-center justify-center text-[#4b6338] dark:text-[#789262] font-semibold bg-[#f5f4ed] dark:bg-[#4b6338]/20 rounded-xl px-4 py-1 transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="home" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">首页</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 px-4 py-1 hover:text-[#4b6338] dark:hover:text-[#789262] transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="history">history</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">历史</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 px-4 py-1 hover:text-[#4b6338] dark:hover:text-[#789262] transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="person">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">我的</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,39 @@
+<view class="container">
+  <!-- Header -->
+  <view class="header">
+    <text class="title">识材 SHI CAI</text>
+    <text class="subtitle">人间百味，新鲜才对</text>
+  </view>
+
+  <view class="main-content">
+    <!-- Hero Camera Section -->
+    <view class="camera-card" bindtap="handleCamera" hover-class="camera-card-hover">
+      <!-- 背景图片 -->
+      <image class="camera-bg-img" src="/images/market-bg.jpg" mode="aspectFill"></image>
+      <!-- 渐变蒙版 -->
+      <view class="camera-overlay"></view>
+      
+      <view class="camera-inner">
+        <view class="camera-icon-wrapper">
+          <image class="camera-icon" src="/images/icons/camera.svg" mode="aspectFit"></image>
+        </view>
+        <text class="camera-title">拍照识别</text>
+        <text class="camera-desc">快速了解食材的新鲜度与营养</text>
+      </view>
+    </view>
+
+    <!-- Upload Entry -->
+    <button class="album-btn" bindtap="handleAlbum" hover-class="album-btn-hover">
+      <view class="album-btn-content">
+        <image class="album-icon" src="/images/icons/image.svg" mode="aspectFit"></image>
+        <text>相册导入</text>
+      </view>
+      <view class="arrow-icon">></view>
+    </button>
+    
+    <view wx:if="{{analyzing}}" class="loading-state">
+      <view class="loading-spinner"></view>
+      <text>正在分析食材特征...</text>
+    </view>
+  </view>
+</view>

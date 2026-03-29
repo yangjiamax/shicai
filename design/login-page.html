@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>识材 - 登录</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary-container": "#6b786c",
+                        "surface-bright": "#fcf9f8",
+                        "on-secondary-fixed-variant": "#3c4b2d",
+                        "surface": "#fcf9f8",
+                        "on-primary-container": "#f9ffec",
+                        "surface-container-highest": "#e4e2e1",
+                        "secondary": "#536343",
+                        "secondary-fixed-dim": "#bacda5",
+                        "on-surface-variant": "#44483e",
+                        "inverse-primary": "#b3cf9a",
+                        "error-container": "#ffdad6",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#d3e6bd",
+                        "tertiary-fixed-dim": "#bccabd",
+                        "surface-tint": "#4d653a",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#f3f0f0",
+                        "secondary-fixed": "#d6e9c0",
+                        "surface-dim": "#dcd9d9",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-container": "#f6fff4",
+                        "on-primary": "#ffffff",
+                        "on-background": "#1b1c1c",
+                        "tertiary": "#525f54",
+                        "surface-container-high": "#eae7e7",
+                        "inverse-surface": "#303030",
+                        "primary": "#4b6338",
+                        "on-secondary": "#ffffff",
+                        "surface-container": "#f0eded",
+                        "on-surface": "#1b1c1c",
+                        "on-secondary-fixed": "#111f06",
+                        "surface-variant": "#e4e2e1",
+                        "on-tertiary-fixed-variant": "#3d4a40",
+                        "on-primary-fixed": "#0c2000",
+                        "tertiary-fixed": "#d8e6d8",
+                        "background": "#fcf9f8",
+                        "on-secondary-container": "#576847",
+                        "on-primary-fixed-variant": "#364d24",
+                        "surface-container-low": "#f6f3f2",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#cfecb4",
+                        "primary-container": "#637c4e",
+                        "primary-fixed-dim": "#b3cf9a",
+                        "outline": "#74796d",
+                        "outline-variant": "#c4c8bb",
+                        "on-tertiary-fixed": "#131e16"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fcf9f8;
+            color: #1b1c1c;
+        }
+        .headline-font {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        /* Custom checkbox appearance for TDesign style */
+        .tdesign-checkbox:checked {
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex flex-col min-h-screen items-center justify-between p-8 selection:bg-primary-fixed selection:text-on-primary-fixed overflow-hidden">
+<!-- Top Area: Welcome Message -->
+<header class="w-full pt-12 text-center">
+<div class="inline-flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+<h1 class="headline-font text-3xl font-extrabold tracking-tight text-on-surface mb-2">欢迎来到识材</h1>
+<p class="text-on-surface-variant font-medium opacity-80">开启您的数字本草与食材探索之旅</p>
+</header>
+<!-- Middle Area: Brand Identity -->
+<main class="flex-grow flex flex-col items-center justify-center w-full max-w-sm">
+<div class="relative group">
+<!-- Decorative organic blob behind logo -->
+<div class="absolute -inset-8 bg-primary-fixed-dim/20 rounded-full blur-3xl opacity-60 group-hover:opacity-100 transition-opacity"></div>
+<div class="relative bg-surface-container-lowest p-8 rounded-[2rem] shadow-2xl shadow-on-surface/5 border border-outline-variant/10">
+<img alt="识材品牌标识" class="w-32 h-32 object-contain" data-alt="Minimalist modern logo of a playful cat integrated with a green leaf motif, professional vector style, clean lines, organic feel" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeZZx59O3tMUgPsdYAJShotnYLvTreVIJB9NX9L5uuucvxkXTcneBXd_WnVY95bEMU0ahgxNIaEujM5qMDvy41jxxG3YohyDfTyScYPZ-1jtNTNEplWBrIUPOlmBHFn67ue1NgfPbF8HFRSs9toCdkYzWhGGulKBKhS9YvHRTQrYZJOkANp2O6xFnTriugeMpft-IUNYonIeajATd0Dcy7HJtPYQLvzhvbGmcDbiL-Woa4mLwclbq1ZelDRfletswMJsnExy8EFqw"/>
+</div>
+<!-- Floating element for editorial feel -->
+<div class="absolute -bottom-4 -right-4 bg-secondary-container text-on-secondary-container px-4 py-2 rounded-full text-xs font-bold headline-font shadow-lg transform rotate-6 border border-white/20">
+                Botanical Archivist
+            </div>
+</div>
+</main>
+<!-- Bottom Area: Actions & Terms -->
+<footer class="w-full max-w-sm space-y-8 pb-8">
+<div class="flex flex-col gap-4">
+<!-- Primary WeChat Login Button -->
+<button class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-semibold py-4 rounded-xl shadow-xl shadow-primary/20 flex items-center justify-center gap-3 active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined text-xl">chat</span>
+<span class="tracking-wide">微信一键登录</span>
+</button>
+<!-- Ghost Button: Try Without Login -->
+<button class="w-full py-3 text-primary font-medium headline-font hover:bg-primary-fixed/30 rounded-xl transition-colors active:scale-95 text-sm">
+                暂不登录，直接使用
+            </button>
+</div>
+<!-- Privacy & Agreements -->
+<div class="flex items-start gap-3 px-4">
+<div class="relative flex items-center">
+<input class="tdesign-checkbox h-5 w-5 rounded-md border-outline-variant text-primary focus:ring-primary/20 transition-all cursor-pointer appearance-none checked:bg-primary checked:border-transparent border-2" id="terms" type="checkbox"/>
+</div>
+<label class="text-xs leading-relaxed text-on-surface-variant font-medium select-none cursor-pointer" for="terms">
+                我已阅读并同意
+                <a class="text-primary hover:underline underline-offset-2" href="#">用户协议</a>
+                和
+                <a class="text-primary hover:underline underline-offset-2" href="#">隐私政策</a>
+<span class="block mt-1 text-[10px] opacity-60 font-normal">识材致力于保护您的个人隐私与数据安全</span>
+</label>
+</div>
+</footer>
+<!-- Decorative background elements -->
+<div class="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary-fixed-dim/10 rounded-full blur-[100px] -z-10"></div>
+<div class="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary-fixed/10 rounded-full blur-[100px] -z-10"></div>
+</body></html>

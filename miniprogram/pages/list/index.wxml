@@ -1,0 +1,50 @@
+<view class="container">
+  <view wx:if="{{listData}}" class="list-card">
+    <view class="header">
+      <view class="title-group">
+        <text class="title">{{listData.ingredientName}}</text>
+        <view class="recipe-badge">
+          <image class="icon-restaurant" src="/images/icons/restaurant.svg" mode="aspectFit"></image>
+          <text>{{listData.recipeName}}</text>
+        </view>
+      </view>
+      <view class="subtitle-group">
+        <text class="subtitle">需要准备以下佐料</text>
+        <text class="hint-text">买一样，勾选一样</text>
+      </view>
+    </view>
+
+    <view class="ingredient-list">
+      <view 
+        wx:for="{{listData.ingredients}}" 
+        wx:key="index"
+        class="ingredient-item {{item.checked ? 'checked' : ''}}"
+        bindtap="toggleIngredient"
+        data-index="{{index}}">
+        <view class="item-content">
+          <view class="checkbox {{item.checked ? 'checkbox-checked' : ''}}">
+            <image wx:if="{{item.checked}}" class="check-icon" src="/images/icons/check.svg" mode="aspectFit"></image>
+          </view>
+          <text class="ingredient-name">{{item.name}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="action-bar" wx:if="{{listData}}">
+    <button class="btn-primary" open-type="share">
+      <image class="btn-icon" src="/images/icons/share.svg" mode="aspectFit"></image>
+      分享给家人
+    </button>
+    <button class="btn-secondary" bindtap="retry">
+      <image class="btn-icon" src="/images/icons/photo_camera.svg" mode="aspectFit"></image>
+      重新识别
+    </button>
+  </view>
+
+  <view class="clear-data-wrapper" wx:if="{{listData}}">
+    <button class="clear-btn" bindtap="clearData">
+      清除本地数据/退出登录
+    </button>
+  </view>
+</view>

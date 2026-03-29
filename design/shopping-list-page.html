@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>识材 SHI CAI - 采购清单</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-fixed-dim": "#b3cf9a",
+              "tertiary": "#7c4e68",
+              "tertiary-container": "#976682",
+              "inverse-primary": "#b3cf9a",
+              "secondary-container": "#d5e1c7",
+              "background": "#faf9f3",
+              "tertiary-fixed": "#ffd8eb",
+              "surface-tint": "#4d653a",
+              "on-primary-fixed-variant": "#364d24",
+              "secondary-fixed": "#dbe6cc",
+              "primary-container": "#637c4e",
+              "surface-container": "#efeee8",
+              "primary-fixed": "#cfecb4",
+              "on-tertiary-container": "#fffbff",
+              "outline": "#74796d",
+              "surface-container-lowest": "#ffffff",
+              "surface-dim": "#dbdad4",
+              "surface-container-highest": "#e3e3dc",
+              "secondary-fixed-dim": "#bfcab1",
+              "surface-container-high": "#e9e8e2",
+              "on-secondary-fixed": "#151e0e",
+              "secondary": "#57624d",
+              "on-secondary": "#ffffff",
+              "outline-variant": "#c4c8bb",
+              "on-primary-container": "#f9ffec",
+              "inverse-surface": "#30312d",
+              "on-background": "#1b1c18",
+              "on-surface-variant": "#44483e",
+              "on-secondary-fixed-variant": "#404a36",
+              "surface-variant": "#e3e3dc",
+              "on-tertiary": "#ffffff",
+              "error-container": "#ffdad6",
+              "primary": "#4b6338",
+              "error": "#ba1a1a",
+              "on-tertiary-fixed": "#320e26",
+              "surface": "#faf9f3",
+              "on-surface": "#1b1c18",
+              "on-tertiary-fixed-variant": "#643953",
+              "on-primary-fixed": "#0c2000",
+              "surface-bright": "#faf9f3",
+              "on-secondary-container": "#5a644f",
+              "surface-container-low": "#f5f4ed",
+              "on-error": "#ffffff",
+              "on-error-container": "#93000a",
+              "tertiary-fixed-dim": "#f0b6d5",
+              "on-primary": "#ffffff",
+              "inverse-on-surface": "#f2f1ea"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .checklist-item:checked + label {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+        .custom-checkbox:checked {
+            background-color: #4b6338;
+            border-color: #4b6338;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="bg-[#faf9f3] dark:bg-stone-950 docked full-width top-0 sticky z-50 no-border tonal-layering flat no shadows">
+<div class="flex items-center justify-between px-4 h-16 w-full max-w-screen-xl mx-auto">
+<button class="p-2 text-[#4b6338] dark:text-[#789262] hover:bg-[#f5f4ed] dark:hover:bg-stone-900 transition-colors rounded-full active:opacity-70 active:scale-95">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="text-xl font-extrabold tracking-tighter text-[#4b6338] dark:text-[#789262] font-['Plus_Jakarta_Sans']">识材 SHI CAI</h1>
+<button class="p-2 text-[#4b6338] dark:text-[#789262] hover:bg-[#f5f4ed] dark:hover:bg-stone-900 transition-colors rounded-full active:opacity-70 active:scale-95">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+</div>
+</header>
+<main class="max-w-screen-xl mx-auto px-4 pt-6">
+<!-- Hero Section: Recipe & Main Ingredient -->
+<section class="mb-8 relative overflow-hidden rounded-xl bg-surface-container-low p-6 flex flex-col md:flex-row gap-6 items-center">
+<div class="w-full md:w-1/3 aspect-[4/3] rounded-lg overflow-hidden relative">
+<img alt="Steamed Seabass" class="w-full h-full object-cover" data-alt="Gourmet presentation of a steamed seabass with ginger slivers and scallions on a clean white porcelain plate with soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMbxVCQGgandVBOxnZLJ1lwtngTsl7sVUtjRW2Wo8njlo9PlwDrZ3dH9HRC9Wq5yNXhIOsDJeMZBiKVDGvfsXAW2Ou67OsA00Eo_4GyZgR1eg5jYdN1PkcmrlYA_nzU6YDMmnW34a3zpbb-tr2v4WJtGwmXFYKA37fn_ocnlksLwBoCruC0HBo19VdBbfE2IYJ_WCP57BTNJLp4zbWXAWT-l8V6VY3eTXcdVTCPV1OjrjgPMXGGwnhQgmupKaPcuNZhngyn8IcvBM"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/40 to-transparent"></div>
+<div class="absolute bottom-3 left-3 flex items-center gap-2 bg-surface-container-lowest/80 backdrop-blur-md px-3 py-1 rounded-full">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="restaurant">restaurant</span>
+<span class="text-xs font-bold text-primary">清蒸鲈鱼</span>
+</div>
+</div>
+<div class="flex-1 space-y-3">
+<div class="inline-flex items-center px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant text-[10px] font-bold tracking-widest uppercase">
+                    Recipe Core
+                </div>
+<h2 class="text-3xl font-extrabold text-on-surface tracking-tight leading-tight">清蒸鲈鱼采购清单</h2>
+<p class="text-on-surface-variant leading-relaxed max-w-lg">
+                    主料：鲈鱼 (约 500g-600g)。挑选眼睛清亮、鳞片紧贴的鲜活鲈鱼以确保肉质清甜。
+                </p>
+<div class="flex gap-3 pt-2">
+<div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-outline-variant/20 shadow-sm">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="timer">timer</span>
+<span class="text-sm font-medium">15 分钟</span>
+</div>
+<div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-outline-variant/20 shadow-sm">
+<span class="material-symbols-outlined text-tertiary text-lg" data-icon="local_fire_department">local_fire_department</span>
+<span class="text-sm font-medium">低难度</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Checklist Section -->
+<section class="mb-10">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-xl font-bold text-on-surface flex items-center gap-2">
+<span class="w-1.5 h-6 bg-primary rounded-full"></span>
+                    佐料清单 (6)
+                </h3>
+<span class="text-xs font-medium text-on-surface-variant bg-surface-container-high px-3 py-1 rounded-full">已选中 0/6</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+<!-- Checkbox Item 1 -->
+<div class="group flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl hover:bg-white transition-all shadow-sm">
+<div class="flex items-center gap-4">
+<input class="checklist-item custom-checkbox w-6 h-6 rounded border-outline-variant text-primary focus:ring-primary/20 transition-all cursor-pointer" id="ing-1" type="checkbox"/>
+<label class="text-base font-semibold text-on-surface cursor-pointer select-none" for="ing-1">小葱 (一把)</label>
+</div>
+<span class="text-xs text-on-surface-variant font-medium">切丝/末</span>
+</div>
+<!-- Checkbox Item 2 -->
+<div class="group flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl hover:bg-white transition-all shadow-sm">
+<div class="flex items-center gap-4">
+<input class="checklist-item custom-checkbox w-6 h-6 rounded border-outline-variant text-primary focus:ring-primary/20 transition-all cursor-pointer" id="ing-2" type="checkbox"/>
+<label class="text-base font-semibold text-on-surface cursor-pointer select-none" for="ing-2">生姜 (一块)</label>
+</div>
+<span class="text-xs text-on-surface-variant font-medium">去腥</span>
+</div>
+<!-- Checkbox Item 3 -->
+<div class="group flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl hover:bg-white transition-all shadow-sm">
+<div class="flex items-center gap-4">
+<input class="checklist-item custom-checkbox w-6 h-6 rounded border-outline-variant text-primary focus:ring-primary/20 transition-all cursor-pointer" id="ing-3" type="checkbox"/>
+<label class="text-base font-semibold text-on-surface cursor-pointer select-none" for="ing-3">蒸鱼豉油</label>
+</div>
+<span class="text-xs text-on-surface-variant font-medium">提鲜关键</span>
+</div>
+<!-- Checkbox Item 4 -->
+<div class="group flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl hover:bg-white transition-all shadow-sm">
+<div class="flex items-center gap-4">
+<input class="checklist-item custom-checkbox w-6 h-6 rounded border-outline-variant text-primary focus:ring-primary/20 transition-all cursor-pointer" id="ing-4" type="checkbox"/>
+<label class="text-base font-semibold text-on-surface cursor-pointer select-none" for="ing-4">料酒</label>
+</div>
+<span class="text-xs text-on-surface-variant font-medium">腌制</span>
+</div>
+<!-- Checkbox Item 5 -->
+<div class="group flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl hover:bg-white transition-all shadow-sm">
+<div class="flex items-center gap-4">
+<input class="checklist-item custom-checkbox w-6 h-6 rounded border-outline-variant text-primary focus:ring-primary/20 transition-all cursor-pointer" id="ing-5" type="checkbox"/>
+<label class="text-base font-semibold text-on-surface cursor-pointer select-none" for="ing-5">食用油</label>
+</div>
+<span class="text-xs text-on-surface-variant font-medium">泼油</span>
+</div>
+<!-- Checkbox Item 6 -->
+<div class="group flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl hover:bg-white transition-all shadow-sm">
+<div class="flex items-center gap-4">
+<input class="checklist-item custom-checkbox w-6 h-6 rounded border-outline-variant text-primary focus:ring-primary/20 transition-all cursor-pointer" id="ing-6" type="checkbox"/>
+<label class="text-base font-semibold text-on-surface cursor-pointer select-none" for="ing-6">大蒜 (3瓣)</label>
+</div>
+<span class="text-xs text-on-surface-variant font-medium">可选</span>
+</div>
+</div>
+</section>
+<!-- Secondary Actions -->
+<section class="grid grid-cols-2 gap-4 mb-10">
+<button class="flex items-center justify-center gap-2 py-4 bg-surface-container-high text-on-secondary-container rounded-xl font-bold hover:bg-surface-dim transition-colors active:scale-95">
+<span class="material-symbols-outlined text-xl" data-icon="share">share</span>
+                分享给家人
+            </button>
+<button class="flex items-center justify-center gap-2 py-4 bg-surface-container-high text-on-secondary-container rounded-xl font-bold hover:bg-surface-dim transition-colors active:scale-95">
+<span class="material-symbols-outlined text-xl" data-icon="photo_camera">photo_camera</span>
+                重新识别
+            </button>
+</section>
+<!-- Cooking Tip Section -->
+<section class="bg-tertiary-fixed/30 rounded-2xl p-6 border-l-4 border-tertiary">
+<div class="flex items-start gap-4">
+<div class="bg-tertiary text-on-tertiary p-2 rounded-lg">
+<span class="material-symbols-outlined text-2xl" data-icon="lightbulb">lightbulb</span>
+</div>
+<div>
+<h4 class="text-lg font-bold text-on-tertiary-fixed mb-1">识材烹饪小贴士</h4>
+<p class="text-on-tertiary-fixed-variant leading-relaxed text-sm">
+                        如果没有蒸鱼豉油，可以使用<span class="font-bold underline decoration-tertiary/40">生抽 + 少许白糖</span>进行调味。此外，蒸鱼的水一定要倒掉，那是腥味的来源。
+                    </p>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 pb-safe pt-2 h-20 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md shadow-[0_-4px_20px_rgba(75,99,56,0.05)] rounded-t-2xl border-t border-stone-100 dark:border-stone-800">
+<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 px-4 py-1 hover:text-[#4b6338] dark:hover:text-[#789262] transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">首页</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#4b6338] dark:text-[#789262] font-semibold bg-[#f5f4ed] dark:bg-[#4b6338]/20 rounded-xl px-4 py-1 transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px]">历史</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 px-4 py-1 hover:text-[#4b6338] dark:hover:text-[#789262] transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium">我的</span>
+</a>
+</nav>
+</body></html>
