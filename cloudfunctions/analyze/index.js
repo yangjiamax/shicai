@@ -41,9 +41,12 @@ exports.main = async (event, context) => {
   try {
     const prompt = `你是一个专业的厨师和食材鉴定专家。请分析提供的食材图片。请返回一个纯JSON对象，包含以下字段：
 - "ingredient_name": (字符串) 食材名称。
-- "ingredient_desc": (字符串) 简短的食材描述或烹饪建议。
+- "ingredient_desc": (字符串) 纯客观的一句话简介（不包含任何死亡、腐败等新鲜度相关的细节）。
+- "taste": (字符串) 味道（如鲜甜、浓郁等）。
+- "texture": (字符串) 口感（如紧实、细嫩等）。
+- "similar": (字符串) 类似食材。请严格只输出1-3个常见的食材名词（如"龙眼"、"鲅鱼、秋刀鱼"），绝对不要包含"类似"、"口感像"等任何前缀修饰词！
 - "freshness_level": (字符串) 鲜度等级，例如 "新鲜"、"一般" 或 "不新鲜"。
-- "freshness_reason": (字符串) 基于图片视觉特征的鲜度判断理由。
+- "freshness_reason": (字符串) 基于图片视觉特征的鲜度判断理由（如果食材有死亡、腐败等细节，请务必放在此处描述）。
 - "recipes": (数组) 2-3个做法，每个对象包含 "recipe_name" (字符串，做法名称) 和 "ingredients_needed" (字符串数组，需要的佐料名称)。
 只返回JSON，不要包含任何其他说明文字，也不要用Markdown代码块包裹。`;
 
@@ -84,6 +87,9 @@ exports.main = async (event, context) => {
     return {
       ingredient_name: resultData.ingredient_name || '未知食材',
       ingredient_desc: resultData.ingredient_desc || '暂无描述',
+      taste: resultData.taste || '',
+      texture: resultData.texture || '',
+      similar: resultData.similar || '',
       freshness_level: resultData.freshness_level || '未知',
       freshness_reason: resultData.freshness_reason || '未能识别鲜度原因',
       recipes: Array.isArray(resultData.recipes) && resultData.recipes.length > 0 ? resultData.recipes : [

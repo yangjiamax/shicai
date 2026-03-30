@@ -2,7 +2,7 @@
   <!-- Header -->
   <view class="header">
     <text class="title">识材 SHI CAI</text>
-    <text class="subtitle">人间百味，新鲜才对</text>
+    <text class="subtitle">趣识百味，新鲜才对</text>
   </view>
 
   <view class="main-content">
@@ -18,7 +18,7 @@
           <image class="camera-icon" src="/images/icons/camera.svg" mode="aspectFit"></image>
         </view>
         <text class="camera-title">拍照识别</text>
-        <text class="camera-desc">快速了解食材的新鲜度与营养</text>
+        <text class="camera-desc">一眼识材 · 一秒辨鲜 · 一键成菜</text>
       </view>
     </view>
 
@@ -31,12 +31,14 @@
       <view class="arrow-icon">></view>
     </button>
     
-    <view wx:if="{{analyzing}}" class="loading-state">
-      <view class="loading-spinner"></view>
-      <text class="loading-text">正在分析食材特征...</text>
-      <view class="loading-hint">
-        <text class="hint-dot">•</text>
-        <text>大模型运行中，请等待15秒-30秒</text>
+    <view wx:if="{{analyzing}}" class="loading-overlay">
+      <view class="loading-content">
+        <view class="loading-spinner"></view>
+        <text class="loading-text">正在分析食材特征...</text>
+        <view class="loading-hint">
+          <text class="hint-dot">•</text>
+          <text>大模型运行中，请等待15秒-30秒</text>
+        </view>
       </view>
     </view>
   </view>

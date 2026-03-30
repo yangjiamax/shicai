@@ -2,13 +2,34 @@
   "pages": [
     "pages/index/index",
     "pages/result/index",
-    "pages/list/index"
+    "pages/list/index",
+    "pages/my/index"
   ],
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#ffffff",
     "navigationBarTitleText": "识材",
     "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#74796d",
+    "selectedColor": "#4b6338",
+    "backgroundColor": "#fcf9f8",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "images/icons/home.png",
+        "selectedIconPath": "images/icons/home.png"
+      },
+      {
+        "pagePath": "pages/my/index",
+        "text": "我的",
+        "iconPath": "images/icons/user.png",
+        "selectedIconPath": "images/icons/user.png"
+      }
+    ]
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json",

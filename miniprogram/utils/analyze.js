@@ -1,6 +1,9 @@
 const MOCK_DATA = {
   ingredient_name: "本地Mock鲈鱼",
   ingredient_desc: "适合清蒸，注意去腥",
+  taste: "鲜甜",
+  texture: "肉质细嫩，蒜瓣肉",
+  similar: "黑鱼",
   freshness_level: "新鲜",
   freshness_reason: "鱼眼清澈微凸，鱼身有光泽",
   recipes: [
@@ -36,7 +39,8 @@ function getMockResult() {
 async function analyzeImage(filePath, forceMock = false) {
   if (MODE === 'mock' || forceMock) {
     console.log('[Analyze] Using local mock data');
-    return await getMockResult();
+    const mockResult = await getMockResult();
+    return { ...mockResult, imagePath: filePath };
   }
 
   // 获取 userId
@@ -97,15 +101,28 @@ async function analyzeImage(filePath, forceMock = false) {
                 }
                 
                 const data = res.result;
+                
+                // 处理 similar 字段，防止模型仍然返回了带"类似"前缀的脏数据
+                let cleanSimilar = data.similar || '';
+                if (cleanSimilar) {
+                  // 移除开头的"类似"、"类似于"、"口感像"、"像"等词汇
+                  cleanSimilar = cleanSimilar.replace(/^(类似[于]?|口感[像]?|像)/, '').trim();
+                }
+
                 const result = {
                   ingredient_name: data.ingredient_name || '未知食材',
                   ingredient_desc: data.ingredient_desc || '暂无描述',
+                  taste: data.taste || '',
+                  texture: data.texture || '',
+                  similar: cleanSimilar,
                   freshness_level: data.freshness_level || '未知',
                   freshness_reason: data.freshness_reason || '未能识别鲜度原因',
                   recipes: Array.isArray(data.recipes) && data.recipes.length > 0 ? data.recipes.map(r => ({
                     recipe_name: r.recipe_name || '未知做法',
                     ingredients_needed: Array.isArray(r.ingredients_needed) ? r.ingredients_needed : ['未知佐料']
-                  })) : []
+                  })) : [],
+                  imagePath: targetPath,
+                  cloudImagePath: fileID
                 };
                 resolve(result);
               } else {

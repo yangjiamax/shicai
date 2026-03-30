@@ -32,19 +32,21 @@
   </view>
 
   <view class="action-bar" wx:if="{{listData}}">
+    <button class="btn-secondary btn-icon-only" bindtap="saveFavorite">
+      <image class="btn-icon-center" src="/images/icons/favorite{{isFavorite ? '_filled' : ''}}.svg" mode="aspectFit"></image>
+    </button>
     <button class="btn-primary" open-type="share">
       <image class="btn-icon" src="/images/icons/share.svg" mode="aspectFit"></image>
-      分享给家人
+      分享
     </button>
-    <button class="btn-secondary" bindtap="retry">
-      <image class="btn-icon" src="/images/icons/photo_camera.svg" mode="aspectFit"></image>
-      重新识别
+    <button class="btn-secondary btn-icon-only" bindtap="retry">
+      <image class="btn-icon-center" src="/images/icons/retry.svg" mode="aspectFit"></image>
     </button>
   </view>
 
   <view class="clear-data-wrapper" wx:if="{{listData}}">
     <button class="clear-btn" bindtap="clearData">
-      清除本地数据/退出登录
+      清除历史记录
     </button>
   </view>
 </view>

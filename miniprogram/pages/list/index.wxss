@@ -166,6 +166,16 @@ page {
   margin-right: 12rpx;
 }
 
+.btn-icon-center {
+  width: 44rpx;
+  height: 44rpx;
+}
+
+.btn-icon-only {
+  flex: 0.5;
+  padding: 0;
+}
+
 .btn-secondary {
   flex: 1;
   height: 100rpx;

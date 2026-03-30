@@ -20,6 +20,7 @@
 - 单次分析返回结构化结果（见接口约定）
 - 结果页选择一个做法并生成采购单
 - 采购单勾选与微信原生分享小程序卡片
+- 采购单收藏功能：允许用户收藏佐料清单到云端，可在"我的"页面查看
 - 提供「退出登录/清除本地数据」入口：清空本地缓存并重新建立会话（不涉及昵称头像/手机号等完整账号体系）
 
 ## 3. 暂不做（后续迭代）
@@ -43,13 +44,16 @@
 
 分析结果对象：
 
-- ingredient\_name：食材中文名
-- ingredient\_desc：一句话简介/提醒
-- freshness\_level：新鲜｜一般｜不太新鲜
-- freshness\_reason：1 句依据
+- ingredient_name：食材中文名
+- ingredient_desc：纯客观的一句话简介
+- taste：口味（如鲜甜、浓郁）
+- texture：口感（如紧实、细嫩）
+- similar：类似食材（作为认知锚点）
+- freshness_level：新鲜｜一般｜不太新鲜
+- freshness_reason：1 句依据（将腐败/死亡等细节限制在此处）
 - recipes：做法列表（2-3 个）
-  - recipe\_name：做法名
-  - ingredients\_needed：佐料数组（字符串）
+  - recipe_name：做法名
+  - ingredients_needed：佐料数组（字符串）
 
 ## 5.1 登录与退出（P0 口径）
 
@@ -109,7 +113,7 @@
 
 [采购单页]
   ├─ 展示：做法名、佐料清单（可勾选）
-  ├─ 点击「分享」-> 微信原生分享小程序卡片
+  ├─ 点击「分享」-> 微信原生分享小程序卡片（卡片标题动态包含菜名，点击卡片统一跳转至[结果页]还原上下文）
   ├─ 点击「更多/设置」（可选入口）-> 退出登录/清除本地数据
   └─ 点击「再拍一次」-> 回到首页
 ```
@@ -156,8 +160,10 @@
 ┌─────────────────────────────────┐
 │ ← 返回          识别结果          │
 ├─────────────────────────────────┤
-│ 食材：{ingredient_name}          │
-│ {ingredient_desc}                │
+│ [原图缩略图] 食材：{ingredient_name} │
+│ 简介：{ingredient_desc}          │
+│ 标签：口味 {taste} | 口感 {texture} │
+│      类似 {similar}              │
 ├─────────────────────────────────┤
 │ 鲜度：{freshness_level}          │
 │ 依据：{freshness_reason}         │
@@ -174,6 +180,10 @@
 │ │        生成佐料采购单         │ │
 │ └─────────────────────────────┘ │
 │  按钮区：重新拍/换图（可选）      │
+│                                 │
+│ * AI识别结果与新鲜度分析仅供参考，不 │
+│   作为食品安全及食用依据，请以实际情况 │
+│   为准。                          │
 └─────────────────────────────────┘
 ```
 
@@ -219,7 +229,10 @@
 ```json
 {
   "ingredient_name": "鲈鱼",
-  "ingredient_desc": "看眼睛和鱼鳃判断更准",
+  "ingredient_desc": "一种常见的淡水/海水食用鱼类。",
+  "taste": "鲜甜",
+  "texture": "肉质细嫩，蒜瓣肉",
+  "similar": "黑鱼",
   "freshness_level": "新鲜",
   "freshness_reason": "鱼眼清澈饱满，鱼鳃鲜红湿润",
   "recipes": [
@@ -267,9 +280,10 @@ App（全局）
     - recipe_name: string
     - ingredient_name: string
     - ingredients_needed: string[]
-    - checkedMap: { [item: string]: boolean }（默认全选或默认全不选二选一）
+    - checkedMap: { [item: string]: boolean }（默认全选或全不选二选一）
   action:
     - toggleItem(item) -> update checkedMap
+    - favorite() -> 收藏到云端 -> Toast提示成功
     - share() -> 微信分享（卡片内容用食材名+做法名）
     - retry() -> back to 首页
 ```
@@ -308,6 +322,11 @@ App（全局）
   Given：已完成一次识别流程
   When：点击「退出登录/清除本地数据」
   Then：本地缓存被清空 -> 可重新建立会话 -> 核心闭环仍可继续使用
+
+用例 07：收藏采购单
+  Given：已进入采购单页
+  When：点击「收藏」按钮
+  Then：Toast提示"已收藏" -> 数据写入云端 -> 可返回首页或留在当前页面
 ```
 
 ---
@@ -356,5 +375,13 @@ App（全局）
 - `imageUrl`: string (原图/缩略图云存储 ID，可选)
 - `ingredient_name`: string (食材名)
 - `selected_recipe`: object (选中的做法和佐料)
+- `createdAt`: Date
+
+**Favorites 集合 (`favorites`)**：
+- `_id`: string (记录唯一 ID)
+- `userId`: string (关联用户)
+- `ingredient_name`: string (食材名)
+- `recipe_name`: string (做法名)
+- `ingredients_needed`: array (佐料数组，用户勾选后的结果)
 - `createdAt`: Date
 

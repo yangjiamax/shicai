@@ -20,11 +20,16 @@ page {
   padding: 40rpx;
 }
 
-.ingredient-header {
+.ingredient-header-wrap {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.ingredient-header-left {
+  flex: 1;
+  padding-right: 20rpx;
 }
 
 .ingredient-name {
@@ -32,33 +37,52 @@ page {
   font-weight: 800;
   color: #1b1c1c;
   letter-spacing: -0.5px;
-}
-
-.confidence-badge {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  background: rgba(75, 99, 56, 0.1);
-  padding: 8rpx 20rpx;
-  border-radius: 100rpx;
-}
-
-.icon-verified {
-  width: 24rpx;
-  height: 24rpx;
-}
-
-.confidence-badge text {
-  font-size: 20rpx;
-  color: #4b6338;
-  font-weight: bold;
+  margin-bottom: 12rpx;
+  display: block;
 }
 
 .ingredient-desc {
   font-size: 28rpx;
   color: #44483e;
-  line-height: 1.6;
+  line-height: 1.5;
   display: block;
+}
+
+.ingredient-thumb {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 20rpx;
+  background-color: #f6f3f2;
+  flex-shrink: 0;
+}
+
+.ingredient-features {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  background: #fcf9f8;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  margin-top: 16rpx;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  font-size: 28rpx;
+  line-height: 1.5;
+}
+
+.feature-label {
+  color: #74796d;
+  flex-shrink: 0;
+  width: 90rpx;
+  font-weight: 500;
+}
+
+.feature-value {
+  color: #1b1c1c;
+  flex: 1;
 }
 
 /* Analysis Section */
@@ -262,6 +286,16 @@ page {
   margin-right: 12rpx;
 }
 
+.btn-icon-center {
+  width: 44rpx;
+  height: 44rpx;
+}
+
+.btn-icon-only {
+  flex: 0.5;
+  padding: 0;
+}
+
 .btn-secondary {
   flex: 1;
   height: 100rpx;
@@ -310,4 +344,15 @@ page {
   color: #ba1a1a;
   display: block;
   margin-bottom: 40rpx;
+}
+
+.disclaimer {
+  padding: 0 40rpx 40rpx;
+}
+
+.disclaimer text {
+  font-size: 22rpx;
+  color: #999999;
+  line-height: 1.5;
+  display: block;
 }

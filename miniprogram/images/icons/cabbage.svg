@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Back leaves (Darkest theme color) -->
+  <path d="M40 18 C25 20 15 35 15 50 C15 65 25 80 40 85 C30 75 25 60 30 45 C35 30 45 20 60 15 C55 12 45 15 40 18 Z" fill="#4b6338" />
+  <path d="M60 18 C75 20 85 35 85 50 C85 65 75 80 60 85 C70 75 75 60 70 45 C65 30 55 20 40 15 C45 12 55 15 60 18 Z" fill="#4b6338" />
+  <path d="M20 50 C20 70 35 85 50 88 C65 85 80 70 80 50 C80 30 65 15 50 15 C35 15 20 30 20 50 Z" fill="#4b6338" opacity="0.9" />
+  
+  <!-- Main leaf body (Lighter theme color) -->
+  <path d="M25 50 C25 35 38 22 50 22 C62 22 75 35 75 50 C75 65 62 82 50 82 C38 82 25 65 25 50 Z" fill="#74796d" />
+  
+  <!-- Inner leaf highlight (Even lighter theme color) -->
+  <path d="M30 50 C30 40 40 30 50 30 C60 30 70 40 70 50 C70 60 60 75 50 75 C40 75 30 60 30 50 Z" fill="#c4c8bb" />
+  
+  <!-- Veins (White or lightest color) -->
+  <path d="M50 72 L50 35 M40 45 L50 55 M60 45 L50 55 M42 60 L50 65 M58 60 L50 65" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+</svg>

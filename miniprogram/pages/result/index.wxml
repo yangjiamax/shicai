@@ -1,14 +1,28 @@
 <view class="container">
   <view wx:if="{{result}}" class="result-card">
     <view class="ingredient-info">
-      <view class="ingredient-header">
-        <text class="ingredient-name">{{result.ingredient_name}}</text>
-        <view class="confidence-badge">
-          <image class="icon-verified" src="/images/icons/verified.svg" mode="aspectFit"></image>
-          <text>高置信度</text>
+      <view class="ingredient-header-wrap">
+        <view class="ingredient-header-left">
+          <text class="ingredient-name">{{result.ingredient_name}}</text>
+          <text class="ingredient-desc">{{result.ingredient_desc}}</text>
+        </view>
+        <image class="ingredient-thumb" wx:if="{{result.imagePath}}" src="{{result.imagePath}}" mode="aspectFill" bindtap="previewImage"></image>
+      </view>
+      
+      <view class="ingredient-features" wx:if="{{result.taste || result.texture || result.similar}}">
+        <view class="feature-item" wx:if="{{result.taste}}">
+          <text class="feature-label">味道：</text>
+          <text class="feature-value">{{result.taste}}</text>
+        </view>
+        <view class="feature-item" wx:if="{{result.texture}}">
+          <text class="feature-label">口感：</text>
+          <text class="feature-value">{{result.texture}}</text>
+        </view>
+        <view class="feature-item" wx:if="{{result.similar}}">
+          <text class="feature-label">类似：</text>
+          <text class="feature-value">{{result.similar}}</text>
         </view>
       </view>
-      <text class="ingredient-desc">{{result.ingredient_desc}}</text>
     </view>
 
     <view class="analysis-section">
@@ -59,9 +73,13 @@
         <image class="btn-icon" src="/images/icons/shopping_cart.svg" mode="aspectFit"></image>
         生成佐料采购单
       </button>
-      <button class="btn-secondary" bindtap="retry">
-        重新识别
+      <button class="btn-secondary btn-icon-only" bindtap="retry">
+        <image class="btn-icon-center" src="/images/icons/retry.svg" mode="aspectFit"></image>
       </button>
+    </view>
+
+    <view class="disclaimer" wx:if="{{result.recipes && result.recipes.length > 0}}">
+      <text>* AI识别结果与新鲜度分析仅供参考，不作为食品安全及食用依据，请以实际情况为准。</text>
     </view>
 
     <view class="incomplete-state" wx:else>
