@@ -1,5 +1,5 @@
 {
-  "description": "PinFresh 识材 MVP",
+  "description": "真菜 MVP",
   "packOptions": {
     "ignore": [],
     "include": []
@@ -33,7 +33,7 @@
   "compileType": "miniprogram",
   "libVersion": "3.6.5",
   "appid": "wx53bc95eb695a3ab2",
-  "projectname": "PinFresh-识材",
+  "projectname": "真菜",
   "miniprogramRoot": "miniprogram/",
   "cloudfunctionRoot": "cloudfunctions/",
   "simulatorPluginLibVersion": {},

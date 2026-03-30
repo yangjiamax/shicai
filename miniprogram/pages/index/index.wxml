@@ -1,8 +1,8 @@
 <view class="container">
   <!-- Header -->
   <view class="header">
-    <text class="title">识材 SHI CAI</text>
-    <text class="subtitle">趣识百味，新鲜才对</text>
+    <text class="title">真菜</text>
+    <text class="subtitle">买菜不懂用真菜</text>
   </view>
 
   <view class="main-content">
@@ -18,7 +18,7 @@
           <image class="camera-icon" src="/images/icons/camera.svg" mode="aspectFit"></image>
         </view>
         <text class="camera-title">拍照识别</text>
-        <text class="camera-desc">一眼识材 · 一秒辨鲜 · 一键成菜</text>
+        <text class="camera-desc">一眼识菜 · 一秒辨鲜 · 一键成菜</text>
       </view>
     </view>
 
