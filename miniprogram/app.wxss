@@ -1,5 +1,6 @@
 page {
   background: #f5f5f5;
+  word-break: break-word; /* M14: 全局防止英文长文本溢出 */
 }
 
 .container {

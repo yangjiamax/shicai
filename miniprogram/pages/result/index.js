@@ -5,10 +5,12 @@ Page({
     result: null,
     selectedIndex: 0,
     selectedIngredients: [],
-    importedListData: null
+    importedListData: null,
+    i18n: {}
   },
 
   onLoad(options) {
+    this.setData({ i18n: app.globalData.i18n });
     if (options.data) {
       let data;
       try {
@@ -48,7 +50,7 @@ Page({
         resultData.recipes = resultData.recipes.map(recipe => {
           if (recipe.ingredients_needed && Array.isArray(recipe.ingredients_needed)) {
             const top3 = recipe.ingredients_needed.slice(0, 3).join('、');
-            const suffix = recipe.ingredients_needed.length > 3 ? '等' : '';
+            const suffix = recipe.ingredients_needed.length > 3 ? app.t('res_etc') : '';
             recipe.ingredients_summary = top3 + suffix;
           } else {
             recipe.ingredients_summary = '';
@@ -71,6 +73,11 @@ Page({
       }
       this.updateSelectedIngredients(initialIndex);
     }
+  },
+
+  onShow() {
+    this.setData({ i18n: app.globalData.i18n });
+    wx.setNavigationBarTitle({ title: app.t('page_title_result') });
   },
 
   updateSelectedIngredients(index) {

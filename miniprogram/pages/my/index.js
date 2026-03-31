@@ -7,10 +7,23 @@ Page({
     histories: [],
     showLoginPrompt: true,
     isAnonymous: false,
-    loadError: false
+    loadError: false,
+    i18n: {}
+  },
+
+  onLoad() {
+    this.setData({ i18n: app.globalData.i18n });
   },
 
   onShow() {
+    this.setData({ i18n: app.globalData.i18n });
+    wx.setNavigationBarTitle({ title: app.t('my_title') });
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      // custom tabbar logic if any
+    } else {
+      wx.setTabBarItem({ index: 0, text: app.t('tab_home') });
+      wx.setTabBarItem({ index: 1, text: app.t('tab_my') });
+    }
     this.checkAuthSource();
     this.loadUserData();
   },
@@ -109,13 +122,13 @@ Page({
     
     const authSource = app.globalData.authSource || wx.getStorageSync('pf_auth_source');
     if (authSource !== 'cloud_openid') {
-      wx.showToast({ title: '请开启云服务以保存个人信息', icon: 'none' });
+      wx.showToast({ title: app.t('my_err_cloud_user'), icon: 'none' });
       this.setData({ 'userInfo.avatar': tempAvatarUrl });
       this.saveUserInfoLocal();
       return;
     }
 
-    wx.showLoading({ title: '上传头像中...' });
+    wx.showLoading({ title: app.t('my_uploading_avatar') });
     try {
       const userId = app.globalData.userId || wx.getStorageSync('pf_user_id');
       const ext = tempAvatarUrl.match(/\.([^.]+)$/)?.[1] || 'png';
@@ -131,11 +144,11 @@ Page({
       this.saveUserInfoLocal();
       
       wx.hideLoading();
-      wx.showToast({ title: '头像上传成功', icon: 'success' });
+      wx.showToast({ title: app.t('my_upload_avatar_success'), icon: 'success' });
     } catch (err) {
       console.error('[My] Upload avatar failed:', err);
       wx.hideLoading();
-      wx.showToast({ title: '上传失败，请重试', icon: 'none' });
+      wx.showToast({ title: app.t('my_upload_avatar_fail'), icon: 'none' });
       // 降级使用本地临时路径
       this.setData({ 'userInfo.avatar': tempAvatarUrl });
       this.saveUserInfoLocal();
@@ -149,21 +162,21 @@ Page({
   async saveNickname() {
     const authSource = app.globalData.authSource || wx.getStorageSync('pf_auth_source');
     if (authSource !== 'cloud_openid') {
-      wx.showToast({ title: '请开启云服务以保存个人信息', icon: 'none' });
+      wx.showToast({ title: app.t('my_err_cloud_user'), icon: 'none' });
       this.saveUserInfoLocal();
       return;
     }
 
-    wx.showLoading({ title: '保存中...' });
+    wx.showLoading({ title: app.t('my_saving_nickname') });
     try {
       await this.saveUserInfoToCloud();
       this.saveUserInfoLocal();
       wx.hideLoading();
-      wx.showToast({ title: '保存成功', icon: 'success' });
+      wx.showToast({ title: app.t('my_save_nickname_success'), icon: 'success' });
     } catch (err) {
       console.error('[My] Save nickname failed:', err);
       wx.hideLoading();
-      wx.showToast({ title: '保存失败，请重试', icon: 'none' });
+      wx.showToast({ title: app.t('my_save_nickname_fail'), icon: 'none' });
       this.saveUserInfoLocal();
     }
   },
@@ -247,11 +260,11 @@ Page({
 
   clearLocalData() {
     wx.showModal({
-      title: '清除历史记录',
-      content: '确定清除所有历史记录吗？此操作不可恢复。',
+      title: app.t('my_clear_title'),
+      content: app.t('my_clear_confirm'),
       success: async (res) => {
         if (res.confirm) {
-          wx.showLoading({ title: '清除中...', mask: true });
+          wx.showLoading({ title: app.t('my_clearing'), mask: true });
           try {
             if (!wx.cloud) throw new Error('Cloud not initialized');
             const db = wx.cloud.database();
@@ -271,11 +284,11 @@ Page({
             
             this.setData({ histories: [] });
             wx.hideLoading();
-            wx.showToast({ title: '已清除', icon: 'success' });
+            wx.showToast({ title: app.t('my_clear_success'), icon: 'success' });
           } catch (err) {
             console.error('[My] Clear histories failed:', err);
             wx.hideLoading();
-            wx.showToast({ title: '清除失败', icon: 'none' });
+            wx.showToast({ title: app.t('my_clear_fail'), icon: 'none' });
           }
         }
       }

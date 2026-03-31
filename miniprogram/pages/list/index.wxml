@@ -9,8 +9,8 @@
         </view>
       </view>
       <view class="subtitle-group">
-        <text class="subtitle">需要准备以下佐料</text>
-        <text class="hint-text">买一样，勾选一样</text>
+        <text class="subtitle">{{i18n.list_subtitle}}</text>
+        <text class="hint-text">{{i18n.list_hint}}</text>
       </view>
     </view>
 
@@ -37,7 +37,7 @@
     </button>
     <button class="btn-primary" open-type="share">
       <image class="btn-icon" src="/images/icons/share.svg" mode="aspectFit"></image>
-      分享
+      {{i18n.list_share}}
     </button>
     <button class="btn-secondary btn-icon-only" bindtap="retry">
       <image class="btn-icon-center" src="/images/icons/retry.svg" mode="aspectFit"></image>
@@ -46,7 +46,7 @@
 
   <view class="clear-data-wrapper" wx:if="{{listData}}">
     <button class="clear-btn" bindtap="clearData">
-      清除历史记录
+      {{i18n.list_clear}}
     </button>
   </view>
 </view>

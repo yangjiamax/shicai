@@ -6,7 +6,7 @@ cloud.init({
 });
 
 exports.main = async (event, context) => {
-  const { imageBase64, fileID, userId, source } = event;
+  const { imageBase64, fileID, userId, source, lang = 'zh' } = event;
   
   let finalBase64 = imageBase64;
 
@@ -39,7 +39,20 @@ exports.main = async (event, context) => {
   }
 
   try {
-    const prompt = `你是一个专业的厨师和食材鉴定专家。请分析提供的食材图片。请返回一个纯JSON对象，包含以下字段：
+    let prompt = '';
+    if (lang === 'en') {
+      prompt = `You are a professional chef and ingredient identification expert. Please analyze the provided ingredient image. Please return a pure JSON object containing the following fields:
+- "ingredient_name": (String) Name of the ingredient.
+- "ingredient_desc": (String) A purely objective one-sentence brief description (do not include any freshness-related details like death or decay).
+- "taste": (String) Taste (e.g., fresh and sweet, rich, etc.).
+- "texture": (String) Texture (e.g., firm, tender, etc.).
+- "similar": (String) Similar ingredients. Please strictly output ONLY 1-3 common ingredient nouns (e.g., "Longan", "Mackerel, Saury"), absolutely DO NOT include any prefix modifiers like "similar to", "tastes like", etc.!
+- "freshness_level": (String) Freshness level, e.g., "Fresh", "Average", or "Not fresh".
+- "freshness_reason": (String) Reason for freshness judgment based on visual features in the image (if the ingredient has details of death or decay, please describe it here).
+- "recipes": (Array) 2-3 recipes, each object contains "recipe_name" (String, name of the recipe) and "ingredients_needed" (Array of Strings, names of seasonings/ingredients needed).
+Return ONLY JSON, do not include any other explanatory text, and do not wrap it in Markdown code blocks. Output ALL content in English. DO NOT mix any Chinese characters.`;
+    } else {
+      prompt = `你是一个专业的厨师和食材鉴定专家。请分析提供的食材图片。请返回一个纯JSON对象，包含以下字段：
 - "ingredient_name": (字符串) 食材名称。
 - "ingredient_desc": (字符串) 纯客观的一句话简介（不包含任何死亡、腐败等新鲜度相关的细节）。
 - "taste": (字符串) 味道（如鲜甜、浓郁等）。
@@ -48,7 +61,8 @@ exports.main = async (event, context) => {
 - "freshness_level": (字符串) 鲜度等级，例如 "新鲜"、"一般" 或 "不新鲜"。
 - "freshness_reason": (字符串) 基于图片视觉特征的鲜度判断理由（如果食材有死亡、腐败等细节，请务必放在此处描述）。
 - "recipes": (数组) 2-3个做法，每个对象包含 "recipe_name" (字符串，做法名称) 和 "ingredients_needed" (字符串数组，需要的佐料名称)。
-只返回JSON，不要包含任何其他说明文字，也不要用Markdown代码块包裹。`;
+只返回JSON，不要包含任何其他说明文字，也不要用Markdown代码块包裹。所有内容请用中文输出。`;
+    }
 
     // 增加超时控制
     const response = await axios.post(apiUrl, {
@@ -85,15 +99,15 @@ exports.main = async (event, context) => {
 
     // 字段兜底补齐
     return {
-      ingredient_name: resultData.ingredient_name || '未知食材',
-      ingredient_desc: resultData.ingredient_desc || '暂无描述',
+      ingredient_name: resultData.ingredient_name || (lang === 'en' ? 'Unknown Ingredient' : '未知食材'),
+      ingredient_desc: resultData.ingredient_desc || (lang === 'en' ? 'No description' : '暂无描述'),
       taste: resultData.taste || '',
       texture: resultData.texture || '',
       similar: resultData.similar || '',
-      freshness_level: resultData.freshness_level || '未知',
-      freshness_reason: resultData.freshness_reason || '未能识别鲜度原因',
+      freshness_level: resultData.freshness_level || (lang === 'en' ? 'Unknown' : '未知'),
+      freshness_reason: resultData.freshness_reason || (lang === 'en' ? 'Unable to recognize freshness reason' : '未能识别鲜度原因'),
       recipes: Array.isArray(resultData.recipes) && resultData.recipes.length > 0 ? resultData.recipes : [
-        { recipe_name: '简单清炒', ingredients_needed: ['油', '盐'] }
+        { recipe_name: (lang === 'en' ? 'Simple Stir-fry' : '简单清炒'), ingredients_needed: (lang === 'en' ? ['Oil', 'Salt'] : ['油', '盐']) }
       ]
     };
     

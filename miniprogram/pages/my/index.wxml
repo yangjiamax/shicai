@@ -9,36 +9,36 @@
       <input
         class="nickname-input"
         type="nickname"
-        placeholder="{{showLoginPrompt ? '点击设置昵称' : '请输入昵称'}}"
+        placeholder="{{showLoginPrompt ? i18n.my_set_nickname : i18n.my_input_nickname}}"
         value="{{userInfo.nickname || ''}}"
         bindinput="onNicknameInput"
         bindblur="saveNickname"
       />
     </view>
     <view wx:if="{{showLoginPrompt}}" class="login-tip">
-      <text>点击上方头像和昵称即可登录</text>
+      <text>{{i18n.my_login_tip}}</text>
     </view>
   </view>
 
   <view class="history-section">
     <view class="section-header">
-      <text class="section-title">历史记录</text>
+      <text class="section-title">{{i18n.my_history_title}}</text>
     </view>
     
     <view wx:if="{{isAnonymous}}" class="empty-state">
       <view class="empty-icon">☁️</view>
-      <text class="empty-text">请开启云服务以保存历史</text>
-      <text class="empty-hint">当前为本地体验模式</text>
+      <text class="empty-text">{{i18n.my_cloud_tip}}</text>
+      <text class="empty-hint">{{i18n.my_local_mode}}</text>
     </view>
     <view wx:elif="{{loadError}}" class="empty-state">
       <view class="empty-icon">📶</view>
-      <text class="empty-text">网络好像开小差了</text>
-      <text class="empty-hint">请检查网络后重试</text>
+      <text class="empty-text">{{i18n.my_network_error}}</text>
+      <text class="empty-hint">{{i18n.my_network_retry}}</text>
     </view>
     <view wx:elif="{{histories.length === 0}}" class="empty-state">
       <image class="empty-icon-img" src="/images/icons/empty-vegetable.svg" mode="aspectFit"></image>
-      <text class="empty-text">暂无识别记录</text>
-      <text class="empty-hint">去拍个食材试试看吧～</text>
+      <text class="empty-text">{{i18n.my_empty_title}}</text>
+      <text class="empty-hint">{{i18n.my_empty_desc}}</text>
     </view>
 
     <view wx:else class="history-list">
@@ -65,7 +65,7 @@
 
   <view class="footer-section">
     <view class="clear-btn" bindtap="clearLocalData">
-      <text class="clear-btn-text">清除历史记录</text>
+      <text class="clear-btn-text">{{i18n.my_clear_btn}}</text>
     </view>
   </view>
 </view>

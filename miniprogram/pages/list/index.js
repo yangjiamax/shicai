@@ -4,18 +4,25 @@ Page({
   data: {
     listData: null,
     shareTitle: '',
-    isFavorite: false
+    isFavorite: false,
+    i18n: {}
   },
 
   onLoad(options) {
+    this.setData({ i18n: app.globalData.i18n });
     if (options.data) {
       const data = JSON.parse(decodeURIComponent(options.data));
       this.setData({ 
         listData: data,
-        shareTitle: `${data.ingredientName} - ${data.recipeName} 佐料`
+        shareTitle: app.t('list_share_title').replace('{recipe}', data.recipeName)
       });
       this.checkFavoriteStatus(data);
     }
+  },
+
+  onShow() {
+    this.setData({ i18n: app.globalData.i18n });
+    wx.setNavigationBarTitle({ title: app.t('list_title') });
   },
 
   async checkFavoriteStatus(data) {
@@ -43,7 +50,7 @@ Page({
   async saveFavorite() {
     const authSource = app.globalData.authSource || wx.getStorageSync('pf_auth_source');
     if (authSource !== 'cloud_openid' || !wx.cloud) {
-      wx.showToast({ title: '请开启云服务以保存记录', icon: 'none' });
+      wx.showToast({ title: app.t('err_cloud_save'), icon: 'none' });
       return;
     }
 
@@ -51,7 +58,7 @@ Page({
     
     // 如果已收藏，则点击取消收藏（从 histories 删除）
     if (this.data.isFavorite && this.data.favoriteId) {
-      wx.showLoading({ title: '取消中...' });
+      wx.showLoading({ title: app.t('list_canceling') });
       try {
         await db.collection('histories').doc(this.data.favoriteId).remove();
         this.setData({ 
@@ -59,17 +66,17 @@ Page({
           favoriteId: null
         });
         wx.hideLoading();
-        wx.showToast({ title: '已取消保存', icon: 'success' });
+        wx.showToast({ title: app.t('list_cancel_success'), icon: 'success' });
       } catch (err) {
         console.error('[List] Remove history failed:', err);
         wx.hideLoading();
-        wx.showToast({ title: '取消失败，请重试', icon: 'none' });
+        wx.showToast({ title: app.t('list_cancel_fail'), icon: 'none' });
       }
       return;
     }
 
     // 未收藏则添加至 histories
-    wx.showLoading({ title: '保存中...' });
+    wx.showLoading({ title: app.t('list_saving') });
     try {
       const data = this.data.listData;
       const res = await db.collection('histories').add({
@@ -91,11 +98,11 @@ Page({
       });
       wx.hideLoading();
       
-      wx.showToast({ title: '已保存至历史记录', icon: 'success' });
+      wx.showToast({ title: app.t('list_save_success'), icon: 'success' });
     } catch (err) {
       console.error('[List] Save history failed:', err);
       wx.hideLoading();
-      wx.showToast({ title: '保存失败，请重试', icon: 'none' });
+      wx.showToast({ title: app.t('list_save_fail'), icon: 'none' });
     }
   },
 
@@ -119,8 +126,8 @@ Page({
                       : ((data.analysisResult && data.analysisResult.imagePath) ? data.analysisResult.imagePath : undefined);
     
     return {
-      title: `今晚准备做【${data.recipeName}】，快来看看需要买什么！`,
-      desc: `需要：${checkedItems.join('、')}`,
+      title: app.t('list_share_title').replace('{recipe}', data.recipeName),
+      desc: app.t('list_share_desc') + checkedItems.join('、'),
       path: `/pages/result/index?shared=1&data=${shareData}`,
       imageUrl: imageUrl
     };
@@ -134,11 +141,11 @@ Page({
 
   clearData() {
     wx.showModal({
-      title: '清除历史记录',
-      content: '确定清除所有历史记录吗？此操作不可恢复。',
+      title: app.t('list_clear_title'),
+      content: app.t('list_clear_confirm'),
       success: async (res) => {
         if (res.confirm) {
-          wx.showLoading({ title: '清除中...', mask: true });
+          wx.showLoading({ title: app.t('list_clearing'), mask: true });
           try {
             if (!wx.cloud) throw new Error('Cloud not initialized');
             const db = wx.cloud.database();
@@ -160,11 +167,11 @@ Page({
               this.setData({ isFavorite: false, favoriteId: null });
             }
             wx.hideLoading();
-            wx.showToast({ title: '已清除', icon: 'success' });
+            wx.showToast({ title: app.t('list_clear_success'), icon: 'success' });
           } catch (err) {
             console.error('[List] Clear histories failed:', err);
             wx.hideLoading();
-            wx.showToast({ title: '清除失败', icon: 'none' });
+            wx.showToast({ title: app.t('list_clear_fail'), icon: 'none' });
           }
         }
       }
