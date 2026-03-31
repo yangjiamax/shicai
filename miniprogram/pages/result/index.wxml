@@ -11,15 +11,15 @@
       
       <view class="ingredient-features" wx:if="{{result.taste || result.texture || result.similar}}">
         <view class="feature-item" wx:if="{{result.taste}}">
-          <text class="feature-label">{{i18n.res_taste}}：</text>
+          <text class="feature-label">{{i18n.res_taste}}</text>
           <text class="feature-value">{{result.taste}}</text>
         </view>
         <view class="feature-item" wx:if="{{result.texture}}">
-          <text class="feature-label">{{i18n.res_texture}}：</text>
+          <text class="feature-label">{{i18n.res_texture}}</text>
           <text class="feature-value">{{result.texture}}</text>
         </view>
         <view class="feature-item" wx:if="{{result.similar}}">
-          <text class="feature-label">{{i18n.res_similar}}：</text>
+          <text class="feature-label">{{i18n.res_similar}}</text>
           <text class="feature-value">{{result.similar}}</text>
         </view>
       </view>
@@ -70,8 +70,10 @@
 
     <view class="action-bar" wx:if="{{result.recipes && result.recipes.length > 0}}">
       <button class="btn-primary" bindtap="generateList">
-        <image class="btn-icon" src="/images/icons/shopping_cart.svg" mode="aspectFit"></image>
-        {{i18n.res_generate_list}}
+        <view class="btn-content">
+          <image class="btn-icon" src="/images/icons/shopping_cart.svg" mode="aspectFit"></image>
+          <text>{{i18n.res_generate_list}}</text>
+        </view>
       </button>
       <button class="btn-secondary btn-icon-only" bindtap="retry">
         <image class="btn-icon-center" src="/images/icons/retry.svg" mode="aspectFit"></image>

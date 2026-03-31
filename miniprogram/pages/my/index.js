@@ -17,6 +17,12 @@ Page({
 
   onShow() {
     this.setData({ i18n: app.globalData.i18n });
+    this.updateTabBarAndTitle();
+    this.checkAuthSource();
+    this.loadUserData();
+  },
+
+  updateTabBarAndTitle() {
     wx.setNavigationBarTitle({ title: app.t('my_title') });
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       // custom tabbar logic if any
@@ -24,8 +30,26 @@ Page({
       wx.setTabBarItem({ index: 0, text: app.t('tab_home') });
       wx.setTabBarItem({ index: 1, text: app.t('tab_my') });
     }
-    this.checkAuthSource();
-    this.loadUserData();
+  },
+
+  switchLanguage() {
+    const itemList = [
+      app.t('lang_system') || '跟随系统',
+      app.t('lang_zh') || '简体中文',
+      app.t('lang_en') || 'English'
+    ];
+    const modes = ['system', 'zh', 'en'];
+    
+    wx.showActionSheet({
+      itemList,
+      success: (res) => {
+        const mode = modes[res.tapIndex];
+        app.switchLanguage(mode);
+        // 更新当前页面
+        this.setData({ i18n: app.globalData.i18n });
+        this.updateTabBarAndTitle();
+      }
+    });
   },
 
   checkAuthSource() {
@@ -104,9 +128,14 @@ Page({
           const minutes = d.getMinutes().toString().padStart(2, '0');
           dateStr = `${month}-${day} ${hours}:${minutes}`;
         }
+        let initial = '';
+        if (item.ingredient_name) {
+          initial = item.ingredient_name.trim().charAt(0);
+        }
         return {
           ...item,
-          formattedDate: dateStr
+          formattedDate: dateStr,
+          initial
         };
       });
 

@@ -158,7 +158,6 @@ page {
   align-items: center;
   justify-content: center;
   gap: 16rpx;
-  padding-right: 60rpx; /* 图标(44rpx) + gap(16rpx) = 60rpx，用来抵消左侧图标占据的空间，使文字在按钮中绝对居中 */
 }
 
 .album-icon {
@@ -225,22 +224,11 @@ page {
 }
 
 .loading-hint {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8rpx;
-  margin-top: 4rpx;
-}
-
-.hint-dot {
   font-size: 24rpx;
-  color: #8b9285;
-}
-
-.loading-hint text:last-child {
-  font-size: 24rpx;
-  color: #8b9285;
-  font-weight: 400;
+  color: #a0a59a;
+  text-align: center;
+  max-width: 460rpx;
+  line-height: 1.5;
 }
 
 @keyframes spin {

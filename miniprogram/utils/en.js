@@ -1,19 +1,19 @@
 module.exports = {
   // Global
-  app_name: 'GroGour',
-  app_slogan: 'Gourmet in Grocery',
+  app_name: 'Mercadista',
+  app_slogan: 'Elevate Your Everyday Market Finds',
   lang_switch: '中',
   tab_home: 'Home',
-  tab_my: 'My',
+  tab_my: 'Profile',
   
   // Index Page
-  camera_title: 'Camera',
-  camera_desc: 'Identify · Check Freshness · Get Recipes',
-  album_entry: 'Album',
-  analyzing_title: 'Analyzing ingredient...',
-  analyzing_hint: 'processing, please wait 15-30s',
-  
-  // Errors
+  camera_title: 'Snap to Identify',
+   camera_desc: 'Identify · Check Freshness · Get Recipes',
+   album_entry: 'Album',
+   analyzing_title: 'Analyzing Ingredient...',
+   analyzing_hint: 'Dazzled by the choices! Give me 15-30s to take a closer look...',
+   
+   // Errors
   err_analyze_failed: 'Failed to analyze, please retry',
   err_timeout: 'Request timeout, please retry',
   err_network: 'Network error, please retry',
@@ -22,17 +22,17 @@ module.exports = {
   err_cloud_func: 'Cloud function error',
 
   // Result Page
-  page_title_result: 'Report',
+  page_title_result: 'Analysis',
   res_freshness: 'Freshness',
-  res_taste: 'Taste',
-  res_texture: 'Texture',
-  res_similar: 'Similar',
-  res_freshness_title: 'Freshness Report',
-  res_clue_title: 'Main Clues',
+  res_taste: 'Taste:',
+  res_texture: 'Texture:',
+  res_similar: 'Similar:',
+  res_freshness_title: 'Freshness Check',
+  res_clue_title: 'Indicators',
   res_recipes_title: 'Recommended Recipes',
   res_recipes: 'Recipes',
   res_etc: ' etc.',
-  res_generate_list: 'List to Buy',
+  res_generate_list: 'Shopping List',
   res_retake: 'Retake',
   res_save_success: 'Saved successfully',
   res_save_failed: 'Failed to save',
@@ -42,9 +42,9 @@ module.exports = {
   res_load_failed: 'Failed to load result',
 
   // List Page
-  list_title: 'List to Buy',
-  list_subtitle: 'Ingredients to prepare',
-  list_hint: 'Check as you buy',
+  list_title: 'Shopping List',
+  list_subtitle: "What you'll need",
+  list_hint: 'Tick off as you go',
   list_item_freshness: 'Freshness',
   list_item_taste: 'Taste',
   list_item_texture: 'Texture',
@@ -68,11 +68,11 @@ module.exports = {
   list_clear_fail: 'Clear failed',
 
   // My Page
-  my_title: 'My Records',
+  my_title: 'Profile',
   my_set_nickname: 'Set Nickname',
   my_input_nickname: 'Enter Nickname',
   my_login_tip: 'Click avatar and nickname above to login',
-  my_history_title: 'History',
+  my_history_title: 'Recent Scans',
   my_cloud_tip: 'Enable cloud service to save history',
   my_local_mode: 'Current is local experience mode',
   my_network_error: 'Network error',
@@ -99,6 +99,10 @@ module.exports = {
   my_delete_confirm: 'Are you sure to delete this record?',
   my_cancel: 'Cancel',
   my_confirm: 'Confirm',
+  my_language: 'Language / 语言',
+  lang_system: 'Auto (System)',
+  lang_zh: '简体中文',
+  lang_en: 'English',
 
   // Others
   loading: 'Loading...',

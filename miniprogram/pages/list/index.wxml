@@ -36,8 +36,10 @@
       <image class="btn-icon-center" src="/images/icons/favorite{{isFavorite ? '_filled' : ''}}.svg" mode="aspectFit"></image>
     </button>
     <button class="btn-primary" open-type="share">
-      <image class="btn-icon" src="/images/icons/share.svg" mode="aspectFit"></image>
-      {{i18n.list_share}}
+      <view class="btn-content">
+        <image class="btn-icon" src="/images/icons/share.svg" mode="aspectFit"></image>
+        <text>{{i18n.list_share}}</text>
+      </view>
     </button>
     <button class="btn-secondary btn-icon-only" bindtap="retry">
       <image class="btn-icon-center" src="/images/icons/retry.svg" mode="aspectFit"></image>

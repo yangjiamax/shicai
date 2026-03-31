@@ -39,6 +39,7 @@ page {
   letter-spacing: -0.5px;
   margin-bottom: 12rpx;
   display: block;
+  text-transform: capitalize;
 }
 
 .ingredient-desc {
@@ -76,13 +77,15 @@ page {
 .feature-label {
   color: #74796d;
   flex-shrink: 0;
-  width: 90rpx;
+  width: 140rpx;
   font-weight: 500;
 }
 
 .feature-value {
   color: #1b1c1c;
   flex: 1;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 /* Analysis Section */
@@ -233,6 +236,7 @@ page {
   color: #1b1c1c;
   display: block;
   margin-bottom: 8rpx;
+  text-transform: capitalize;
 }
 
 .recipe-ingredients {
@@ -278,6 +282,13 @@ page {
   align-items: center;
   justify-content: center;
   box-shadow: 0 12rpx 32rpx rgba(75, 99, 56, 0.15);
+  padding: 0;
+}
+
+.btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-icon {

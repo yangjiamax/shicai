@@ -41,7 +41,11 @@ Page({
       const levelMap = {
         '新鲜': 'fresh',
         '一般': 'normal',
-        '不太新鲜': 'bad'
+        '不太新鲜': 'bad',
+        'Fresh': 'fresh',
+        'Average': 'normal',
+        'Not fresh': 'bad',
+        'Not Fresh': 'bad'
       };
       resultData.freshness_class = levelMap[resultData.freshness_level] || 'normal';
 
@@ -49,7 +53,8 @@ Page({
       if (resultData.recipes && Array.isArray(resultData.recipes)) {
         resultData.recipes = resultData.recipes.map(recipe => {
           if (recipe.ingredients_needed && Array.isArray(recipe.ingredients_needed)) {
-            const top3 = recipe.ingredients_needed.slice(0, 3).join('、');
+            const separator = app.globalData.language === 'en' ? ', ' : '、';
+            const top3 = recipe.ingredients_needed.slice(0, 3).join(separator);
             const suffix = recipe.ingredients_needed.length > 3 ? app.t('res_etc') : '';
             recipe.ingredients_summary = top3 + suffix;
           } else {

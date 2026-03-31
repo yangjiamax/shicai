@@ -11,7 +11,7 @@ module.exports = {
   camera_desc: '一眼识菜 · 一秒辨鲜 · 一键成菜',
   album_entry: '相册导入',
   analyzing_title: '正在分析食材特征...',
-  analyzing_hint: '大模型运行中，请等待15秒-30秒',
+  analyzing_hint: '看花了眼啦！请给我15-30秒钟揉揉眼睛',
   
   // 错误提示
   err_analyze_failed: '识别失败，请重试',
@@ -24,9 +24,9 @@ module.exports = {
   // 结果页
   page_title_result: '识别结果',
   res_freshness: '鲜度判定',
-  res_taste: '味道',
-  res_texture: '口感',
-  res_similar: '类似',
+  res_taste: '味道：',
+  res_texture: '口感：',
+  res_similar: '类似：',
   res_freshness_title: '新鲜度深度分析',
   res_clue_title: '主要依据',
   res_recipes_title: '推荐料理方案',
@@ -99,6 +99,10 @@ module.exports = {
   my_delete_confirm: '确定要删除这条记录吗？',
   my_cancel: '取消',
   my_confirm: '确定',
+  my_language: '语言 / Language',
+  lang_system: '跟随系统（默认）',
+  lang_zh: '简体中文',
+  lang_en: 'English',
 
   // 其他
   loading: '加载中...',

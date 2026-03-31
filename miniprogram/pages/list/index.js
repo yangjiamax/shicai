@@ -23,6 +23,11 @@ Page({
   onShow() {
     this.setData({ i18n: app.globalData.i18n });
     wx.setNavigationBarTitle({ title: app.t('list_title') });
+    if (this.data.listData) {
+      this.setData({
+        shareTitle: app.t('list_share_title').replace('{recipe}', this.data.listData.recipeName)
+      });
+    }
   },
 
   async checkFavoriteStatus(data) {
@@ -125,9 +130,10 @@ Page({
                       ? data.analysisResult.cloudImagePath 
                       : ((data.analysisResult && data.analysisResult.imagePath) ? data.analysisResult.imagePath : undefined);
     
+    const separator = app.globalData.language === 'en' ? ', ' : '、';
     return {
       title: app.t('list_share_title').replace('{recipe}', data.recipeName),
-      desc: app.t('list_share_desc') + checkedItems.join('、'),
+      desc: app.t('list_share_desc') + checkedItems.join(separator),
       path: `/pages/result/index?shared=1&data=${shareData}`,
       imageUrl: imageUrl
     };

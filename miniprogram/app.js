@@ -33,8 +33,8 @@ App({
     // 优先读取用户手动设置的语言
     let lang = wx.getStorageSync('pf_lang');
     
-    if (!lang) {
-      // 如果没有设置，探测微信系统语言
+    if (!lang || lang === 'system') {
+      // 如果没有设置或者设为跟随系统，探测微信系统语言
       try {
         const sysInfo = wx.getSystemInfoSync();
         const sysLang = sysInfo.language || 'zh_CN';
@@ -50,9 +50,6 @@ App({
       }
     }
 
-    // 强行设为 en 测试 M14
-    lang = 'en';
-
     this.setLanguage(lang);
     console.log('[App] Current language initialized as:', lang);
   },
@@ -60,15 +57,20 @@ App({
   setLanguage(lang) {
     this.globalData.language = lang;
     this.globalData.i18n = lang === 'en' ? en : zh;
-    wx.setStorageSync('pf_lang', lang);
+    // 不在这里设置 Storage，保持 pf_lang 原样（可能是 system 或为空）
   },
 
-  switchLanguage(lang) {
-    if (lang !== 'zh' && lang !== 'en') return;
-    this.setLanguage(lang);
-    console.log('[App] Language switched to:', lang);
-    // 这里可以触发一个全局事件或者回调，让当前页面知道语言已切换
-    // 在 M14 中会在页面 onLoad/onShow 中绑定 globalData.i18n
+  switchLanguage(mode) {
+    // mode 可以是 'zh', 'en', 'system'
+    if (mode === 'system') {
+      wx.removeStorageSync('pf_lang');
+    } else if (mode === 'zh' || mode === 'en') {
+      wx.setStorageSync('pf_lang', mode);
+    } else {
+      return;
+    }
+    this.initLanguage();
+    console.log('[App] Language switched, new pf_lang mode:', mode);
   },
 
   // 全局翻译函数

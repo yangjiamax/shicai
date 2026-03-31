@@ -25,7 +25,8 @@ page {
 
 .title-group {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 20rpx;
   margin-bottom: 12rpx;
 }
@@ -35,6 +36,9 @@ page {
   font-weight: 800;
   color: #1b1c1c;
   letter-spacing: -0.5px;
+  flex: 1;
+  word-break: break-word;
+  text-transform: capitalize;
 }
 
 .recipe-badge {
@@ -44,33 +48,45 @@ page {
   background: rgba(75, 99, 56, 0.1);
   padding: 8rpx 20rpx;
   border-radius: 100rpx;
+  flex-shrink: 0;
+  max-width: 50%;
+  margin-top: 8rpx;
 }
 
 .icon-restaurant {
   width: 24rpx;
   height: 24rpx;
+  flex-shrink: 0;
 }
 
 .recipe-badge text {
   font-size: 22rpx;
   color: #4b6338;
   font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-transform: capitalize;
+  text-overflow: ellipsis;
 }
 
 .subtitle-group {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
+  gap: 20rpx;
 }
 
 .subtitle {
   font-size: 26rpx;
   color: #74796d;
+  flex: 1;
+  word-break: break-word;
 }
 
 .hint-text {
   font-size: 24rpx;
   color: #a3a69d;
+  flex-shrink: 0;
 }
 
 .ingredient-list {
@@ -124,6 +140,7 @@ page {
   color: #1b1c1c;
   font-weight: 500;
   transition: all 0.2s ease;
+  text-transform: capitalize;
 }
 
 .ingredient-item.checked .ingredient-name {
@@ -158,6 +175,12 @@ page {
   box-shadow: 0 12rpx 32rpx rgba(75, 99, 56, 0.15);
   padding: 0;
   white-space: nowrap;
+}
+
+.btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-icon {

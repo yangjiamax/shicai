@@ -174,5 +174,6 @@ async function analyzeImage(filePath, forceMock = false) {
 
 module.exports = {
   analyzeImage,
-  MOCK_DATA
+  MOCK_DATA_ZH,
+  MOCK_DATA_EN
 };

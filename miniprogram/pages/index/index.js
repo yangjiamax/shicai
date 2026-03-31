@@ -1,4 +1,5 @@
 const app = getApp();
+const analyzeUtil = require('../../utils/analyze.js');
 
 Page({
   data: {
@@ -47,8 +48,6 @@ Page({
 
   async analyzeImage(filePath) {
     this.setData({ analyzing: true });
-
-    const analyzeUtil = require('../../utils/analyze.js');
 
     try {
       // 调用云函数，不再静默 fallback，确保能测试异常情况

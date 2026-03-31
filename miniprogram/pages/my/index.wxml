@@ -49,17 +49,34 @@
         bindtap="navigateToHistory" 
         data-index="{{index}}"
       >
-        <view class="history-left">
-          <text class="history-name">{{item.ingredient_name}}</text>
+        <view class="history-thumb">
+          <image wx:if="{{item.analysisResult.cloudImagePath || item.analysisResult.imagePath}}" class="history-thumb-img" src="{{item.analysisResult.cloudImagePath || item.analysisResult.imagePath}}" mode="aspectFill"></image>
+          <text wx:else class="history-thumb-text">{{item.initial}}</text>
         </view>
-        <view class="history-right">
-          <view class="history-recipe-info">
-            <text class="history-recipe">{{item.selected_recipe.recipe_name}}</text>
+        
+        <view class="history-info">
+          <text class="history-name">{{item.ingredient_name}}</text>
+          <view class="history-meta">
+            <view class="history-recipe">{{item.selected_recipe.recipe_name}}</view>
+            <text class="meta-dot" wx:if="{{item.selected_recipe.recipe_name && item.formattedDate}}">·</text>
             <text class="history-time">{{item.formattedDate}}</text>
           </view>
+        </view>
+
+        <view class="history-arrow-box">
           <text class="history-arrow">></text>
         </view>
       </view>
+    </view>
+  </view>
+
+  <view class="settings-section">
+    <view class="settings-item" bindtap="switchLanguage">
+      <view class="settings-left">
+        <text class="settings-icon">🌐</text>
+        <text class="settings-text">{{i18n.my_language || '语言 / Language'}}</text>
+      </view>
+      <text class="settings-arrow">></text>
     </view>
   </view>
 

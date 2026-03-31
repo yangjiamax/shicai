@@ -36,7 +36,6 @@
         <view class="loading-spinner"></view>
         <text class="loading-text">{{i18n.analyzing_title}}</text>
         <view class="loading-hint">
-          <text class="hint-dot">•</text>
           <text>{{i18n.analyzing_hint}}</text>
         </view>
       </view>
