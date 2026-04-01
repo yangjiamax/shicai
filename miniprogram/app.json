@@ -8,7 +8,7 @@
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#ffffff",
-    "navigationBarTitleText": "真菜",
+    "navigationBarTitleText": "知食公社",
     "navigationBarTextStyle": "black"
   },
   "tabBar": {
@@ -31,6 +31,14 @@
       }
     ]
   },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于推荐当地特色菜谱"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation"
+  ],
   "style": "v2",
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents"

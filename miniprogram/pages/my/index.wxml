@@ -41,36 +41,64 @@
       <text class="empty-hint">{{i18n.my_empty_desc}}</text>
     </view>
 
-    <view wx:else class="history-list">
-      <view 
-        wx:for="{{histories}}" 
-        wx:key="_id" 
-        class="history-item" 
-        bindtap="navigateToHistory" 
-        data-index="{{index}}"
-      >
-        <view class="history-thumb">
-          <image wx:if="{{item.analysisResult.cloudImagePath || item.analysisResult.imagePath}}" class="history-thumb-img" src="{{item.analysisResult.cloudImagePath || item.analysisResult.imagePath}}" mode="aspectFill"></image>
-          <text wx:else class="history-thumb-text">{{item.initial}}</text>
-        </view>
-        
-        <view class="history-info">
-          <text class="history-name">{{item.ingredient_name}}</text>
-          <view class="history-meta">
-            <view class="history-recipe">{{item.selected_recipe.recipe_name}}</view>
-            <text class="meta-dot" wx:if="{{item.selected_recipe.recipe_name && item.formattedDate}}">·</text>
-            <text class="history-time">{{item.formattedDate}}</text>
+    <view wx:else class="history-list-wrapper">
+      <view class="history-list">
+        <view 
+          wx:for="{{histories}}" 
+          wx:key="_id" 
+          class="history-item" 
+          bindtap="navigateToHistory" 
+          data-index="{{index}}"
+        >
+          <view class="history-thumb">
+            <image wx:if="{{item.analysisResult.cloudImagePath || item.analysisResult.imagePath}}" class="history-thumb-img" src="{{item.analysisResult.cloudImagePath || item.analysisResult.imagePath}}" mode="aspectFill"></image>
+            <text wx:else class="history-thumb-text">{{item.initial}}</text>
+          </view>
+          
+          <view class="history-info">
+            <text class="history-name">{{item.ingredient_name}}</text>
+            <view class="history-meta">
+              <view class="history-recipe">{{item.selected_recipe.recipe_name}}</view>
+              <text class="meta-dot" wx:if="{{item.selected_recipe.recipe_name && item.formattedDate}}">·</text>
+              <text class="history-time">{{item.formattedDate}}</text>
+            </view>
+          </view>
+
+          <view class="history-arrow-box">
+            <text class="history-arrow">></text>
           </view>
         </view>
+      </view>
 
-        <view class="history-arrow-box">
-          <text class="history-arrow">></text>
+      <view class="pagination" wx:if="{{totalPages > 1}}">
+        <view class="page-btn {{currentPage === 1 ? 'disabled' : ''}}" bindtap="prevPage">
+          <text>{{i18n.my_prev_page || '上一页'}}</text>
+        </view>
+        <view class="page-info">
+          <text>{{currentPage}} / {{totalPages}}</text>
+        </view>
+        <view class="page-btn {{currentPage === totalPages ? 'disabled' : ''}}" bindtap="nextPage">
+          <text>{{i18n.my_next_page || '下一页'}}</text>
         </view>
       </view>
     </view>
   </view>
 
   <view class="settings-section">
+    <!-- Nationality Picker -->
+    <picker bindchange="onNationalityChange" value="{{nationalityIndex}}" range="{{i18n.nationality_list}}" range-key="name">
+      <view class="settings-item border-bottom">
+        <view class="settings-left">
+          <text class="settings-icon">👤</text>
+          <text class="settings-text">{{i18n.nationality_title}}</text>
+        </view>
+        <view class="settings-right">
+          <text class="settings-value" wx:if="{{nationalityIndex !== null && i18n.nationality_list[nationalityIndex]}}">{{i18n.nationality_list[nationalityIndex].name}}</text>
+          <text class="settings-arrow">></text>
+        </view>
+      </view>
+    </picker>
+
     <view class="settings-item" bindtap="switchLanguage">
       <view class="settings-left">
         <text class="settings-icon">🌐</text>

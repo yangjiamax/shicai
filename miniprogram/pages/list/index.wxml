@@ -31,24 +31,26 @@
     </view>
   </view>
 
-  <view class="action-bar" wx:if="{{listData}}">
-    <button class="btn-secondary btn-icon-only" bindtap="saveFavorite">
-      <image class="btn-icon-center" src="/images/icons/favorite{{isFavorite ? '_filled' : ''}}.svg" mode="aspectFit"></image>
-    </button>
-    <button class="btn-primary" open-type="share">
-      <view class="btn-content">
-        <image class="btn-icon" src="/images/icons/share.svg" mode="aspectFit"></image>
-        <text>{{i18n.list_share}}</text>
-      </view>
-    </button>
-    <button class="btn-secondary btn-icon-only" bindtap="retry">
-      <image class="btn-icon-center" src="/images/icons/retry.svg" mode="aspectFit"></image>
-    </button>
-  </view>
+  <view class="bottom-action-area" wx:if="{{listData}}">
+    <view class="action-bar">
+      <button class="btn-secondary btn-icon-only" bindtap="saveFavorite">
+        <image class="btn-icon-center" src="/images/icons/favorite{{isFavorite ? '_filled' : ''}}.svg" mode="aspectFit"></image>
+      </button>
+      <button class="btn-primary" open-type="share">
+        <view class="btn-content">
+          <image class="btn-icon" src="/images/icons/share.svg" mode="aspectFit"></image>
+          <text>{{i18n.list_share}}</text>
+        </view>
+      </button>
+      <button class="btn-secondary btn-icon-only" bindtap="retry">
+        <image class="btn-icon-center" src="/images/icons/retry.svg" mode="aspectFit"></image>
+      </button>
+    </view>
 
-  <view class="clear-data-wrapper" wx:if="{{listData}}">
-    <button class="clear-btn" bindtap="clearData">
-      {{i18n.list_clear}}
-    </button>
+    <view class="clear-data-wrapper">
+      <button class="clear-btn" bindtap="clearData">
+        {{i18n.list_clear}}
+      </button>
+    </view>
   </view>
 </view>

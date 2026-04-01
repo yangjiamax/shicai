@@ -25,6 +25,7 @@ Page({
   },
 
   handleCamera() {
+    if (!this.checkNationality()) return;
     wx.chooseImage({
       count: 1,
       sizeType: ['compressed'],
@@ -36,6 +37,7 @@ Page({
   },
 
   handleAlbum() {
+    if (!this.checkNationality()) return;
     wx.chooseImage({
       count: 1,
       sizeType: ['compressed'],
@@ -46,16 +48,82 @@ Page({
     });
   },
 
+  checkNationality() {
+    const nationalityId = wx.getStorageSync('userNationality');
+    if (!nationalityId) {
+      wx.showModal({
+        title: app.t('nationality_require_title'),
+        content: app.t('nationality_require_content'),
+        confirmText: app.t('nationality_require_confirm'),
+        cancelText: app.t('nationality_require_cancel'),
+        success: (res) => {
+          if (res.confirm) {
+            wx.switchTab({
+              url: '/pages/my/index'
+            });
+          }
+        }
+      });
+      return false;
+    }
+    return true;
+  },
+
+  getLocation() {
+    return new Promise((resolve) => {
+      // Set 3 seconds timeout
+      let isResolved = false;
+      const timeoutId = setTimeout(() => {
+        if (!isResolved) {
+          isResolved = true;
+          console.warn('Get location timeout');
+          resolve(null);
+        }
+      }, 3000);
+
+      wx.getLocation({
+        type: 'wgs84',
+        success(res) {
+          if (!isResolved) {
+            isResolved = true;
+            clearTimeout(timeoutId);
+            resolve({
+              lat: res.latitude,
+              lng: res.longitude
+            });
+          }
+        },
+        fail(err) {
+          if (!isResolved) {
+            isResolved = true;
+            clearTimeout(timeoutId);
+            console.warn('Get location failed:', err);
+            resolve(null);
+          }
+        }
+      });
+    });
+  },
+
   async analyzeImage(filePath) {
     this.setData({ analyzing: true });
 
     try {
+      // Get location with timeout
+      const location = await this.getLocation();
+      const nationalityId = wx.getStorageSync('userNationality');
+      const list = app.globalData.i18n.nationality_list || [];
+      const nationalityObj = list.find(item => item.id === nationalityId);
+      const nationality = nationalityObj ? nationalityObj.name : '';
+
       // 调用云函数，不再静默 fallback，确保能测试异常情况
-      let result = await analyzeUtil.analyzeImage(filePath);
+      let result = await analyzeUtil.analyzeImage(filePath, { forceMock: false });
 
       if (result) {
+        // 将 nationality 和 location 传递给结果页，用于后续分步请求
+        const extraParams = `&nationality=${encodeURIComponent(nationality || '')}&location=${encodeURIComponent(JSON.stringify(location || {}))}`;
         wx.navigateTo({
-          url: `/pages/result/index?data=${encodeURIComponent(JSON.stringify(result))}`
+          url: `/pages/result/index?data=${encodeURIComponent(JSON.stringify(result))}${extraParams}`
         });
       } else {
         throw new Error('empty_result');

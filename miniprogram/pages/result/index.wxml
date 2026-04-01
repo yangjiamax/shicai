@@ -46,14 +46,30 @@
       </view>
     </view>
 
-    <view class="recipes-section" wx:if="{{result.recipes && result.recipes.length > 0}}">
-      <view class="section-header">
+    <view class="recipes-section" wx:if="{{(displayRecipes && displayRecipes.length > 0) || loadingFamiliar || loadingLocal}}">
+      <view class="section-header" wx:if="{{!showTabs && !loadingFamiliar && (!loadingLocal || activeTab === 'familiar')}}">
         <image class="icon-recipe" src="/images/icons/restaurant_menu.svg" mode="aspectFit"></image>
         <text class="section-title">{{i18n.res_recipes_title}}</text>
       </view>
-      <view class="recipe-grid">
+      
+      <view class="section-header skeleton-header" wx:if="{{loadingFamiliar}}">
+        <image class="icon-recipe" src="/images/icons/restaurant_menu.svg" mode="aspectFit"></image>
+        <text class="section-title loading-pulse">{{i18n.loading_familiar}}</text>
+      </view>
+
+      <view class="recipe-tabs" wx:if="{{showTabs || (!loadingFamiliar && loadingLocal)}}">
+        <view class="recipe-tab {{activeTab === 'familiar' ? 'active' : ''}}" bindtap="switchTab" data-tab="familiar">
+          <text>{{i18n.tab_familiar_recipe}}</text>
+        </view>
+        <view class="recipe-tab {{activeTab === 'local' ? 'active' : ''}}" bindtap="switchTab" data-tab="local">
+          <text wx:if="{{!loadingLocal}}">{{i18n.tab_local_recipe}}</text>
+          <text wx:else class="loading-pulse">{{i18n.loading_local}}</text>
+        </view>
+      </view>
+
+      <view class="recipe-grid" wx:if="{{displayRecipes && displayRecipes.length > 0 && !(loadingLocal && activeTab === 'local')}}">
         <view 
-          wx:for="{{result.recipes}}" 
+          wx:for="{{displayRecipes}}" 
           wx:key="index"
           class="recipe-card {{selectedIndex === index ? 'selected' : ''}}"
           bindtap="selectRecipe"
@@ -66,9 +82,14 @@
           <image wx:if="{{selectedIndex === index}}" class="recipe-selected-icon" src="/images/icons/check_circle.svg" mode="aspectFit"></image>
         </view>
       </view>
+      
+      <view class="recipe-grid skeleton-grid" wx:elif="{{loadingFamiliar || (loadingLocal && activeTab === 'local')}}">
+        <view class="recipe-card skeleton-card"></view>
+        <view class="recipe-card skeleton-card"></view>
+      </view>
     </view>
 
-    <view class="action-bar" wx:if="{{result.recipes && result.recipes.length > 0}}">
+    <view class="action-bar" wx:if="{{displayRecipes && displayRecipes.length > 0 && !loadingFamiliar}}">
       <button class="btn-primary" bindtap="generateList">
         <view class="btn-content">
           <image class="btn-icon" src="/images/icons/shopping_cart.svg" mode="aspectFit"></image>
@@ -80,11 +101,11 @@
       </button>
     </view>
 
-    <view class="disclaimer" wx:if="{{result.recipes && result.recipes.length > 0}}">
+    <view class="disclaimer" wx:if="{{displayRecipes && displayRecipes.length > 0 && !loadingFamiliar}}">
       <text>{{i18n.res_disclaimer}}</text>
     </view>
 
-    <view class="incomplete-state" wx:else>
+    <view class="incomplete-state" wx:elif="{{!loadingFamiliar && !loadingLocal}}">
       <text class="incomplete-tips">{{i18n.res_incomplete}}</text>
       <view class="action-bar">
         <button class="btn-primary" bindtap="retry">{{i18n.res_retake}}</button>

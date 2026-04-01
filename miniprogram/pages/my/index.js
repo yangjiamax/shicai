@@ -5,10 +5,15 @@ Page({
     userInfo: null,
     hasUserInfo: false,
     histories: [],
+    currentPage: 1,
+    pageSize: 5,
+    totalPages: 0,
+    totalHistories: 0,
     showLoginPrompt: true,
     isAnonymous: false,
     loadError: false,
-    i18n: {}
+    i18n: {},
+    nationalityIndex: null
   },
 
   onLoad() {
@@ -20,6 +25,36 @@ Page({
     this.updateTabBarAndTitle();
     this.checkAuthSource();
     this.loadUserData();
+    this.loadNationality();
+  },
+
+  loadNationality() {
+    let saved = wx.getStorageSync('userNationality');
+    if (saved !== '' && saved !== null && saved !== undefined) {
+      // 兼容旧版基于索引的存储
+      if (typeof saved === 'number' || (typeof saved === 'string' && /^\d+$/.test(saved))) {
+        const oldKeys = ['cn', 'us', 'gb', 'fr', 'de', 'jp', 'kr', 'it', 'es', 'th', 'in', 'ru', 'other'];
+        saved = oldKeys[parseInt(saved, 10)] || 'other';
+        wx.setStorageSync('userNationality', saved);
+      }
+
+      const list = this.data.i18n.nationality_list || app.globalData.i18n.nationality_list;
+      const index = list.findIndex(item => item.id === saved);
+      if (index !== -1) {
+        this.setData({ nationalityIndex: index });
+      } else {
+        this.setData({ nationalityIndex: null });
+      }
+    }
+  },
+
+  onNationalityChange(e) {
+    const index = parseInt(e.detail.value, 10);
+    this.setData({ nationalityIndex: index });
+    const selectedItem = this.data.i18n.nationality_list[index];
+    if (selectedItem) {
+      wx.setStorageSync('userNationality', selectedItem.id);
+    }
   },
 
   updateTabBarAndTitle() {
@@ -101,7 +136,7 @@ Page({
     }
   },
 
-  async loadHistories() {
+  async loadHistories(page = 1) {
     const authSource = app.globalData.authSource || wx.getStorageSync('pf_auth_source');
     if (authSource !== 'cloud_openid' || !wx.cloud) {
       this.setData({ histories: [], loadError: false });
@@ -111,11 +146,20 @@ Page({
     try {
       const db = wx.cloud.database();
       const userId = app.globalData.userId || wx.getStorageSync('pf_user_id');
+      const pageSize = this.data.pageSize || 5;
+      
+      // 获取总数
+      const countRes = await db.collection('histories').where({ _openid: userId }).count();
+      const total = countRes.total;
+      const totalPages = Math.ceil(total / pageSize);
+
+      const skip = (page - 1) * pageSize;
       
       const { data } = await db.collection('histories')
         .where({ _openid: userId })
         .orderBy('createdAt', 'desc')
-        .limit(20)
+        .skip(skip)
+        .limit(pageSize)
         .get();
 
       const formattedHistories = data.map(item => {
@@ -139,10 +183,28 @@ Page({
         };
       });
 
-      this.setData({ histories: formattedHistories, loadError: false });
+      this.setData({ 
+        histories: formattedHistories, 
+        currentPage: page,
+        totalHistories: total,
+        totalPages: totalPages,
+        loadError: false 
+      });
     } catch (err) {
       console.error('[My] Load histories failed:', err);
       this.setData({ histories: [], loadError: true });
+    }
+  },
+
+  prevPage() {
+    if (this.data.currentPage > 1) {
+      this.loadHistories(this.data.currentPage - 1);
+    }
+  },
+
+  nextPage() {
+    if (this.data.currentPage < this.data.totalPages) {
+      this.loadHistories(this.data.currentPage + 1);
     }
   },
 
@@ -311,7 +373,12 @@ Page({
               await Promise.all(deletePromises);
             }
             
-            this.setData({ histories: [] });
+            this.setData({ 
+              histories: [],
+              currentPage: 1,
+              totalPages: 0,
+              totalHistories: 0
+            });
             wx.hideLoading();
             wx.showToast({ title: app.t('my_clear_success'), icon: 'success' });
           } catch (err) {

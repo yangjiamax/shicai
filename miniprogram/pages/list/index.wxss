@@ -2,7 +2,7 @@ page {
   background: #fcf9f8;
   min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;
-  padding-bottom: 200rpx;
+  padding-bottom: calc(300rpx + env(safe-area-inset-bottom));
 }
 
 .container {
@@ -149,16 +149,27 @@ page {
 }
 
 /* Action Bar */
-.action-bar {
+.bottom-action-area {
   position: fixed;
-  bottom: calc(140rpx + env(safe-area-inset-bottom));
+  bottom: 0;
   left: 0;
+  width: 100%;
+  background: linear-gradient(to top, #fcf9f8 85%, rgba(252, 249, 248, 0));
+  padding-top: 60rpx;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.action-bar {
   width: 100%;
   padding: 0 40rpx;
   display: flex;
   gap: 20rpx;
   box-sizing: border-box;
-  z-index: 100;
+  margin-bottom: 20rpx;
 }
 
 .btn-primary {
@@ -220,13 +231,10 @@ page {
 }
 
 .clear-data-wrapper {
-  position: fixed;
-  bottom: calc(40rpx + env(safe-area-inset-bottom));
-  left: 0;
   width: 100%;
   display: flex;
   justify-content: center;
-  z-index: 90;
+  padding-bottom: 20rpx;
 }
 
 .clear-btn {

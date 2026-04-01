@@ -13,6 +13,30 @@ module.exports = {
    analyzing_title: 'Analyzing Ingredient...',
    analyzing_hint: 'Dazzled by the choices! Give me 15-30s to take a closer look...',
    
+  // Nationality and Culture Experience
+  nationality_title: 'Nationality',
+  nationality_list: [
+    { id: 'cn', name: 'China' },
+    { id: 'fr', name: 'France' },
+    { id: 'de', name: 'Germany' },
+    { id: 'in', name: 'India' },
+    { id: 'it', name: 'Italy' },
+    { id: 'jp', name: 'Japan' },
+    { id: 'ru', name: 'Russia' },
+    { id: 'kr', name: 'South Korea' },
+    { id: 'es', name: 'Spain' },
+    { id: 'th', name: 'Thailand' },
+    { id: 'gb', name: 'United Kingdom' },
+    { id: 'us', name: 'United States' },
+    { id: 'other', name: 'Other' }
+  ],
+  nationality_require_title: 'Profile Setup Required',
+  nationality_require_content: 'Please set your nationality in the Profile page first, so we can recommend the most familiar hometown recipes for you.',
+  nationality_require_confirm: 'Go to Setup',
+  nationality_require_cancel: 'Cancel',
+  tab_familiar_recipe: '🍴 Familiar Taste',
+  tab_local_recipe: '📍 Try Local Style',
+
    // Errors
   err_analyze_failed: 'Failed to analyze, please retry',
   err_timeout: 'Request timeout, please retry',
@@ -40,6 +64,8 @@ module.exports = {
   res_incomplete: 'Incomplete result, please retake from another angle',
   res_back_home: 'Back Home',
   res_load_failed: 'Failed to load result',
+  loading_familiar: 'Browsing hometown recipes for you...',
+  loading_local: 'Local recipes...',
 
   // List Page
   list_title: 'Shopping List',
@@ -99,6 +125,8 @@ module.exports = {
   my_delete_confirm: 'Are you sure to delete this record?',
   my_cancel: 'Cancel',
   my_confirm: 'Confirm',
+  my_prev_page: 'Prev',
+  my_next_page: 'Next',
   my_language: 'Language / 语言',
   lang_system: 'Auto (System)',
   lang_zh: '简体中文',

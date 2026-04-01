@@ -1,5 +1,5 @@
 {
-  "description": "真菜 MVP",
+  "description": "知食公社 MVP",
   "packOptions": {
     "ignore": [],
     "include": []
@@ -21,7 +21,7 @@
     "localPlugins": false,
     "disableUseStrict": false,
     "useCompilerPlugins": false,
-    "condition": false,
+    "condition": true,
     "swc": false,
     "disableSWC": true,
     "babelSetting": {
@@ -33,10 +33,13 @@
   "compileType": "miniprogram",
   "libVersion": "3.6.5",
   "appid": "wx53bc95eb695a3ab2",
-  "projectname": "真菜",
+  "projectname": "知食公社",
   "miniprogramRoot": "miniprogram/",
   "cloudfunctionRoot": "cloudfunctions/",
-  "simulatorPluginLibVersion": {},
+  "simulatorPluginLibVersion": {
+    "wxext14566970e7e9f62": "2.27.3"
+  },
   "editorSetting": {},
-  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/"
+  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
+  "projectArchitecture": "multiPlatform"
 }

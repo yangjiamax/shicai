@@ -215,6 +215,36 @@
   color: #c4c8bb;
 }
 
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 0 8px;
+}
+
+.page-btn {
+  padding: 8px 16px;
+  background-color: #f0f4eb;
+  color: #4b6338;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+}
+
+.page-btn.disabled {
+  background-color: #f6f3f2;
+  color: #c4c8bb;
+  pointer-events: none;
+}
+
+.page-info {
+  font-size: 14px;
+  color: #74796d;
+  font-weight: 500;
+}
+
 .settings-section {
   margin-top: 24px;
   background-color: #ffffff;
@@ -230,6 +260,10 @@
   padding: 16px 0;
 }
 
+.border-bottom {
+  border-bottom: 1px solid rgba(196, 200, 187, 0.2);
+}
+
 .settings-left {
   display: flex;
   align-items: center;
@@ -243,6 +277,17 @@
 .settings-text {
   font-size: 16px;
   color: #1b1c1c;
+}
+
+.settings-right {
+  display: flex;
+  align-items: center;
+}
+
+.settings-value {
+  font-size: 15px;
+  color: #74796d;
+  margin-right: 8px;
 }
 
 .settings-arrow {
