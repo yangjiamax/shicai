@@ -99,10 +99,18 @@
       </view>
     </picker>
 
-    <view class="settings-item" bindtap="switchLanguage">
+    <view class="settings-item border-bottom" bindtap="switchLanguage">
       <view class="settings-left">
         <text class="settings-icon">🌐</text>
         <text class="settings-text">{{i18n.my_language || '语言 / Language'}}</text>
+      </view>
+      <text class="settings-arrow">></text>
+    </view>
+
+    <view class="settings-item" bindtap="navigateToFeedback">
+      <view class="settings-left">
+        <text class="settings-icon">💡</text>
+        <text class="settings-text">{{i18n.my_feedback || '意见反馈与联系作者'}}</text>
       </view>
       <text class="settings-arrow">></text>
     </view>

@@ -3,12 +3,13 @@
     "pages/index/index",
     "pages/result/index",
     "pages/list/index",
-    "pages/my/index"
+    "pages/my/index",
+    "pages/feedback/index"
   ],
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#ffffff",
-    "navigationBarTitleText": "知食公社",
+    "navigationBarTitleText": "知食角",
     "navigationBarTextStyle": "black"
   },
   "tabBar": {

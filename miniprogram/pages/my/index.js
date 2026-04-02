@@ -349,6 +349,12 @@ Page({
     });
   },
 
+  navigateToFeedback() {
+    wx.navigateTo({
+      url: '/pages/feedback/index'
+    });
+  },
+
   clearLocalData() {
     wx.showModal({
       title: app.t('my_clear_title'),

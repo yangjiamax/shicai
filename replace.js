@@ -23,14 +23,14 @@ files.forEach(file => {
   if (fs.existsSync(filePath)) {
       let content = fs.readFileSync(filePath, 'utf8');
       
-      content = content.replace(/识材 SHI CAI/g, '知食公社');
-      content = content.replace(/PinFresh-识材/g, '知食公社');
-      content = content.replace(/PinFresh 识材/g, '知食公社');
-      content = content.replace(/识为鲜 PinFresh｜识材/g, '知食公社');
-      content = content.replace(/PinFresh/g, '知食公社');
-      content = content.replace(/识为鲜/g, '知食公社');
+      content = content.replace(/识材 SHI CAI/g, '知食角');
+      content = content.replace(/PinFresh-识材/g, '知食角');
+      content = content.replace(/PinFresh 识材/g, '知食角');
+      content = content.replace(/识为鲜 PinFresh｜识材/g, '知食角');
+      content = content.replace(/PinFresh/g, '知食角');
+      content = content.replace(/识为鲜/g, '知食角');
       content = content.replace(/一眼识材/g, '一眼识菜');
-      content = content.replace(/识材/g, '知食公社');
+      content = content.replace(/识材/g, '知食角');
       
       fs.writeFileSync(filePath, content, 'utf8');
       console.log('Replaced in:', file);

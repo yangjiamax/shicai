@@ -1,5 +1,5 @@
 {
-  "description": "知食公社 MVP",
+  "description": "知食角 MVP",
   "packOptions": {
     "ignore": [],
     "include": []
@@ -33,7 +33,7 @@
   "compileType": "miniprogram",
   "libVersion": "3.6.5",
   "appid": "wx53bc95eb695a3ab2",
-  "projectname": "知食公社",
+  "projectname": "知食角",
   "miniprogramRoot": "miniprogram/",
   "cloudfunctionRoot": "cloudfunctions/",
   "simulatorPluginLibVersion": {
