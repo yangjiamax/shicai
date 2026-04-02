@@ -2,10 +2,21 @@
   <view wx:if="{{listData}}" class="list-card">
     <view class="header">
       <view class="title-group">
-        <text class="title">{{listData.ingredientName}}</text>
-        <view class="recipe-badge">
-          <image class="icon-restaurant" src="/images/icons/restaurant.svg" mode="aspectFit"></image>
-          <text>{{listData.recipeName}}</text>
+        <text class="title">{{listData.recipeName}}</text>
+        
+        <view class="ingredient-badge-wrapper">
+          <view class="ingredient-badge">
+            <text>{{listData.ingredientName}}</text>
+          </view>
+        </view>
+
+        <view class="search-action-wrapper">
+          <view class="btn-tutorial-small" bindtap="searchTutorial" data-recipe="{{listData.recipeName}}" data-platform="bilibili">
+            📺 {{i18n.btn_search_tutorial}}
+          </view>
+          <view class="btn-tutorial-small xcf-btn" bindtap="searchTutorial" data-recipe="{{listData.recipeName}}" data-platform="xiachufang">
+            🍳 {{i18n.btn_search_tutorial_xcf}}
+          </view>
         </view>
       </view>
       <view class="subtitle-group">
@@ -18,15 +29,21 @@
       <view 
         wx:for="{{listData.ingredients}}" 
         wx:key="index"
-        class="ingredient-item {{item.checked ? 'checked' : ''}}"
-        bindtap="toggleIngredient"
-        data-index="{{index}}">
+        class="ingredient-item {{item.checked ? 'checked' : ''}}">
         <view class="item-content">
-          <view class="checkbox {{item.checked ? 'checkbox-checked' : ''}}">
-            <image wx:if="{{item.checked}}" class="check-icon" src="/images/icons/check.svg" mode="aspectFit"></image>
+          <view class="checkbox-wrap" bindtap="toggleIngredient" data-index="{{index}}">
+            <view class="checkbox {{item.checked ? 'checkbox-checked' : ''}}">
+              <image wx:if="{{item.checked}}" class="check-icon" src="/images/icons/check.svg" mode="aspectFit"></image>
+            </view>
           </view>
-          <text class="ingredient-name">{{item.name}}</text>
+          <input class="ingredient-input {{item.checked ? 'checked-text' : ''}}" value="{{item.name}}" bindinput="editIngredient" bindblur="blurIngredient" data-index="{{index}}" />
+          <view class="delete-btn" catchtap="deleteIngredient" data-index="{{index}}">✕</view>
         </view>
+      </view>
+
+      <view class="add-item-wrap">
+        <input class="add-input" placeholder="{{i18n.list_add_placeholder}}" value="{{newItemName}}" bindinput="onNewItemInput" bindconfirm="addNewItem" confirm-type="done" />
+        <view class="add-btn" bindtap="addNewItem">{{i18n.list_add_btn}}</view>
       </view>
     </view>
   </view>
@@ -51,6 +68,50 @@
       <button class="clear-btn" bindtap="clearData">
         {{i18n.list_clear}}
       </button>
+    </view>
+  </view>
+
+  <!-- Tutorial Bottom Sheet -->
+  <view class="tutorial-mask {{showTutorialSheet ? 'show' : ''}}" bindtap="closeTutorialSheet"></view>
+  <view class="tutorial-sheet {{showTutorialSheet ? 'show' : ''}}">
+    <view class="tutorial-header">
+      <text class="tutorial-title">{{tutorialPlatform === 'xiachufang' ? i18n.tutorial_sheet_title_xcf : i18n.tutorial_sheet_title}}</text>
+      <view class="tutorial-close" bindtap="closeTutorialSheet">✕</view>
+    </view>
+    
+    <view class="tutorial-content">
+      <view class="tutorial-loading" wx:if="{{tutorialLoading}}">
+        <view class="loading-spinner"></view>
+        <text class="loading-text">{{i18n.loading}}</text>
+      </view>
+      
+      <view class="tutorial-error" wx:elif="{{tutorialError}}">
+        <image class="error-icon" src="/images/icons/error.svg" mode="aspectFit"></image>
+        <text class="error-text">{{tutorialErrorMsg}}</text>
+        <button class="btn-secondary" bindtap="retryTutorial">{{i18n.res_retake}}</button>
+      </view>
+      
+      <scroll-view scroll-y class="tutorial-list" wx:elif="{{tutorials && tutorials.length > 0}}">
+        <view class="tutorial-card" wx:for="{{tutorials}}" wx:key="index" bindtap="copyTutorialLink" data-url="{{item.url}}">
+          <image class="tutorial-thumb" src="{{item.thumbnail}}" mode="aspectFill"></image>
+          <view class="tutorial-info">
+            <text class="tutorial-video-title">{{item.title}}</text>
+            <view class="tutorial-platform">
+              <view class="platform-group">
+                <view class="platform-tag {{item.source === 'xiachufang' ? 'xiachufang' : 'bilibili'}}">
+                  <text>{{item.source === 'xiachufang' ? i18n.tutorial_platform_xcf : 'Bilibili'}}</text>
+                </view>
+                <text class="view-count" wx:if="{{item.viewCountFormatted}}">▶ {{item.viewCountFormatted}}</text>
+              </view>
+              <text class="tutorial-link-text">🔗 {{item.source === 'xiachufang' ? i18n.tutorial_link_xcf : i18n.tutorial_copy}}</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+      
+      <view class="tutorial-empty" wx:else>
+        <text>{{i18n.tutorial_empty}}</text>
+      </view>
     </view>
   </view>
 </view>

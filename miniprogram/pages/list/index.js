@@ -5,7 +5,15 @@ Page({
     listData: null,
     shareTitle: '',
     isFavorite: false,
-    i18n: {}
+    i18n: {},
+    
+    // Tutorial Sheet State
+    showTutorialSheet: false,
+    tutorialLoading: false,
+    tutorialError: false,
+    tutorialErrorMsg: '',
+    tutorials: [],
+    currentTutorialKeyword: ''
   },
 
   onLoad(options) {
@@ -118,6 +126,52 @@ Page({
     this.setData({ 'listData.ingredients': ingredients });
   },
 
+  editIngredient(e) {
+    const index = e.currentTarget.dataset.index;
+    const value = e.detail.value;
+    const ingredients = this.data.listData.ingredients;
+    ingredients[index].name = value;
+    this.setData({ 'listData.ingredients': ingredients });
+  },
+
+  blurIngredient(e) {
+    const index = e.currentTarget.dataset.index;
+    const value = e.detail.value.trim();
+    const ingredients = this.data.listData.ingredients;
+    
+    if (!value) {
+      // If emptied, maybe we don't delete automatically to avoid accidental deletion,
+      // but let's delete it if it's completely empty.
+      this.deleteIngredient(e);
+    } else {
+      ingredients[index].name = value;
+      this.setData({ 'listData.ingredients': ingredients });
+    }
+  },
+
+  deleteIngredient(e) {
+    const index = e.currentTarget.dataset.index;
+    const ingredients = this.data.listData.ingredients;
+    ingredients.splice(index, 1);
+    this.setData({ 'listData.ingredients': ingredients });
+  },
+
+  onNewItemInput(e) {
+    this.setData({ newItemName: e.detail.value });
+  },
+
+  addNewItem() {
+    const name = (this.data.newItemName || '').trim();
+    if (!name) return;
+    
+    const ingredients = this.data.listData.ingredients;
+    ingredients.push({ name: name, checked: false });
+    this.setData({ 
+      'listData.ingredients': ingredients,
+      newItemName: ''
+    });
+  },
+
   onShareAppMessage() {
     const data = this.data.listData;
     const checkedItems = data.ingredients.filter(i => i.checked).map(i => i.name);
@@ -180,6 +234,100 @@ Page({
             wx.showToast({ title: app.t('list_clear_fail'), icon: 'none' });
           }
         }
+      }
+    });
+  },
+
+  // --- 视频做法检索功能 ---
+  searchTutorial(e) {
+    const keyword = e.currentTarget.dataset.recipe;
+    const platform = e.currentTarget.dataset.platform || 'bilibili';
+    if (!keyword) return;
+
+    this.setData({
+      showTutorialSheet: true,
+      tutorialLoading: true,
+      tutorialError: false,
+      tutorialErrorMsg: '',
+      tutorials: [],
+      currentTutorialKeyword: keyword,
+      tutorialPlatform: platform
+    });
+
+    this.fetchTutorials(keyword, platform);
+  },
+
+  async fetchTutorials(keyword, platform) {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'analyze',
+        data: {
+          action: 'search_tutorial',
+          keyword: keyword,
+          lang: app.globalData.language
+        }
+      });
+
+      if (res.result && !res.result.error && res.result.data) {
+        // Cloud function returns both now, but let's select based on user tap
+        const results = res.result.data[platform];
+        
+        if (results && results.length > 0) {
+          this.setData({
+            tutorialLoading: false,
+            tutorials: results
+          });
+        } else {
+          throw new Error('Empty response for ' + platform);
+        }
+      } else {
+        throw new Error(res.result?.message || 'Empty response');
+      }
+    } catch (err) {
+      console.error('Fetch tutorials failed:', err);
+      this.setData({
+        tutorialLoading: false,
+        tutorialError: true,
+        tutorialErrorMsg: app.t('err_cloud_func')
+      });
+    }
+  },
+
+  retryTutorial() {
+    if (this.data.currentTutorialKeyword) {
+      this.setData({
+        tutorialLoading: true,
+        tutorialError: false
+      });
+      this.fetchTutorials(this.data.currentTutorialKeyword, this.data.tutorialPlatform);
+    }
+  },
+
+  closeTutorialSheet() {
+    this.setData({
+      showTutorialSheet: false
+    });
+  },
+
+  copyTutorialLink(e) {
+    const url = e.currentTarget.dataset.url;
+    if (!url) return;
+
+    wx.setClipboardData({
+      data: url,
+      success: () => {
+        wx.hideToast(); // Hide the default "内容已复制" toast
+        wx.showToast({
+          title: app.t('tutorial_copy_success'),
+          icon: 'none',
+          duration: 3000
+        });
+      },
+      fail: () => {
+        wx.showToast({
+          title: app.t('tutorial_copy_fail'),
+          icon: 'none'
+        });
       }
     });
   }

@@ -14,7 +14,15 @@ Page({
     loadingFamiliar: false,
     loadingLocal: false,
     errorFamiliar: false,
-    errorLocal: false
+    errorLocal: false,
+    
+    // Tutorial Sheet State
+    showTutorialSheet: false,
+    tutorialLoading: false,
+    tutorialError: false,
+    tutorialErrorMsg: '',
+    tutorials: [],
+    currentTutorialKeyword: ''
   },
 
   onLoad(options) {

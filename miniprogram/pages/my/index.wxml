@@ -48,6 +48,7 @@
           wx:key="_id" 
           class="history-item" 
           bindtap="navigateToHistory" 
+          bindlongpress="onDeleteHistory"
           data-index="{{index}}"
         >
           <view class="history-thumb">

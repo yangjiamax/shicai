@@ -434,3 +434,465 @@ page {
   line-height: 1.5;
   display: block;
 }
+/* Tutorial Bottom Sheet */
+.tutorial-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.tutorial-mask.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.tutorial-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #f6f3f2; /* 整个底色改为微灰，凸显白色的卡片 */
+  border-radius: 40rpx 40rpx 0 0;
+  z-index: 1000;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  padding-bottom: env(safe-area-inset-bottom);
+  max-height: 85vh; /* 高度调高一点，能容纳更多内容 */
+  display: flex;
+  flex-direction: column;
+}
+
+.tutorial-sheet.show {
+  transform: translateY(0);
+}
+
+.tutorial-header {
+  padding: 40rpx 40rpx 20rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  background: #ffffff; /* 头部保持纯白 */
+  border-radius: 40rpx 40rpx 0 0;
+  z-index: 2;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.02);
+}
+
+.tutorial-title {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #1b1c1c;
+}
+
+.tutorial-close {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  color: #74796d;
+  background: #fcf9f8;
+  border-radius: 30rpx;
+}
+
+.tutorial-content {
+  flex: 1;
+  min-height: 400rpx;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.tutorial-loading, .tutorial-error, .tutorial-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 0;
+  flex: 1;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 6rpx solid #e0e0e0;
+  border-top-color: #fb7299; /* 加载圈用B站粉色 */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20rpx;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text, .error-text {
+  font-size: 28rpx;
+  color: #74796d;
+}
+
+.tutorial-list {
+  padding: 30rpx 30rpx 40rpx;
+  height: 60vh; /* Set explicit height to make scroll-view scrollable */
+  box-sizing: border-box;
+}
+
+.tutorial-card {
+  display: flex;
+  gap: 24rpx;
+  padding: 24rpx;
+  background: #ffffff; /* 卡片纯白 */
+  border-radius: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.04); /* 增加投影层级感 */
+  transition: all 0.2s ease;
+}
+
+.tutorial-card:active {
+  background: #fafafa;
+  transform: scale(0.98);
+}
+
+.tutorial-thumb {
+  width: 240rpx; /* 缩略图大一点点 */
+  height: 150rpx;
+  border-radius: 16rpx;
+  background: #e0e0e0;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.tutorial-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.tutorial-video-title {
+  font-size: 28rpx;
+  color: #1b1c1c;
+  font-weight: 600;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tutorial-platform {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16rpx;
+}
+
+.platform-group {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.view-count {
+  font-size: 20rpx;
+  color: #74796d;
+}
+
+.platform-tag {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  font-weight: bold;
+}
+
+.platform-tag.bilibili {
+  background: #fb7299;
+  color: #ffffff;
+}
+
+.tutorial-link-text {
+  font-size: 24rpx;
+  color: #1b1c1c;
+  font-weight: bold;
+  background: #f6f3f2;
+  padding: 8rpx 20rpx;
+  border-radius: 30rpx;
+}
+
+.container {
+  padding: 30rpx;
+}
+
+.list-card {
+  background: #ffffff;
+  border-radius: 32rpx;
+  padding: 40rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.02);
+  margin-bottom: 40rpx;
+}
+
+.header {
+  margin-bottom: 40rpx;
+  padding-bottom: 30rpx;
+  border-bottom: 2rpx dashed rgba(196, 200, 187, 0.3);
+}
+
+.title-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 20rpx;
+}
+
+.title {
+  font-size: 56rpx;
+  font-weight: 800;
+  color: #1b1c1c;
+  line-height: 1.2;
+  margin-bottom: 12rpx;
+  letter-spacing: -0.5px;
+  word-break: break-word;
+  text-transform: capitalize;
+}
+
+.recipe-badge-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 16rpx;
+  flex-wrap: nowrap; /* 强制在一行 */
+}
+
+.recipe-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(75, 99, 56, 0.1);
+  padding: 8rpx 24rpx;
+  border-radius: 30rpx;
+  flex-shrink: 1;
+  overflow: hidden;
+}
+
+.btn-tutorial-small {
+  font-size: 24rpx;
+  color: #ffffff;
+  background: linear-gradient(135deg, #fb7299, #ff85a8);
+  padding: 10rpx 28rpx;
+  border-radius: 32rpx;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s;
+  flex-shrink: 0; /* 保证按钮不被挤压 */
+  box-shadow: 0 6rpx 16rpx rgba(251, 114, 153, 0.3);
+}
+
+.btn-tutorial-small:active {
+  background: linear-gradient(135deg, #e06085, #f57497);
+  transform: scale(0.95);
+  box-shadow: 0 2rpx 8rpx rgba(251, 114, 153, 0.2);
+}
+
+.icon-restaurant {
+  width: 24rpx;
+  height: 24rpx;
+  flex-shrink: 0;
+}
+
+.recipe-badge text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #4b6338;
+  font-weight: 600;
+  font-size: 22rpx;
+  text-transform: capitalize;
+}
+
+.subtitle-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 20rpx;
+}
+
+.subtitle {
+  font-size: 26rpx;
+  color: #74796d;
+  flex: 1;
+  word-break: break-word;
+}
+
+.hint-text {
+  font-size: 24rpx;
+  color: #a3a69d;
+  flex-shrink: 0;
+}
+
+.ingredient-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.ingredient-item {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  border: 2rpx solid rgba(196, 200, 187, 0.2);
+  transition: all 0.2s ease;
+}
+
+.item-content {
+  display: flex;
+  align-items: center;
+}
+
+.ingredient-item.checked {
+  background: rgba(75, 99, 56, 0.02);
+  border-color: rgba(75, 99, 56, 0.2);
+}
+
+.checkbox {
+  width: 44rpx;
+  height: 44rpx;
+  border: 3rpx solid #c4c8bb;
+  border-radius: 12rpx;
+  margin-right: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.checkbox-checked {
+  background: #4b6338;
+  border-color: #4b6338;
+}
+
+.check-icon {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+.ingredient-name {
+  font-size: 32rpx;
+  color: #1b1c1c;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-transform: capitalize;
+}
+
+.ingredient-item.checked .ingredient-name {
+  color: #74796d;
+  text-decoration: line-through;
+}
+
+/* Action Bar */
+.bottom-action-area {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(to top, #fcf9f8 85%, rgba(252, 249, 248, 0));
+  padding-top: 60rpx;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.action-bar {
+  width: 100%;
+  padding: 0 40rpx;
+  display: flex;
+  gap: 20rpx;
+  box-sizing: border-box;
+  margin-bottom: 20rpx;
+}
+
+.btn-primary {
+  flex: 1.5;
+  height: 100rpx;
+  background: linear-gradient(to right, #4b6338, #637c4e);
+  color: white;
+  font-size: 32rpx;
+  font-weight: bold;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12rpx 32rpx rgba(75, 99, 56, 0.15);
+  padding: 0;
+  white-space: nowrap;
+}
+
+.btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 12rpx;
+}
+
+.btn-icon-center {
+  width: 44rpx;
+  height: 44rpx;
+}
+
+.btn-icon-only {
+  flex: 0.5;
+  padding: 0;
+}
+
+.btn-secondary {
+  flex: 1;
+  height: 100rpx;
+  background: #ffffff;
+  color: #4b6338;
+  font-size: 30rpx;
+  font-weight: bold;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+  padding: 0;
+  white-space: nowrap;
+}
+
+.btn-primary::after, .btn-secondary::after {
+  border: none;
+}
+
+.clear-data-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 20rpx;
+}
+
+.clear-btn {
+  background: transparent;
+  color: #a3a69d;
+  font-size: 24rpx;
+  padding: 10rpx 30rpx;
+}
+
+.clear-btn::after {
+  border: none;
+}

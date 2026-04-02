@@ -8,7 +8,7 @@
 
 ## 2. 小步快跑
 
-- 每次只做中feature-culture-recipe-plan.md的一项，或一项中的一小部分
+- 每次只做中mvp-dev-plan-video-tutorials.md的一项，或一项中的一小部分
 - 步步优化，处处闭环，确保开发完整性
 - 每个阶段完成后对照 PRD 验收用例自测
 

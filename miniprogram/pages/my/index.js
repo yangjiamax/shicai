@@ -349,6 +349,38 @@ Page({
     });
   },
 
+  onDeleteHistory(e) {
+    const index = e.currentTarget.dataset.index;
+    const history = this.data.histories[index];
+    if (!history) return;
+
+    wx.showModal({
+      title: app.t('my_delete') || '删除',
+      content: app.t('my_delete_confirm') || '确定删除这条记录吗？',
+      success: async (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: app.t('my_clearing') || '删除中...', mask: true });
+          try {
+            if (!wx.cloud) throw new Error('Cloud not initialized');
+            const db = wx.cloud.database();
+            
+            await db.collection('histories').doc(history._id).remove();
+            
+            // Reload current page to update total count and pagination correctly
+            this.loadHistories(this.data.currentPage);
+            
+            wx.hideLoading();
+            wx.showToast({ title: app.t('my_delete_success') || '已删除', icon: 'success' });
+          } catch (err) {
+            console.error('[My] Delete history failed:', err);
+            wx.hideLoading();
+            wx.showToast({ title: app.t('my_delete_fail') || '删除失败', icon: 'none' });
+          }
+        }
+      }
+    });
+  },
+
   navigateToFeedback() {
     wx.navigateTo({
       url: '/pages/feedback/index'
