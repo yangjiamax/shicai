@@ -308,20 +308,65 @@ async function handleSearchTutorial(keyword, lang) {
     console.error('下厨房搜索失败:', err.message);
   }
 
-  // 3. 返回合并数据
+  // 3. 如果下厨房为空但 B 站不为空，单独触发一次下厨房的 Bocha 兜底
+  if (xiachufangResults.length === 0) {
+    try {
+      const response = await axios.post('https://api.bochaai.com/v1/web-search', {
+        query: `site:xiachufang.com/recipe/ "${keyword}"`,
+        count: 10,
+        freshness: 'noLimit'
+      }, {
+        headers: {
+          'Authorization': `Bearer ${bochaApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+
+      const webPages = response.data?.data?.webPages?.value || response.data?.webPages?.value;
+      if (webPages && Array.isArray(webPages) && webPages.length > 0) {
+        let results = webPages.slice(0, 10).map(p => ({
+          title: p.name,
+          url: p.url,
+          thumbnail: 'https://i2.chuimg.com/logo/xiachufang.png',
+          source: 'xiachufang'
+        }));
+        
+        results = await Promise.all(results.map(async (item) => {
+          const firstImg = await extractFirstImageFromUrl(item.url, 'xiachufang');
+          if (firstImg) {
+            item.thumbnail = firstImg;
+          }
+          return item;
+        }));
+        
+        if (results.length > 0) {
+          xiachufangResults = results;
+        }
+      }
+    } catch (err) {
+      console.error('单独补救下厨房 Bocha API 请求失败:', err.message);
+    }
+  }
+
+  // 4. 返回合并数据
   if (biliResults.length > 0 || xiachufangResults.length > 0) {
+    // 为了兼容前端，如果某一方为空，我们尽量用另一方的数据兜底
+    const finalBili = biliResults.length > 0 ? biliResults : xiachufangResults;
+    const finalXcf = xiachufangResults.length > 0 ? xiachufangResults : biliResults;
+    
     const result = {
       error: false,
       data: {
-        bilibili: biliResults,
-        xiachufang: xiachufangResults
+        bilibili: finalBili,
+        xiachufang: finalXcf
       }
     };
     await setCache(cacheKey, result);
     return result;
   }
 
-  // 4. 降级使用 Bocha API 进行网页搜索
+  // 5. 完全降级使用 Bocha API 进行网页搜索 (两个都失败的情况)
   const mockData = {
     error: false,
     data: {
@@ -343,18 +388,26 @@ async function handleSearchTutorial(keyword, lang) {
           url: "https://m.bilibili.com/video/BV1ab411c7mE/",
           thumbnail: "https://i0.hdslb.com/bfs/archive/bilibili_logo.png",
           source: "bilibili"
+        }
+      ],
+      xiachufang: [
+        {
+          title: `【${keyword}】的家常做法，软糯香甜肥而不腻`,
+          url: "https://m.bilibili.com/video/BV1xx411c7mD/",
+          thumbnail: "https://i1.hdslb.com/bfs/archive/8431dae2938e5e783935db4057e9bc7bb89280d0.jpg",
+          source: "xiachufang"
         },
         {
-          title: `老饭骨：国宴大厨揭秘【${keyword}】的诀窍`,
-          url: "https://m.bilibili.com/video/BV1xy411m7mY/",
-          thumbnail: "https://i0.hdslb.com/bfs/archive/bilibili_logo.png",
-          source: "bilibili"
+          title: `厨师长教你：“${keyword}”的正宗做法`,
+          url: "https://m.bilibili.com/video/BV1sx411m7mX/",
+          thumbnail: "https://i2.hdslb.com/bfs/archive/0b263b610c1f6c77ba2f6024beec168fb9cc75df.jpg",
+          source: "xiachufang"
         },
         {
-          title: `无油无水，不用炒糖色的神仙【${keyword}】`,
-          url: "https://m.bilibili.com/video/BV1cd411c7mF/",
+          title: `懒人版【${keyword}】，电饭煲一键搞定`,
+          url: "https://m.bilibili.com/video/BV1ab411c7mE/",
           thumbnail: "https://i0.hdslb.com/bfs/archive/bilibili_logo.png",
-          source: "bilibili"
+          source: "xiachufang"
         }
       ]
     }
@@ -396,7 +449,8 @@ async function handleSearchTutorial(keyword, lang) {
         const result = {
           error: false,
           data: {
-            bilibili: results // 为了兼容前端结构，这里还是用 bilibili 这个key，前端会根据 source 区分
+            bilibili: results, // 为了兼容前端结构，在找不到b站结果时，用下厨房兜底
+            xiachufang: results
           }
         };
         await setCache(cacheKey, result);

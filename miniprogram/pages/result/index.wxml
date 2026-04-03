@@ -90,15 +90,17 @@
     </view>
 
     <view class="action-bar" wx:if="{{displayRecipes && displayRecipes.length > 0 && !loadingFamiliar}}">
-      <button class="btn-primary" bindtap="generateList">
-        <view class="btn-content">
-          <image class="btn-icon" src="/images/icons/shopping_cart.svg" mode="aspectFit"></image>
-          <text>{{i18n.res_generate_list}}</text>
-        </view>
-      </button>
-      <button class="btn-secondary btn-icon-only" bindtap="retry">
-        <image class="btn-icon-center" src="/images/icons/retry.svg" mode="aspectFit"></image>
-      </button>
+      <view class="action-buttons">
+        <button class="btn-primary" bindtap="generateList">
+          <view class="btn-content">
+            <image class="btn-icon" src="/images/icons/shopping_cart.svg" mode="aspectFit"></image>
+            <text>{{i18n.res_generate_list}}</text>
+          </view>
+        </button>
+        <button class="btn-secondary btn-icon-only" bindtap="retry">
+          <image class="btn-icon-center" src="/images/icons/retry.svg" mode="aspectFit"></image>
+        </button>
+      </view>
     </view>
 
     <view class="disclaimer" wx:if="{{displayRecipes && displayRecipes.length > 0 && !loadingFamiliar}}">
@@ -108,8 +110,10 @@
     <view class="incomplete-state" wx:elif="{{!loadingFamiliar && !loadingLocal}}">
       <text class="incomplete-tips">{{i18n.res_incomplete}}</text>
       <view class="action-bar">
-        <button class="btn-primary" bindtap="retry">{{i18n.res_retake}}</button>
-        <button class="btn-secondary" bindtap="goHome">{{i18n.res_back_home}}</button>
+        <view class="action-buttons">
+          <button class="btn-primary" bindtap="retry">{{i18n.res_retake}}</button>
+          <button class="btn-secondary" bindtap="goHome">{{i18n.res_back_home}}</button>
+        </view>
       </view>
     </view>
   </view>
@@ -118,5 +122,20 @@
     <image class="error-icon" src="/images/icons/error.svg" mode="aspectFit"></image>
     <text>{{i18n.res_load_failed}}</text>
     <button class="btn-primary" bindtap="goHome">{{i18n.res_back_home}}</button>
+  </view>
+
+  <!-- Custom Success Modal -->
+  <view class="custom-modal-mask {{showSuccessModal ? 'show' : ''}}" catchtouchmove="preventTouchMove">
+    <view class="custom-modal-dialog {{showSuccessModal ? 'show' : ''}}">
+      <view class="custom-modal-content">
+        <view class="custom-modal-title">已加入今日采购清单</view>
+        <view class="custom-modal-desc">佐料已成功加入，是否前往查看？</view>
+      </view>
+      <view class="custom-modal-footer">
+        <view class="custom-modal-btn" bindtap="modalClose">返回</view>
+        <view class="custom-modal-btn" bindtap="modalContinue">继续识物</view>
+        <view class="custom-modal-btn btn-primary-text" bindtap="modalViewList">查看清单</view>
+      </view>
+    </view>
   </view>
 </view>

@@ -1,0 +1,15 @@
+@import "../list/index.wxss";
+
+.container {
+  padding: 40rpx 30rpx;
+  min-height: 100vh;
+  background: #fcf9f8;
+}
+
+.recipe-wrapper {
+  background: #ffffff;
+  border-radius: 32rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.03);
+  padding: 30rpx;
+  border: 2rpx solid rgba(255, 77, 79, 0.15); /* Light red border as shown in screenshot */
+}

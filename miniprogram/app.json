@@ -3,7 +3,9 @@
     "pages/index/index",
     "pages/result/index",
     "pages/list/index",
+    "pages/history-list/index",
     "pages/my/index",
+    "pages/recipe/index",
     "pages/feedback/index"
   ],
   "window": {
@@ -23,6 +25,12 @@
         "text": "首页",
         "iconPath": "images/icons/home.png",
         "selectedIconPath": "images/icons/home.png"
+      },
+      {
+        "pagePath": "pages/list/index",
+        "text": "清单",
+        "iconPath": "images/icons/list-tab-inactive.png",
+        "selectedIconPath": "images/icons/list-tab-active.png"
       },
       {
         "pagePath": "pages/my/index",

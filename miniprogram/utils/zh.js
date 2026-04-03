@@ -3,13 +3,21 @@ module.exports = {
   app_name: '知食角',
   app_slogan: '集结懂吃的灵魂',
   lang_switch: 'EN',
-  tab_home: '识菜',
+  tab_home: '首页',
+  tab_list: '清单',
   tab_my: '我的',
+  page_title_list: '采购清单',
   
   // 首页
   camera_title: '拍照识别',
   camera_desc: '一眼识菜 · 一秒辨鲜 · 一键成菜',
   album_entry: '相册导入',
+  transition_identify: '鉴食材',
+  transition_list: '列清单',
+  list_progress_title: '今日采购清单',
+  list_progress_desc: '{bought} / {total} 项已购',
+  swipe_guide: '扫货不遗漏',
+  fab_note: '记一笔',
   analyzing_title: '正在分析食材特征...',
   analyzing_hint: '看花了眼啦！请给我15-30秒钟揉揉眼睛',
   
@@ -287,17 +295,18 @@ module.exports = {
   res_freshness: '鲜度判定',
   res_taste: '味道：',
   res_texture: '口感：',
-  res_similar: '类似食材：',
+  res_similar: '相似食材：',
   res_freshness_title: '鲜度判定',
   res_clue_title: '判断依据',
-  res_recipes_title: '推荐做法',
+  res_recipes_title: '做法推荐',
   res_recipes: '推荐做法',
   res_etc: ' 等',
-  res_generate_list: '生成买菜清单',
+  res_generate_list: '加入今日购物清单',
+  res_generate_guide: '扫货不遗漏',
   res_retake: '重新拍摄',
   res_save_success: '保存成功',
   res_save_failed: '保存失败',
-  res_disclaimer: '* AI识别结果仅供参考，不作为食品安全判断依据，请以实际情况为准。',
+  res_disclaimer: '*分析结果由AI生成，仅供参考。如果识别有误，请重新尝试。',
   res_incomplete: '食材特征未完全识别，请换个角度重拍',
   res_back_home: '返回首页',
   res_load_failed: '加载识别结果失败',
@@ -314,6 +323,12 @@ module.exports = {
   tutorial_copy_success: '链接已复制，请在浏览器中打开',
   tutorial_copy_fail: '复制失败，请重试',
   tutorial_empty: '暂未找到相关做法',
+
+  // 清单页分类
+  cat_seafood_meat_eggs: "鱼鲜肉蛋",
+  cat_fresh_produce: "生鲜蔬果",
+  cat_grains_oils_condiments: "粮油配料",
+  cat_others: "其他",
 
   // 列表页 (采购单)
   list_title: '采购单',
@@ -344,7 +359,8 @@ module.exports = {
   list_clear_fail: '清除失败',
 
   // 我的页 (历史记录)
-  my_title: '我的记录',
+  my_title: '我的厨房',
+  status_in_progress: '进行中',
   my_set_nickname: '点击设置昵称',
   my_input_nickname: '请输入昵称',
   my_login_tip: '点击上方头像和昵称即可登录',

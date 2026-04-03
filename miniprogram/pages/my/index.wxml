@@ -22,16 +22,26 @@
 
   <view class="history-section">
     <view class="section-header">
-      <text class="section-title">{{i18n.my_history_title}}</text>
+      <view class="history-tabs">
+        <view class="tab-item {{historyTab === 'collection' ? 'active' : ''}}" bindtap="switchHistoryTab" data-tab="collection">
+          <text>食材集邮册</text>
+        </view>
+        <view class="tab-item {{historyTab === 'planning' ? 'active' : ''}}" bindtap="switchHistoryTab" data-tab="planning">
+          <text>宝藏菜谱</text>
+        </view>
+        <view class="tab-item {{historyTab === 'execution' ? 'active' : ''}}" bindtap="switchHistoryTab" data-tab="execution">
+          <text>历史购物单</text>
+        </view>
+      </view>
     </view>
     
     <view wx:if="{{isAnonymous}}" class="empty-state">
-      <view class="empty-icon">☁️</view>
+      <view class="empty-icon sys-icon icon-cloud"></view>
       <text class="empty-text">{{i18n.my_cloud_tip}}</text>
       <text class="empty-hint">{{i18n.my_local_mode}}</text>
     </view>
     <view wx:elif="{{loadError}}" class="empty-state">
-      <view class="empty-icon">📶</view>
+      <view class="empty-icon sys-icon icon-wifi-off"></view>
       <text class="empty-text">{{i18n.my_network_error}}</text>
       <text class="empty-hint">{{i18n.my_network_retry}}</text>
     </view>
@@ -52,15 +62,19 @@
           data-index="{{index}}"
         >
           <view class="history-thumb">
-            <image wx:if="{{item.analysisResult.cloudImagePath || item.analysisResult.imagePath}}" class="history-thumb-img" src="{{item.analysisResult.cloudImagePath || item.analysisResult.imagePath}}" mode="aspectFill"></image>
+            <image wx:if="{{item.type === 'bill'}}" class="history-thumb-img" src="/images/icons/list-tab-active.png" mode="aspectFit" style="padding: 10px; box-sizing: border-box; opacity: 0.7;"></image>
+            <image wx:elif="{{item.analysisResult.cloudImagePath || item.analysisResult.imagePath}}" class="history-thumb-img" src="{{item.analysisResult.cloudImagePath || item.analysisResult.imagePath}}" mode="aspectFill"></image>
             <text wx:else class="history-thumb-text">{{item.initial}}</text>
           </view>
           
           <view class="history-info">
-            <text class="history-name">{{item.ingredient_name}}</text>
+            <view class="history-title-row">
+                <text class="history-name">{{item.ingredient_name}}</text>
+                <text wx:if="{{item.type === 'bill' && item.status === 'active'}}" class="status-tag">{{i18n.status_in_progress || '进行中'}}</text>
+              </view>
             <view class="history-meta">
-              <view class="history-recipe">{{item.selected_recipe.recipe_name}}</view>
-              <text class="meta-dot" wx:if="{{item.selected_recipe.recipe_name && item.formattedDate}}">·</text>
+              <view class="history-recipe" wx:if="{{historyTab !== 'collection'}}">{{item.selected_recipe.recipe_name}}</view>
+              <text class="meta-dot" wx:if="{{item.selected_recipe.recipe_name && item.formattedDate && historyTab !== 'collection'}}">·</text>
               <text class="history-time">{{item.formattedDate}}</text>
             </view>
           </view>
@@ -90,7 +104,7 @@
     <picker bindchange="onNationalityChange" value="{{nationalityIndex}}" range="{{i18n.nationality_list}}" range-key="name">
       <view class="settings-item border-bottom">
         <view class="settings-left">
-          <text class="settings-icon">👤</text>
+          <text class="settings-icon sys-icon icon-user"></text>
           <text class="settings-text">{{i18n.nationality_title}}</text>
         </view>
         <view class="settings-right">
@@ -102,7 +116,7 @@
 
     <view class="settings-item border-bottom" bindtap="switchLanguage">
       <view class="settings-left">
-        <text class="settings-icon">🌐</text>
+        <text class="settings-icon sys-icon icon-globe"></text>
         <text class="settings-text">{{i18n.my_language || '语言 / Language'}}</text>
       </view>
       <text class="settings-arrow">></text>
@@ -110,7 +124,7 @@
 
     <view class="settings-item" bindtap="navigateToFeedback">
       <view class="settings-left">
-        <text class="settings-icon">💡</text>
+        <text class="settings-icon sys-icon icon-lightbulb"></text>
         <text class="settings-text">{{i18n.my_feedback || '意见反馈与联系作者'}}</text>
       </view>
       <text class="settings-arrow">></text>

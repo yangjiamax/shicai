@@ -4,14 +4,22 @@ module.exports = {
   app_slogan: 'Elevate Your Everyday Market Finds',
   lang_switch: '中',
   tab_home: 'Home',
+  tab_list: 'List',
   tab_my: 'Profile',
+  page_title_list: 'Shopping List',
   
   // Index Page
   camera_title: 'Snap to Identify',
-   camera_desc: 'Identify · Check Freshness · Get Recipes',
-   album_entry: 'Album',
-   analyzing_title: 'Analyzing Ingredient...',
-   analyzing_hint: 'Dazzled by the choices! Give me 15-30s to take a closer look...',
+  camera_desc: 'Identify · Check Freshness · Get Recipes',
+  album_entry: 'Album',
+  transition_identify: 'Identify',
+  transition_list: 'Make List',
+  list_progress_title: "Today's Shopping List",
+  list_progress_desc: '{bought} / {total} bought',
+  swipe_guide: 'Never miss an item',
+  fab_note: 'Add Note',
+  analyzing_title: 'Analyzing Ingredient...',
+  analyzing_hint: 'Dazzled by the choices! Give me 15-30s to take a closer look...',
    
   // Nationality and Culture Experience
   nationality_title: 'Nationality',
@@ -291,9 +299,10 @@ module.exports = {
   res_freshness_title: 'Freshness Check',
   res_clue_title: 'Indicators',
   res_recipes_title: 'Recommended Recipes',
-  res_recipes: 'Recipes',
+  res_recipes: 'Recommended',
   res_etc: ' etc.',
-  res_generate_list: 'Shopping List',
+  res_generate_list: 'Add to Shopping List',
+  res_generate_guide: 'Never miss an item',
   res_retake: 'Retake',
   res_save_success: 'Saved successfully',
   res_save_failed: 'Failed to save',
@@ -343,9 +352,16 @@ module.exports = {
   list_clear_success: 'Cleared',
   list_clear_fail: 'Clear failed',
 
+  // List Page Categories
+  cat_seafood_meat_eggs: "Seafood, Meat & Eggs",
+  cat_fresh_produce: "Fresh Produce",
+  cat_grains_oils_condiments: "Grains, Oils & Condiments",
+  cat_others: "Others",
+
   // My Page
-  my_title: 'Profile',
-  my_set_nickname: 'Set Nickname',
+  my_title: 'My Kitchen',
+  status_in_progress: 'In Progress',
+  my_set_nickname: 'Tap to set nickname',
   my_input_nickname: 'Enter Nickname',
   my_login_tip: 'Click avatar and nickname above to login',
   my_history_title: 'Recent Scans',

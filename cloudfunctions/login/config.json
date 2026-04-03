@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "openapi": [
+      "security.msgSecCheck"
+    ]
+  },
+  "triggers": [],
+  "timeout": 60
+}

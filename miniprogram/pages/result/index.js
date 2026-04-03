@@ -16,6 +16,9 @@ Page({
     errorFamiliar: false,
     errorLocal: false,
     
+    // Custom Modal State
+    showSuccessModal: false,
+    
     // Tutorial Sheet State
     showTutorialSheet: false,
     tutorialLoading: false,
@@ -45,8 +48,8 @@ Page({
         importedListData = data;
         resultData = data.analysisResult;
         
-        // 分享进来的场景，可能只有 cloudImagePath，确保 imagePath 有回退
-        if (resultData && !resultData.imagePath && resultData.cloudImagePath) {
+        // 历史记录或分享进来的场景，优先使用 cloudImagePath 避免本地临时文件过期
+        if (resultData && resultData.cloudImagePath) {
           resultData.imagePath = resultData.cloudImagePath;
         }
       } else {
@@ -243,28 +246,91 @@ Page({
     }
   },
 
-  generateList() {
+  async generateList() {
     const result = this.data.result;
     const selectedRecipe = this.data.displayRecipes[this.data.selectedIndex];
+    const dbUtil = require('../../utils/db.js');
     
-    let listData;
-    if (this.data.importedListData && this.data.importedListData.recipeName === selectedRecipe.recipe_name) {
-      listData = this.data.importedListData;
-    } else {
-      listData = {
-        ingredientName: result.ingredient_name,
-        recipeName: selectedRecipe.recipe_name,
-        ingredients: this.data.selectedIngredients.map(name => ({
-          name: name,
-          checked: false
-        })),
-        analysisResult: result
-      };
+    wx.showLoading({ title: '正在加入...', mask: true });
+    
+    try {
+      // 1. 获取今日活跃清单 ID
+      const listId = await dbUtil.getActiveList();
+      
+      // 2. 格式化 Ingredient 对象
+      const ingredients = this.data.selectedIngredients.map(name => ({
+        name: name,
+        standard_name: name,
+        category: '其他', // 默认分类
+        source_recipe: selectedRecipe.recipe_name
+      }));
+      
+      // 3. 写入活跃清单
+      await dbUtil.addIngredientsToList(listId, ingredients);
+      
+      // 4. 记录到“集邮”历史 (histories 集合)
+      try {
+        const db = wx.cloud.database();
+        await db.collection('histories').add({
+          data: {
+            ingredient_name: result.ingredient_name,
+            selected_recipe: {
+              recipe_name: selectedRecipe.recipe_name,
+              ingredients_needed: selectedRecipe.ingredients_needed
+            },
+            analysisResult: result,
+            createdAt: db.serverDate()
+          }
+        });
+      } catch (historyErr) {
+        console.error('保存集邮历史失败:', historyErr);
+        // 不阻塞主流程
+      }
+      
+      wx.hideLoading();
+      
+      // 5. 交互优化：弹出提示
+      wx.showToast({
+        title: '已加入清单',
+        icon: 'success',
+        duration: 2000
+      });
+      
+      setTimeout(() => {
+        this.setData({
+          showSuccessModal: true
+        });
+      }, 500);
+    } catch (err) {
+      console.error('加入清单失败:', err);
+      wx.hideLoading();
+      wx.showToast({
+        title: '加入失败',
+        icon: 'none'
+      });
     }
+  },
 
-    wx.navigateTo({
-      url: `/pages/list/index?data=${encodeURIComponent(JSON.stringify(listData))}`
+  modalContinue() {
+    this.setData({ showSuccessModal: false });
+    wx.reLaunch({
+      url: '/pages/index/index'
     });
+  },
+
+  modalViewList() {
+    this.setData({ showSuccessModal: false });
+    wx.switchTab({
+      url: '/pages/list/index'
+    });
+  },
+
+  modalClose() {
+    this.setData({ showSuccessModal: false });
+  },
+
+  preventTouchMove() {
+    // Prevent scrolling when modal is open
   },
 
   retry() {

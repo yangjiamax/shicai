@@ -20,35 +20,34 @@
   <view class="empty-state" wx:elif="{{(activeView === 'planning' && planningGroups.length === 0) || (activeView === 'execution' && executionGroups.length === 0)}}">
     <image class="empty-icon" src="/images/icons/empty-vegetable.svg" mode="aspectFit"></image>
     <text class="empty-text">当前清单为空</text>
-    <text class="empty-hint">去首页识物或记一笔吧～</text>
   </view>
 
   <!-- Planning View (按菜谱) -->
   <view class="list-container" wx:elif="{{activeView === 'planning'}}">
-    <view class="list-group-wrapper {{item.isTouchMove ? 'touch-move-active' : ''}}" 
+    <view class="list-group-wrapper" 
           wx:for="{{planningGroups}}" wx:key="title"
-          bindtouchstart="touchstart" bindtouchend="touchend" data-index="{{index}}">
+          data-index="{{index}}">
       
-      <!-- Delete Button Underneath -->
-      <view class="recipe-delete-btn" catchtap="deleteRecipe" data-recipe="{{item.title}}">
-        <text>删除</text>
-      </view>
-
       <view class="list-group">
         <view class="group-header">
           <text class="group-title">{{item.title}}</text>
           <view class="group-actions">
             <!-- B站/下厨房入口 (仅针对非"其他/直接添加"的菜谱) -->
-            <view wx:if="{{item.title && item.title !== '其他' && item.title !== '直接添加'}}" class="search-action-wrapper">
-              <view wx:if="{{lang !== 'en'}}" class="btn-tutorial-small" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="bilibili">
-                <text class="sys-icon icon-tv"></text> {{i18n.btn_search_tutorial || '搜B站'}}
+            <view class="search-action-wrapper">
+              <view class="btn-tutorial-small add-btn" catchtap="addRecipeToNewList" data-recipe="{{item.title}}" data-items="{{item.items}}">
+                <text class="sys-icon icon-plus"></text> 加入新清单
               </view>
-              <view wx:if="{{lang === 'en'}}" class="btn-tutorial-small xcf-btn" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="foodcom">
-                <text class="sys-icon icon-pan"></text> {{i18n.btn_search_tutorial_xcf || 'Search'}}
-              </view>
-              <view wx:elif="{{lang !== 'en'}}" class="btn-tutorial-small xcf-btn" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="xiachufang">
-                <text class="sys-icon icon-pan"></text> {{i18n.btn_search_tutorial_xcf || '下厨房'}}
-              </view>
+              <block wx:if="{{item.title && item.title !== '其他' && item.title !== '直接添加'}}">
+                <view wx:if="{{lang !== 'en'}}" class="btn-tutorial-small" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="bilibili">
+                  <text class="sys-icon icon-tv"></text> {{i18n.btn_search_tutorial || '搜B站'}}
+                </view>
+                <view wx:if="{{lang === 'en'}}" class="btn-tutorial-small xcf-btn" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="foodcom">
+                  <text class="sys-icon icon-pan"></text> {{i18n.btn_search_tutorial_xcf || 'Search'}}
+                </view>
+                <view wx:elif="{{lang !== 'en'}}" class="btn-tutorial-small xcf-btn" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="xiachufang">
+                  <text class="sys-icon icon-pan"></text> {{i18n.btn_search_tutorial_xcf || '下厨房'}}
+                </view>
+              </block>
             </view>
           </view>
         </view>
@@ -58,44 +57,16 @@
             wx:for="{{item.items}}" 
             wx:key="_id"
             wx:for-item="ing"
-            class="ingredient-item {{ing.status === 'bought' ? 'checked' : ''}}">
+            class="ingredient-item {{ing.status === 'bought' ? 'checked' : ''}}"
+            bindtap="addSingleIngredient" data-item="{{ing}}">
             <view class="item-content">
-              <view class="checkbox-wrap" catchtap="toggleIngredientStatus" data-id="{{ing._id}}" data-current="{{ing.status}}">
-                <view class="checkbox {{ing.status === 'bought' ? 'checkbox-checked' : ''}}">
-                  <image wx:if="{{ing.status === 'bought'}}" class="check-icon" src="/images/icons/check.svg" mode="aspectFit"></image>
-                </view>
-              </view>
               <view class="ingredient-info">
                 <text class="ingredient-name {{ing.status === 'bought' ? 'checked-text' : ''}}">{{ing.name}}</text>
               </view>
-              <view class="delete-btn" catchtap="deleteIngredient" data-id="{{ing._id}}">✕</view>
             </view>
-          </view>
-          
-          <!-- Add new ingredient -->
-          <view class="add-ingredient-wrap">
-            <view class="add-icon-wrap">
-              <view class="add-icon">+</view>
-            </view>
-            <input 
-              class="add-ingredient-input" 
-              placeholder="{{i18n.list_add_placeholder || '添加食材'}}" 
-              placeholder-class="add-ingredient-placeholder"
-              bindconfirm="addIngredientToRecipe" 
-              data-recipe="{{item.title}}" 
-              value="{{newIngredients[item.title]}}"
-              bindinput="onAddIngredientInput"
-              confirm-type="done"
-            />
           </view>
         </view>
       </view>
-    </view>
-
-    <!-- Add Custom Recipe Button -->
-    <view class="add-recipe-btn" bindtap="showAddRecipeModal">
-      <text class="add-recipe-icon">+</text>
-      <text>添加菜谱 / 菜品</text>
     </view>
   </view>
 
@@ -111,44 +82,21 @@
           wx:for="{{item.items}}" 
           wx:key="name"
           wx:for-item="ing"
-          class="ingredient-item {{ing.status === 'bought' ? 'checked' : ''}}">
+          class="ingredient-item {{ing.status === 'bought' ? 'checked' : ''}}"
+          bindtap="addSingleIngredient" data-item="{{ing}}">
           <view class="item-content">
-            <view class="checkbox-wrap" bindtap="toggleIngredientStatus" data-ids="{{ing.original_ids}}" data-current="{{ing.status}}">
-              <view class="checkbox {{ing.status === 'bought' ? 'checkbox-checked' : ''}}">
-                <image wx:if="{{ing.status === 'bought'}}" class="check-icon" src="/images/icons/check.svg" mode="aspectFit"></image>
-              </view>
-            </view>
-            <view class="ingredient-info" catchtap="{{item.isOther ? 'editOtherIngredient' : 'showExecutionEditToast'}}" data-ids="{{ing.original_ids}}" data-name="{{ing.standard_name || ing.name}}">
+            <view class="ingredient-info">
               <text class="ingredient-name {{ing.status === 'bought' ? 'checked-text' : ''}}">{{ing.standard_name || ing.name}}</text>
             </view>
-            <view class="merge-bubble" wx:if="{{ing.suggestMerge}}" catchtap="handleMerge" data-source="{{ing.original_ids}}" data-target="{{ing.mergeTargetIds}}" data-targetname="{{ing.mergeTargetName}}" data-sourcename="{{ing.standard_name || ing.name}}">
-              <text>合并到{{ing.mergeTargetName}}?</text>
-            </view>
-            <!-- Delete button for 其他 -->
-            <view class="delete-btn" wx:if="{{item.isOther}}" catchtap="deleteIngredient" data-ids="{{ing.original_ids}}">✕</view>
           </view>
-        </view>
-
-        <!-- Add new ingredient for 其他 -->
-        <view class="add-ingredient-wrap" wx:if="{{item.isOther}}">
-          <view class="add-icon">+</view>
-          <input 
-            class="add-ingredient-input" 
-            placeholder="{{i18n.list_add_placeholder || '添加其他食材'}}" 
-            placeholder-class="add-ingredient-placeholder"
-            bindconfirm="addOtherIngredient" 
-            value="{{newOtherIngredient}}"
-            bindinput="onAddOtherIngredientInput"
-            confirm-type="done"
-          />
         </view>
       </view>
     </view>
   </view>
 
-  <!-- Finish Purchasing Button -->
+  <!-- Add Entire List Button -->
   <view class="finish-btn-container" wx:if="{{!loading && (planningGroups.length > 0 || executionGroups.length > 0)}}">
-    <button class="btn-primary" bindtap="finishPurchasing">{{i18n.btn_finish_purchase || '结束本次采购'}}</button>
+    <button class="btn-primary" bindtap="addAllToNewList">全部加入新清单</button>
   </view>
 
   <!-- Tutorial Bottom Sheet -->

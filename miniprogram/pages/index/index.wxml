@@ -1,35 +1,93 @@
 <view class="container">
-  <!-- Header -->
-  <view class="header">
-    <text class="title">{{i18n.app_name}}</text>
-    <text class="subtitle">{{i18n.app_slogan}}</text>
-  </view>
-
   <view class="main-content">
-    <!-- Hero Camera Section -->
-    <view class="camera-card" bindtap="handleCamera" hover-class="camera-card-hover">
-      <!-- 背景图片 -->
-      <image class="camera-bg-img" src="/images/market-bg.jpg" mode="aspectFill"></image>
-      <!-- 渐变蒙版 -->
-      <view class="camera-overlay"></view>
-      
-      <view class="camera-inner">
-        <view class="camera-icon-wrapper">
-          <image class="camera-icon" src="/images/icons/camera.svg" mode="aspectFit"></image>
+    <!-- Hero Camera Section (Primary Anchor) -->
+    <view class="hero-section">
+      <view class="camera-card" bindtap="handleCamera" hover-class="camera-card-hover">
+        <!-- 背景图片 -->
+        <image class="camera-bg-img" src="/images/market-bg.jpg" mode="aspectFill"></image>
+        <!-- 渐变蒙版 -->
+        <view class="camera-overlay"></view>
+        
+        <view class="camera-inner">
+          <view class="camera-icon-wrapper">
+            <image class="camera-icon" src="/images/icons/camera.svg" mode="aspectFit"></image>
+          </view>
+          <text class="camera-title">{{i18n.camera_title}}</text>
+          <text class="camera-desc">{{i18n.camera_desc}}</text>
         </view>
-        <text class="camera-title">{{i18n.camera_title}}</text>
-        <text class="camera-desc">{{i18n.camera_desc}}</text>
+
+        <!-- Upload Entry integrated under hero -->
+        <view class="album-action" catchtap="handleAlbum" hover-class="album-hover">
+          <text class="album-text">{{i18n.album_entry || '相册导入'}}</text>
+        </view>
       </view>
     </view>
 
-    <!-- Upload Entry -->
-    <button class="album-btn" bindtap="handleAlbum" hover-class="album-btn-hover">
-      <view class="album-btn-content">
-        <image class="album-icon" src="/images/icons/image.svg" mode="aspectFit"></image>
-        <text>{{i18n.album_entry}}</text>
+    <!-- Middle Transition / Brand Section -->
+    <view class="middle-transition">
+      <view class="transition-left">
+        <text class="transition-text">{{i18n.transition_identify || '鉴食材'}}</text>
+        <view class="transition-line left-line"></view>
       </view>
-      <view class="arrow-icon">></view>
-    </button>
+      
+      <view class="brand-center">
+        <view class="brand-logo-wrapper">
+          <image class="brand-logo" src="/images/app_logo.png" mode="aspectFill"></image>
+        </view>
+        <text class="brand-name">{{i18n.app_name}}</text>
+      </view>
+
+      <view class="transition-right">
+        <view class="transition-line right-line"></view>
+        <text class="transition-text">{{i18n.transition_list || '列清单'}}</text>
+      </view>
+    </view>
+    
+    <!-- Today's Shopping List Dashboard (Secondary Line) -->
+    <view class="dashboard-section">
+      <view class="list-dashboard-card">
+        <!-- 滑动生成采购单 -->
+        <view class="swipe-record-container">
+          <!-- 背景轨道和提示文字 -->
+          <view class="swipe-track">
+            <view class="swipe-hint left-hint"><text class="sys-icon icon-keyboard"></text></view>
+            <view class="swipe-hint right-hint"><text class="sys-icon icon-mic"></text></view>
+          </view>
+          
+          <!-- 滑动长条按钮 -->
+          <view class="swipe-btn {{isRecording ? 'recording' : ''}}" 
+                style="transform: translateX({{swipeX}}px); transition: {{swipeTransition}};"
+                bindtouchstart="onSwipeStart"
+                bindtouchmove="onSwipeMove"
+                bindtouchend="onSwipeEnd"
+                bindtap="onSwipeTap"
+                hover-class="{{isRecording ? 'btn-hover' : ''}}">
+            <view class="swipe-btn-content">
+              <text class="swipe-icon sys-icon icon-flash" wx:if="{{!isRecording}}"></text>
+              <text class="swipe-icon sys-icon icon-stop" wx:else></text>
+              <text class="swipe-text">{{isRecording ? '点击停止录音' : '生成采购单'}}</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 生成采购单引导词 -->
+        <view class="swipe-guide">
+          <text class="swipe-guide-text">{{i18n.swipe_guide || '扫货不遗漏'}}</text>
+        </view>
+
+        <view class="dashboard-header" bindtap="goToList" hover-class="card-hover" style="margin-top: 32rpx;">
+          <view class="dashboard-info">
+            <text class="dashboard-title">{{i18n.list_progress_title || '今日采购清单'}}</text>
+            <text class="dashboard-desc">{{progressText}}</text>
+          </view>
+          <view class="arrow-icon">></view>
+        </view>
+        
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{totalCount > 0 ? (boughtCount / totalCount) * 100 : 0}}%"></view>
+        </view>
+      </view>
+    </view>
     
     <view wx:if="{{analyzing}}" class="loading-overlay">
       <view class="loading-content">
@@ -37,6 +95,36 @@
         <text class="loading-text">{{i18n.analyzing_title}}</text>
         <view class="loading-hint">
           <text>{{i18n.analyzing_hint}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Custom Notebook Text Input Modal -->
+    <view wx:if="{{showTextInput}}" class="notebook-modal-overlay" bindtap="closeTextInput">
+      <view class="notebook-modal-content" catchtap="preventTap">
+        <!-- Notebook red vertical line -->
+        <view class="notebook-line"></view>
+        
+        <view class="notebook-header">
+          <text class="notebook-title">📝 快速记录食材</text>
+          <view class="notebook-close" bindtap="closeTextInput">✕</view>
+        </view>
+        
+        <view class="notebook-paper">
+          <textarea class="notebook-textarea" 
+                    value="{{textInputValue}}" 
+                    bindinput="onTextInput" 
+                    placeholder="可以直接填写菜名（如：西红柿炒鸡蛋）\n或者直接写食材（如：3个西红柿、半斤牛肉）..." 
+                    maxlength="-1"
+                    focus="{{showTextInput}}"
+                    show-confirm-bar="{{false}}"
+                    cursor-spacing="100">
+          </textarea>
+        </view>
+        
+        <view class="notebook-footer">
+          <view class="notebook-btn cancel" bindtap="closeTextInput">取消</view>
+          <view class="notebook-btn confirm" bindtap="confirmTextInput">生成清单</view>
         </view>
       </view>
     </view>

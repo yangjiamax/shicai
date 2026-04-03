@@ -1,0 +1,54 @@
+@import "../list/index.wxss";
+
+/* Redesign ingredient list as tags for read-only history view */
+.ingredient-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 24rpx 20rpx;
+  padding-top: 10rpx;
+}
+
+.ingredient-item {
+  display: inline-flex;
+  flex-direction: row;
+  background: #f4f6f3;
+  padding: 14rpx 32rpx;
+  border-radius: 100rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.3s ease;
+}
+
+.item-content {
+  gap: 0;
+  width: auto;
+}
+
+.ingredient-info {
+  flex: none;
+  opacity: 1;
+}
+
+.ingredient-name {
+  font-size: 28rpx;
+  color: #4b6338;
+  font-weight: 500;
+}
+
+/* Checked/Bought style */
+.ingredient-item.checked {
+  background: #fafaf9;
+  border-color: #e4e2e1;
+}
+
+.ingredient-name.checked-text {
+  color: #a0a59a;
+  text-decoration: line-through;
+  font-weight: 400;
+}
+
+/* Add Buttons */
+.btn-tutorial-small.add-btn {
+  color: #4b6338;
+  background: #f4f6f3;
+}

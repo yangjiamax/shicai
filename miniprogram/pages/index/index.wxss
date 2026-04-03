@@ -5,44 +5,112 @@ page {
 }
 
 .container {
-  padding: 40rpx;
+  padding: 20rpx 40rpx;
   display: flex;
   flex-direction: column;
 }
 
-/* Header */
-.header {
-  text-align: center;
-  margin-top: 20rpx;
-  margin-bottom: 60rpx;
+/* Middle Transition Section */
+.middle-transition {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30rpx 0 20rpx;
+  position: relative;
 }
 
-.title {
-  font-size: 40rpx;
+.transition-left, .transition-right {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.transition-left {
+  justify-content: flex-end;
+}
+
+.transition-right {
+  justify-content: flex-start;
+}
+
+.transition-text {
+  font-size: 34rpx;
+  font-weight: 800;
+  color: #2a3b1d;
+  letter-spacing: 2rpx;
+  white-space: nowrap;
+}
+
+.transition-line {
+  height: 4rpx;
+  background: #c4c8bb;
+  flex: 1;
+  max-width: 60rpx;
+  border-radius: 2rpx;
+}
+
+.left-line {
+  margin-left: 20rpx;
+  margin-right: 30rpx;
+}
+
+.right-line {
+  margin-right: 20rpx;
+  margin-left: 30rpx;
+}
+
+.brand-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  margin: 0 10rpx;
+}
+
+.brand-logo-wrapper {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 8rpx 24rpx rgba(75, 99, 56, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #2b4528; /* 与Logo内圈背景色一致 */
+}
+
+.brand-logo {
+  width: 200rpx; /* 适当缩小，给手指和叶子周围留出呼吸空间 */
+  height: 200rpx;
+  flex-shrink: 0;
+}
+
+.brand-name {
+  margin-top: 12rpx;
+  font-size: 26rpx;
   font-weight: 800;
   color: #4b6338;
-  display: block;
-  margin-bottom: 12rpx;
-  letter-spacing: -0.5px;
-}
-
-.subtitle {
-  font-size: 26rpx;
-  color: #74796d;
-  font-weight: 500;
+  letter-spacing: 2rpx;
 }
 
 .main-content {
   display: flex;
   flex-direction: column;
-  gap: 30rpx;
+  gap: 20rpx;
 }
 
-/* Hero Camera Card */
+/* Hero Section (Primary Anchor) */
+.hero-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
 .camera-card {
   position: relative;
   width: 100%;
-  aspect-ratio: 4/5;
+  aspect-ratio: 4/3; /* More balanced, leaves room for dashboard */
   border-radius: 40rpx;
   overflow: hidden;
   box-shadow: 0 8rpx 32rpx rgba(75, 99, 56, 0.15);
@@ -64,7 +132,7 @@ page {
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(75, 99, 56, 0.6) 0%,
+    rgba(75, 99, 56, 0.4) 0%,
     rgba(42, 59, 29, 0.85) 100%
   );
   z-index: 2;
@@ -82,103 +150,232 @@ page {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding-bottom: 40rpx;
   z-index: 10;
 }
 
 .camera-icon-wrapper {
-  width: 160rpx;
-  height: 160rpx;
-  background: rgba(255, 255, 255, 0.1);
+  width: 140rpx;
+  height: 140rpx;
+  background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(12px);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2rpx solid rgba(255, 255, 255, 0.2);
-  margin-bottom: 40rpx;
-  box-shadow: 0 16rpx 40rpx rgba(0, 0, 0, 0.1);
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
+  margin-bottom: 32rpx;
+  box-shadow: 0 16rpx 40rpx rgba(0, 0, 0, 0.15);
 }
 
 .camera-icon {
-  width: 80rpx;
-  height: 80rpx;
-  opacity: 0.9;
+  width: 72rpx;
+  height: 72rpx;
+  opacity: 0.95;
 }
 
 .camera-title {
-  font-size: 48rpx;
+  font-size: 44rpx;
   font-weight: bold;
   color: #ffffff;
-  margin-bottom: 16rpx;
+  margin-bottom: 12rpx;
   letter-spacing: 2rpx;
 }
 
 .camera-desc {
   font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
   font-weight: 500;
 }
 
-.camera-bg-decor {
+.album-action {
   position: absolute;
-  top: 0;
+  bottom: 40rpx;
+  left: 0;
   right: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle at top right, rgba(255,255,255,0.15) 0%, transparent 60%);
-  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease;
+  z-index: 10;
 }
 
-/* Album Button */
-.album-btn {
-  width: 100%;
-  height: 120rpx;
+.album-hover {
+  opacity: 0.6;
+}
+
+.album-text {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #ffffff;
+  padding: 10rpx 32rpx;
+  border: 2rpx solid rgba(255, 255, 255, 0.8);
+  border-radius: 30rpx;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+}
+
+/* Dashboard Section (Secondary Line) */
+.dashboard-section {
+  margin-top: 10rpx;
+}
+
+.list-dashboard-card {
   background: #ffffff;
-  border-radius: 32rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 40rpx;
+  border-radius: 40rpx;
+  padding: 32rpx;
   border: 2rpx solid rgba(196, 200, 187, 0.2);
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.02);
-  transition: all 0.3s ease;
-  position: relative;
+  box-shadow: 0 12rpx 40rpx rgba(75, 99, 56, 0.06);
 }
 
-.album-btn::after {
-  border: none;
-}
-
-.album-btn-hover {
-  background: #f6f3f2;
-}
-
-.album-btn-content {
+.dashboard-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  gap: 16rpx;
+  margin-bottom: 24rpx;
 }
 
-.album-icon {
-  width: 44rpx;
-  height: 44rpx;
-  opacity: 0.8;
+.dashboard-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
 }
 
-.album-btn text {
-  font-size: 32rpx;
-  font-weight: 600;
+.dashboard-title {
+  font-size: 34rpx;
+  font-weight: 700;
   color: #1b1c1c;
-  line-height: 1;
 }
 
-.arrow-icon {
-  position: absolute;
-  right: 40rpx;
+.dashboard-desc {
+  font-size: 26rpx;
+  color: #74796d;
+}
+
+.dashboard-header .arrow-icon {
   font-size: 32rpx;
   color: #74796d;
   font-family: monospace;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 12rpx;
+  background: #f5f4ed;
+  border-radius: 6rpx;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, #637c4e, #4b6338);
+  border-radius: 6rpx;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Swipe Guide */
+.swipe-guide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 16rpx;
+}
+
+.swipe-guide-text {
+  font-size: 24rpx;
+  color: #74796d;
+  letter-spacing: 1px;
+}
+
+/* Swipe Record Container */
+.swipe-record-container {
+  position: relative;
+  width: 100%;
+  height: 100rpx;
+  background: #f5f4ed;
+  border-radius: 50rpx;
+  overflow: hidden;
+  box-shadow: inset 0 2rpx 8rpx rgba(0,0,0,0.02);
+}
+
+.swipe-track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40rpx;
+  box-sizing: border-box;
+}
+
+.swipe-hint {
+  font-size: 36rpx;
+  color: #a0a59a;
+  font-weight: 500;
+  pointer-events: none; /* Prevent blocking touch */
+}
+
+.left-hint {
+  text-align: left;
+}
+
+.right-hint {
+  text-align: right;
+}
+
+.swipe-btn {
+  position: absolute;
+  top: 6rpx;
+  left: 50%;
+  margin-left: -160rpx; /* Width 320rpx, half is 160rpx */
+  width: 320rpx;
+  height: 88rpx;
+  background: #4b6338;
+  border-radius: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(75, 99, 56, 0.2);
+  z-index: 10;
+  /* transition is managed via JS */
+}
+
+.swipe-btn.recording {
+  background: #ff4d4f;
+  box-shadow: 0 8rpx 24rpx rgba(255, 77, 79, 0.3);
+  animation: pulse 1.5s infinite;
+  width: 100%;
+  left: 0;
+  margin-left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 50rpx;
+}
+
+.swipe-btn-content {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  pointer-events: none; /* Let the container handle touches */
+}
+
+.swipe-icon {
+  font-size: 32rpx;
+  color: #ffffff;
+}
+
+.swipe-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.btn-hover {
+  opacity: 0.9;
 }
 
 /* Loading Overlay */
@@ -236,3 +433,143 @@ page {
     transform: rotate(360deg);
   }
 }
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 8rpx 24rpx rgba(255, 77, 79, 0.3);
+  }
+  50% {
+    transform: scale(0.98);
+    box-shadow: 0 4rpx 16rpx rgba(255, 77, 79, 0.5);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 8rpx 24rpx rgba(255, 77, 79, 0.3);
+  }
+}
+
+/* Notebook Modal */
+.notebook-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx;
+}
+
+.notebook-modal-content {
+  width: 100%;
+  max-width: 680rpx;
+  background: #fdfbf7; /* Notebook paper color */
+  border-radius: 32rpx;
+  box-shadow: 0 24rpx 80rpx rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(60rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Notebook Binding / Left border */
+.notebook-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 60rpx;
+  width: 2rpx;
+  background: rgba(255, 107, 107, 0.4); /* Red vertical line */
+  z-index: 1;
+}
+
+.notebook-header {
+  padding: 30rpx 40rpx 20rpx 80rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.notebook-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #4b6338;
+}
+
+.notebook-close {
+  font-size: 44rpx;
+  color: #a0a59a;
+  line-height: 1;
+  padding: 10rpx;
+}
+
+.notebook-paper {
+  padding: 0rpx 40rpx 0rpx 80rpx;
+  position: relative;
+  z-index: 2;
+  /* Ruled lines background */
+  background-image: repeating-linear-gradient(transparent, transparent 62rpx, rgba(0,0,0,0.06) 62rpx, rgba(0,0,0,0.06) 64rpx);
+  background-attachment: local;
+}
+
+.notebook-textarea {
+  width: 100%;
+  height: 520rpx; /* Increased height */
+  font-size: 32rpx;
+  line-height: 64rpx; /* Matches the ruled lines spacing */
+  color: #333;
+  padding: 10rpx 0;
+  box-sizing: border-box;
+}
+
+.notebook-footer {
+  padding: 30rpx 40rpx 40rpx 80rpx;
+  display: flex;
+  justify-content: flex-end;
+  gap: 24rpx;
+  position: relative;
+  z-index: 2;
+  border-top: 2rpx solid rgba(0,0,0,0.03);
+  background: #fdfbf7;
+}
+
+.notebook-btn {
+  padding: 18rpx 48rpx;
+  border-radius: 40rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.notebook-btn:active {
+  transform: scale(0.96);
+}
+
+.notebook-btn.cancel {
+  background: rgba(116, 121, 109, 0.1);
+  color: #74796d;
+}
+
+.notebook-btn.confirm {
+  background: #4b6338;
+  color: #fff;
+  box-shadow: 0 8rpx 24rpx rgba(75, 99, 56, 0.25);
+}
+

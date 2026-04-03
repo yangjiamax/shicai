@@ -1,0 +1,90 @@
+<view class="container">
+  <view class="loading-state" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+  </view>
+  
+  <view wx:else class="recipe-wrapper">
+    <view class="group-header">
+      <text class="group-title">{{recipeName}}</text>
+      <view class="group-actions">
+        <view wx:if="{{recipeName && recipeName !== '其他' && recipeName !== '直接添加'}}" class="search-action-wrapper">
+          <view wx:if="{{lang !== 'en'}}" class="btn-tutorial-small" catchtap="searchTutorial" data-platform="bilibili">
+            <text class="sys-icon icon-tv"></text> {{i18n.btn_search_tutorial || '搜B站'}}
+          </view>
+          <view wx:if="{{lang === 'en'}}" class="btn-tutorial-small xcf-btn" catchtap="searchTutorial" data-platform="foodcom">
+            <text class="sys-icon icon-pan"></text> {{i18n.btn_search_tutorial_xcf || 'Search'}}
+          </view>
+          <view wx:elif="{{lang !== 'en'}}" class="btn-tutorial-small xcf-btn" catchtap="searchTutorial" data-platform="xiachufang">
+            <text class="sys-icon icon-pan"></text> {{i18n.btn_search_tutorial_xcf || '下厨房'}}
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="ingredient-list">
+      <view 
+        wx:for="{{ingredients}}" 
+        wx:key="name"
+        wx:for-item="ing"
+        class="ingredient-item">
+        <view class="item-content" style="padding: 16rpx 10rpx;">
+          <view class="ingredient-info">
+            <text class="ingredient-name">{{ing.name}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- Add to new list button -->
+    <view class="finish-btn-container">
+      <button class="btn-primary" bindtap="addAllToNewList">
+        {{i18n.recipe_add_to_list || '添加到采购清单'}}
+      </button>
+    </view>
+  </view>
+
+  <!-- Tutorial Bottom Sheet -->
+  <view class="tutorial-mask {{showTutorialSheet ? 'show' : ''}}" bindtap="closeTutorialSheet"></view>
+  <view class="tutorial-sheet {{showTutorialSheet ? 'show' : ''}}">
+    <view class="tutorial-header">
+      <text class="tutorial-title">{{tutorialPlatform === 'xiachufang' || tutorialPlatform === 'foodcom' ? i18n.tutorial_sheet_title_xcf : i18n.tutorial_sheet_title}}</text>
+      <view class="tutorial-close" bindtap="closeTutorialSheet">✕</view>
+    </view>
+    
+    <view class="tutorial-content">
+      <view class="tutorial-loading" wx:if="{{tutorialLoading}}">
+        <view class="loading-spinner"></view>
+        <text class="loading-text">{{i18n.loading}}</text>
+      </view>
+      
+      <view class="tutorial-error" wx:elif="{{tutorialError}}">
+        <image class="error-icon" src="/images/icons/error.svg" mode="aspectFit"></image>
+        <text class="error-text">{{tutorialErrorMsg}}</text>
+        <button class="btn-secondary" bindtap="retryTutorial">{{i18n.res_retake}}</button>
+      </view>
+      
+      <scroll-view scroll-y class="tutorial-list" wx:elif="{{tutorials && tutorials.length > 0}}">
+        <view class="tutorial-card" wx:for="{{tutorials}}" wx:key="index" bindtap="openTutorialLink" data-url="{{item.url}}">
+          <image class="tutorial-thumb" src="{{item.thumbnail}}" mode="aspectFill"></image>
+          <view class="tutorial-info">
+            <text class="tutorial-video-title">{{item.title}}</text>
+            <view class="tutorial-platform">
+              <view class="platform-group">
+                <view class="platform-tag {{item.source === 'xiachufang' || item.source === 'foodcom' ? 'xiachufang' : 'bilibili'}}">
+                  <text wx:if="{{item.source === 'xiachufang' || item.source === 'foodcom'}}">{{i18n.tutorial_platform_xcf}}</text>
+                  <text wx:else>Bilibili</text>
+                </view>
+                <text class="view-count" wx:if="{{item.viewCountFormatted}}">▶ {{item.viewCountFormatted}}</text>
+              </view>
+              <text class="tutorial-link-text"><text class="sys-icon icon-link"></text> {{i18n.tutorial_open || '前往查看'}}</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+      
+      <view class="tutorial-empty" wx:else>
+        <text>{{i18n.tutorial_empty}}</text>
+      </view>
+    </view>
+  </view>
+</view>
