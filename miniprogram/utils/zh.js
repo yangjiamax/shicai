@@ -308,11 +308,12 @@ module.exports = {
   tutorial_sheet_title: 'B站 推荐做法',
   tutorial_sheet_title_xcf: '下厨房 推荐做法',
   tutorial_platform_xcf: '下厨房',
-  tutorial_link_xcf: '查看菜谱',
-  tutorial_copy: '复制链接',
-  tutorial_copy_success: '链接已复制，请打开 [B站] 观看',
+  tutorial_link_xcf: '复制网页链接',
+  tutorial_copy: '复制视频链接',
+  tutorial_open: '点击前往查看',
+  tutorial_copy_success: '链接已复制，请在浏览器中打开',
   tutorial_copy_fail: '复制失败，请重试',
-  tutorial_empty: '暂无推荐视频',
+  tutorial_empty: '暂未找到相关做法',
 
   // 列表页 (采购单)
   list_title: '采购单',

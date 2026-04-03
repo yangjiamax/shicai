@@ -17,7 +17,10 @@ Page({
   },
 
   onLoad(options) {
-    this.setData({ i18n: app.globalData.i18n });
+    this.setData({ 
+      i18n: app.globalData.i18n,
+      lang: app.globalData.language
+    });
     if (options.data) {
       const data = JSON.parse(decodeURIComponent(options.data));
       this.setData({ 
@@ -29,7 +32,10 @@ Page({
   },
 
   onShow() {
-    this.setData({ i18n: app.globalData.i18n });
+    this.setData({ 
+      i18n: app.globalData.i18n,
+      lang: app.globalData.language
+    });
     wx.setNavigationBarTitle({ title: app.t('list_title') });
     if (this.data.listData) {
       this.setData({
@@ -309,14 +315,14 @@ Page({
     });
   },
 
-  copyTutorialLink(e) {
+  openTutorialLink(e) {
     const url = e.currentTarget.dataset.url;
     if (!url) return;
 
+    const app = getApp();
     wx.setClipboardData({
       data: url,
       success: () => {
-        wx.hideToast(); // Hide the default "内容已复制" toast
         wx.showToast({
           title: app.t('tutorial_copy_success'),
           icon: 'none',

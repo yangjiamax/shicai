@@ -56,6 +56,86 @@ async function setCache(key, value) {
   }
 }
 
+async function extractFirstImageFromUrl(url, platform = 'general') {
+  try {
+    const res = await axios.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      },
+      timeout: 3000
+    });
+    const html = res.data;
+    
+    if (platform === 'foodcom') {
+      // Food.com 特定的图片抓取逻辑
+      const foodImgMatch = html.match(/<img[^>]+class=["'][^"']*recipe-image[^"']*["'][^>]+src=["']([^"']+)["']/i) ||
+                           html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+      if (foodImgMatch && !foodImgMatch[1].includes('logo')) {
+        return foodImgMatch[1];
+      }
+    } else if (platform === 'xiachufang') {
+      // 下厨房特定的图片抓取逻辑
+      const xcfImgMatch = html.match(/<div[^>]+class=["']cover["'][^>]*>\s*<img[^>]+(?:src|data-src)=["']([^"']+)["']/i) ||
+                          html.match(/<img[^>]+itemprop=["']image["'][^>]+(?:src|data-src)=["']([^"']+)["']/i) ||
+                          html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+      if (xcfImgMatch && !xcfImgMatch[1].includes('logo')) {
+        return xcfImgMatch[1];
+      }
+    }
+    
+    // 优先尝试获取 og:image (大部分正规网页都有)
+    const metaImgMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["'](https?:\/\/[^"']+)["']/i) || 
+                         html.match(/<meta[^>]+content=["'](https?:\/\/[^"']+)["'][^>]+property=["']og:image["']/i);
+    if (metaImgMatch && !metaImgMatch[1].includes('logo')) {
+      return metaImgMatch[1];
+    }
+    
+    // 如果没有 og:image，则在正文中寻找第一张有意义的图片
+    const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+    const bodyHtml = bodyMatch ? bodyMatch[1] : html;
+    
+    const imgRegex = /<img[^>]+(?:src|data-src)=["']([^"']+)["']/gi;
+    let match;
+    while ((match = imgRegex.exec(bodyHtml)) !== null) {
+      let src = match[1];
+      
+      // 处理相对路径
+      if (src.startsWith('//')) {
+        src = 'https:' + src;
+      } else if (src.startsWith('/')) {
+        try {
+          const urlObj = new URL(url);
+          src = urlObj.origin + src;
+        } catch(e) {}
+      } else if (!src.startsWith('http')) {
+        try {
+          const urlObj = new URL(url);
+          src = urlObj.origin + '/' + src;
+        } catch(e) {}
+      }
+
+      const lowerSrc = src.toLowerCase();
+      // 过滤掉常见的无关图片
+      if (src.startsWith('http') &&
+          !lowerSrc.includes('logo') && 
+          !lowerSrc.includes('icon') && 
+          !lowerSrc.includes('avatar') && 
+          !lowerSrc.includes('placeholder') &&
+          !lowerSrc.includes('ie-story') &&
+          !lowerSrc.includes('qr') &&
+          !lowerSrc.includes('waffle') &&
+          !lowerSrc.includes('spinner') &&
+          !lowerSrc.endsWith('.gif') &&
+          !lowerSrc.endsWith('.svg')) {
+        return src;
+      }
+    }
+  } catch (err) {
+    console.warn(`Failed to extract image from ${url}:`, err.message);
+  }
+  return null;
+}
+
 async function handleSearchTutorial(keyword, lang) {
   if (!keyword) {
     return { error: true, message: lang === 'en' ? 'Missing keyword' : '缺少关键词' };
@@ -69,6 +149,74 @@ async function handleSearchTutorial(keyword, lang) {
   }
 
   const bochaApiKey = process.env.BOCHA_API_KEY || 'sk-118c4eb421804e86bf997d383584b387';
+
+  if (lang === 'en') {
+    let foodcomResults = [];
+
+    // Bocha API for Food.com
+    try {
+      const fcRes = await axios.post('https://api.bochaai.com/v1/web-search', {
+        query: `site:food.com/recipe/ "${keyword}"`,
+        count: 10,
+        freshness: 'noLimit'
+      }, {
+        headers: {
+          'Authorization': `Bearer ${bochaApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 15000
+      });
+      const webPages = fcRes.data?.data?.webPages?.value || fcRes.data?.webPages?.value;
+      if (webPages && Array.isArray(webPages)) {
+        foodcomResults = webPages.slice(0, 10).map(v => ({
+          title: v.name.replace(/ - Food\.com$/, ''),
+          url: v.url,
+          thumbnail: v.siteIcon || 'https://www.food.com/favicon.ico',
+          source: 'foodcom'
+        }));
+        
+        foodcomResults = await Promise.all(foodcomResults.map(async (item) => {
+          if (item.thumbnail === 'https://www.food.com/favicon.ico') {
+            const firstImg = await extractFirstImageFromUrl(item.url, 'foodcom');
+            if (firstImg) {
+              item.thumbnail = firstImg;
+            }
+          }
+          return item;
+        }));
+      }
+    } catch (err) {
+      console.error('Food.com search failed:', err.message);
+    }
+
+    if (foodcomResults.length > 0) {
+      const result = {
+        error: false,
+        data: {
+          foodcom: foodcomResults
+        }
+      };
+      await setCache(cacheKey, result);
+      return result;
+    }
+
+    // Fallback Mock Data for EN
+    const mockDataEn = {
+      error: false,
+      data: {
+        foodcom: [
+          {
+            title: `Best Ever ${keyword}`,
+            url: "https://www.food.com/search/" + encodeURIComponent(keyword),
+            thumbnail: "https://www.food.com/favicon.ico",
+            source: "foodcom"
+          }
+        ]
+      }
+    };
+    await setCache(cacheKey, mockDataEn);
+    return mockDataEn;
+  }
   
   // 1. 尝试直接请求 B站原生搜索 API (效果最精准)
   let biliResults = [];
@@ -89,7 +237,7 @@ async function handleSearchTutorial(keyword, lang) {
     if (biliRes.data && biliRes.data.code === 0 && biliRes.data.data && biliRes.data.data.result) {
       biliResults = biliRes.data.data.result.slice(0, 10).map(v => ({
         title: (v.title || '').replace(/<[^>]+>/g, ''),
-        url: v.arcurl || `https://www.bilibili.com/video/${v.bvid}/`,
+        url: (v.arcurl || `https://www.bilibili.com/video/${v.bvid}/`).replace('www.bilibili.com', 'm.bilibili.com'),
         thumbnail: (v.pic || '').startsWith('//') ? 'https:' + v.pic : v.pic,
         source: 'bilibili',
         viewCount: v.play || 0,
@@ -117,7 +265,7 @@ async function handleSearchTutorial(keyword, lang) {
     while ((match = simpleRegex.exec(html)) !== null && xiachufangResults.length < 10) {
       xiachufangResults.push({
         thumbnail: 'https://i2.chuimg.com/logo/xiachufang.png',
-        url: 'https://www.xiachufang.com' + match[1],
+        url: 'https://m.xiachufang.com' + match[1],
         title: match[2].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(),
         source: 'xiachufang'
       });
@@ -127,7 +275,7 @@ async function handleSearchTutorial(keyword, lang) {
     const imgRegex = /<div class="cover">\s*<a href="(\/recipe\/\d+\/)".*?<img[^>]*src="([^"]+)"/gs;
     let imgMatch;
     while ((imgMatch = imgRegex.exec(html)) !== null) {
-      const recipeUrl = 'https://www.xiachufang.com' + imgMatch[1];
+      const recipeUrl = 'https://m.xiachufang.com' + imgMatch[1];
       const imgUrl = imgMatch[2].split('?')[0];
       const item = xiachufangResults.find(r => r.url === recipeUrl);
       if (item && !imgUrl.includes('placeholder')) {
@@ -137,13 +285,25 @@ async function handleSearchTutorial(keyword, lang) {
 
     const dataImgRegex = /<div class="cover">\s*<a href="(\/recipe\/\d+\/)".*?<img[^>]*data-src="([^"]+)"/gs;
     while ((imgMatch = dataImgRegex.exec(html)) !== null) {
-      const recipeUrl = 'https://www.xiachufang.com' + imgMatch[1];
+      const recipeUrl = 'https://m.xiachufang.com' + imgMatch[1];
       const imgUrl = imgMatch[2].split('?')[0];
       const item = xiachufangResults.find(r => r.url === recipeUrl);
       if (item && !imgUrl.includes('placeholder')) {
         item.thumbnail = imgUrl;
       }
     }
+    
+    // 对于下厨房没有抓取到封面图的，作为静态网页进入内页抓取
+    xiachufangResults = await Promise.all(xiachufangResults.map(async (item) => {
+      if (item.thumbnail === 'https://i2.chuimg.com/logo/xiachufang.png') {
+        const firstImg = await extractFirstImageFromUrl(item.url, 'xiachufang');
+        if (firstImg) {
+          item.thumbnail = firstImg;
+        }
+      }
+      return item;
+    }));
+
   } catch (err) {
     console.error('下厨房搜索失败:', err.message);
   }
@@ -168,31 +328,31 @@ async function handleSearchTutorial(keyword, lang) {
       bilibili: [
         {
           title: `【${keyword}】的家常做法，软糯香甜肥而不腻`,
-          url: "https://www.bilibili.com/video/BV1xx411c7mD/",
+          url: "https://m.bilibili.com/video/BV1xx411c7mD/",
           thumbnail: "https://i1.hdslb.com/bfs/archive/8431dae2938e5e783935db4057e9bc7bb89280d0.jpg",
           source: "bilibili"
         },
         {
           title: `厨师长教你：“${keyword}”的正宗做法`,
-          url: "https://www.bilibili.com/video/BV1sx411m7mX/",
+          url: "https://m.bilibili.com/video/BV1sx411m7mX/",
           thumbnail: "https://i2.hdslb.com/bfs/archive/0b263b610c1f6c77ba2f6024beec168fb9cc75df.jpg",
           source: "bilibili"
         },
         {
           title: `懒人版【${keyword}】，电饭煲一键搞定`,
-          url: "https://www.bilibili.com/video/BV1ab411c7mE/",
+          url: "https://m.bilibili.com/video/BV1ab411c7mE/",
           thumbnail: "https://i0.hdslb.com/bfs/archive/bilibili_logo.png",
           source: "bilibili"
         },
         {
           title: `老饭骨：国宴大厨揭秘【${keyword}】的诀窍`,
-          url: "https://www.bilibili.com/video/BV1xy411m7mY/",
+          url: "https://m.bilibili.com/video/BV1xy411m7mY/",
           thumbnail: "https://i0.hdslb.com/bfs/archive/bilibili_logo.png",
           source: "bilibili"
         },
         {
           title: `无油无水，不用炒糖色的神仙【${keyword}】`,
-          url: "https://www.bilibili.com/video/BV1cd411c7mF/",
+          url: "https://m.bilibili.com/video/BV1cd411c7mF/",
           thumbnail: "https://i0.hdslb.com/bfs/archive/bilibili_logo.png",
           source: "bilibili"
         }
@@ -216,11 +376,20 @@ async function handleSearchTutorial(keyword, lang) {
 
     const webPages = response.data?.data?.webPages?.value || response.data?.webPages?.value;
     if (webPages && Array.isArray(webPages) && webPages.length > 0) {
-      const results = webPages.slice(0, 10).map(p => ({
+      let results = webPages.slice(0, 10).map(p => ({
         title: p.name,
         url: p.url,
         thumbnail: 'https://i2.chuimg.com/logo/xiachufang.png', // 下厨房默认logo作为占位
         source: 'xiachufang'
+      }));
+      
+      // 补充：如果菜谱搜索结果是静态的网页信息，则抓取正文的第一张图片作为搜索结果的缩略图
+      results = await Promise.all(results.map(async (item) => {
+        const firstImg = await extractFirstImageFromUrl(item.url, 'xiachufang');
+        if (firstImg) {
+          item.thumbnail = firstImg;
+        }
+        return item;
       }));
       
       if (results.length > 0) {
