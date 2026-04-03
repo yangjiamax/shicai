@@ -193,10 +193,22 @@ Page({
         this.setData({ isRecording: true });
         wx.showToast({ title: '录音中，再次点击停止', icon: 'none', duration: 60000 });
       },
+      onRecognize: (text) => {
+        // 可以实时展示识别结果，目前先忽略
+      },
       onStop: async (res) => {
         wx.hideToast();
         this.setData({ isRecording: false });
-        await this.processAudio(res.tempFilePath);
+        const text = res.result;
+        console.log('语音识别最终结果:', text);
+        
+        if (!text || text.trim() === '') {
+          wx.showToast({ title: '未能识别到语音内容', icon: 'none' });
+          return;
+        }
+        
+        // 直接调用处理文本的逻辑
+        await this.processTextToList(text);
       },
       onError: (errMsg) => {
         this.setData({ isRecording: false });
@@ -206,51 +218,6 @@ Page({
       }
     });
     voiceUtil.startRecord();
-  },
-
-  async processAudio(tempFilePath) {
-    this.setData({ isProcessing: true });
-    wx.showLoading({ title: '正在识别语音...', mask: true });
-    try {
-      // 1. 上传音频文件到云存储
-      const cloudPath = `audio/${Date.now()}_${Math.floor(Math.random() * 1000)}.mp3`;
-      const uploadRes = await wx.cloud.uploadFile({
-        cloudPath,
-        filePath: tempFilePath,
-      });
-
-      // 2. 调用 speechToText 云函数进行语音转文字
-      const sttRes = await wx.cloud.callFunction({
-        name: 'speechToText',
-        data: {
-          fileID: uploadRes.fileID
-        }
-      });
-
-      const sttData = sttRes.result;
-      if (sttData && sttData.error) {
-        throw new Error(sttData.message || '语音转写失败');
-      }
-
-      const text = sttData.data.text;
-      console.log('语音识别结果:', text);
-      wx.hideLoading();
-      
-      if (!text || text.trim() === '') {
-        wx.showToast({ title: '未能识别到语音内容', icon: 'none' });
-        this.setData({ isProcessing: false });
-        return;
-      }
-
-      // 3. 将文字提取为清单
-      await this.processTextToList(text);
-
-    } catch (err) {
-      console.error('处理音频失败:', err);
-      wx.hideLoading();
-      this.setData({ isProcessing: false });
-      wx.showToast({ title: err.message || '识别失败，请重试', icon: 'none' });
-    }
   },
 
   async processTextToList(text) {
