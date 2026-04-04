@@ -8,3 +8,22 @@ page {
 .container {
   min-height: 100vh;
 }
+
+/* Skeleton Common */
+page {
+  --skeleton-color: #f0f0f0;
+  --skeleton-gradient: linear-gradient(90deg, #f0f0f0 25%, #e2e2e2 37%, #f0f0f0 63%);
+}
+
+.skeleton-text {
+  background-color: var(--skeleton-color, #f0f0f0);
+  border-radius: 8rpx;
+  background-image: var(--skeleton-gradient, linear-gradient(90deg, #f0f0f0 25%, #e2e2e2 37%, #f0f0f0 63%));
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.4s ease infinite;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}

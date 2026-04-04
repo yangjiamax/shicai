@@ -94,6 +94,21 @@ page {
   letter-spacing: 2rpx;
 }
 
+.brand-center.english-mode {
+  width: 100%;
+  margin: 0;
+}
+
+.brand-slogan {
+  margin-top: 24rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #5c7444;
+  letter-spacing: 2rpx;
+  text-align: center;
+  font-style: italic;
+}
+
 .main-content {
   display: flex;
   flex-direction: column;
@@ -432,6 +447,115 @@ page {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Custom Extract Loading Styles */
+.custom-extract-loading {
+  background: rgba(252, 249, 248, 0.95);
+}
+
+.extract-loading-content {
+  width: 520rpx;
+  padding: 60rpx 40rpx;
+  border-radius: 40rpx;
+  background: linear-gradient(145deg, #ffffff, #fdfbf7);
+  box-shadow: 0 24rpx 64rpx rgba(75, 99, 56, 0.12),
+              inset 0 2rpx 0 rgba(255,255,255,1);
+  position: relative;
+  overflow: hidden;
+}
+
+.chef-icon-container {
+  position: relative;
+  width: 120rpx;
+  height: 120rpx;
+  background: #f4f7f1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24rpx;
+  box-shadow: 0 8rpx 24rpx rgba(75, 99, 56, 0.08);
+}
+
+.chef-icon {
+  font-size: 56rpx;
+  color: #4b6338;
+  animation: bounce 2s infinite ease-in-out;
+}
+
+.sparkles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.sparkle {
+  position: absolute;
+  width: 8rpx;
+  height: 8rpx;
+  background: #ffb703;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.s1 { top: 10%; left: 20%; animation: twinkle 1.5s infinite 0.1s; }
+.s2 { top: 20%; right: 15%; animation: twinkle 1.5s infinite 0.5s; }
+.s3 { bottom: 15%; right: 25%; animation: twinkle 1.5s infinite 0.9s; }
+
+.animated-text {
+  font-size: 32rpx;
+  color: #2a3b1d;
+  font-weight: 700;
+  text-align: center;
+  min-height: 44rpx;
+  margin-bottom: 8rpx;
+  animation: fadeInOut 4s infinite;
+}
+
+.loading-progress-track {
+  width: 80%;
+  height: 6rpx;
+  background: #e4e2e1;
+  border-radius: 4rpx;
+  margin-top: 32rpx;
+  overflow: hidden;
+  position: relative;
+}
+
+.loading-progress-bar {
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right, transparent, #4b6338, transparent);
+  border-radius: 4rpx;
+  animation: scan 2s infinite ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12rpx); }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.5); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(4rpx); }
+  10% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-4rpx); }
+}
+
+@keyframes scan {
+  0% { left: -50%; }
+  100% { left: 100%; }
 }
 
 @keyframes pulse {

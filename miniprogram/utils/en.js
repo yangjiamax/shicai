@@ -310,8 +310,16 @@ module.exports = {
   res_incomplete: 'Incomplete result, please retake from another angle',
   res_back_home: 'Back Home',
   res_load_failed: 'Failed to load result',
-  loading_familiar: 'Browsing recipes for you...',
-  loading_local: 'Local recipes...',
+  loading_familiar: 'Finding authentic recipes...',
+  loading_local: 'Finding local specials...',
+  res_analyzing: 'AI is analyzing ingredients...',
+  loading_phrases_vision: [
+    'Scanning ingredient textures...',
+    'Analyzing freshness features...',
+    'Matching global ingredient database...',
+    'Generating ingredient profile...',
+    'Almost there, please wait...'
+  ],
   btn_search_tutorial: 'Search on YouTube',
   btn_search_tutorial_xcf: 'Search on Food.com',
   tutorial_sheet_title: 'YouTube Video Tutorials',

@@ -1,6 +1,19 @@
 const app = getApp();
 const analyzeUtil = require('../../utils/analyze.js');
 
+function getFreshnessClass(level) {
+  const levelMap = {
+    '新鲜': 'fresh',
+    '一般': 'normal',
+    '不太新鲜': 'bad',
+    'Fresh': 'fresh',
+    'Average': 'normal',
+    'Not fresh': 'bad',
+    'Not Fresh': 'bad'
+  };
+  return levelMap[level] || 'normal';
+}
+
 Page({
   data: {
     result: null,
@@ -11,10 +24,18 @@ Page({
     selectedIngredients: [],
     importedListData: null,
     i18n: {},
+    loadingVision: false,
     loadingFamiliar: false,
     loadingLocal: false,
+    errorVision: false,
     errorFamiliar: false,
     errorLocal: false,
+    
+    // Typing Effect State
+    loadingText: '',
+    loadingPhrases: [],
+    currentPhraseIndex: 0,
+    typingTimer: null,
     
     // Custom Modal State
     showSuccessModal: false,
@@ -29,8 +50,27 @@ Page({
   },
 
   onLoad(options) {
-    this.setData({ i18n: app.globalData.i18n });
-    if (options.data) {
+    const i18nData = app.globalData.i18n;
+    this.setData({ i18n: i18nData });
+
+    if (options.action === 'analyze') {
+      const nationality = options.nationality ? decodeURIComponent(options.nationality) : '';
+      let location = null;
+      try {
+        if (options.location) location = JSON.parse(decodeURIComponent(options.location));
+      } catch(e) {}
+      const imagePath = options.imagePath ? decodeURIComponent(options.imagePath) : '';
+
+      this.setData({ 
+        loadingVision: true,
+        result: { imagePath }, // 先展示图片占位
+        loadingPhrases: i18nData.loading_phrases_vision || [i18nData.res_analyzing],
+        loadingText: i18nData.loading_phrases_vision ? i18nData.loading_phrases_vision[0] : i18nData.res_analyzing
+      });
+
+      this.startTypingEffect();
+      this.analyzeVision(imagePath, nationality, location);
+    } else if (options.data) {
       let data;
       try {
         data = JSON.parse(decodeURIComponent(options.data));
@@ -59,16 +99,7 @@ Page({
       if (!resultData) return;
       
       // 映射新鲜度状态为英文类名
-      const levelMap = {
-        '新鲜': 'fresh',
-        '一般': 'normal',
-        '不太新鲜': 'bad',
-        'Fresh': 'fresh',
-        'Average': 'normal',
-        'Not fresh': 'bad',
-        'Not Fresh': 'bad'
-      };
-      resultData.freshness_class = levelMap[resultData.freshness_level] || 'normal';
+      resultData.freshness_class = getFreshnessClass(resultData.freshness_level);
 
       // 初始化 recipes 结构（如果是第一步刚进来，recipes 会是 undefined）
       if (!resultData.recipes || typeof resultData.recipes !== 'object') {
@@ -94,6 +125,88 @@ Page({
         // 如果是历史记录，直接处理已有的完整数据
         this.processRecipesData();
       }
+    }
+  },
+
+  onUnload() {
+    this.stopTypingEffect();
+  },
+
+  startTypingEffect() {
+    this.stopTypingEffect(); // Ensure no multiple intervals
+    if (!this.data.loadingPhrases || this.data.loadingPhrases.length <= 1) return;
+
+    let index = 0;
+    const timer = setInterval(() => {
+      index = (index + 1) % this.data.loadingPhrases.length;
+      this.setData({
+        loadingText: this.data.loadingPhrases[index]
+      });
+    }, 3000); // 3秒切换一句话
+
+    this.setData({ typingTimer: timer });
+  },
+
+  stopTypingEffect() {
+    if (this.data.typingTimer) {
+      clearInterval(this.data.typingTimer);
+      this.setData({ typingTimer: null });
+    }
+  },
+
+  async analyzeVision(imagePath, nationality, location) {
+    try {
+      const resultData = await analyzeUtil.analyzeImage(imagePath, { forceMock: false });
+      
+      // 映射新鲜度状态为英文类名
+      resultData.freshness_class = getFreshnessClass(resultData.freshness_level);
+      resultData.recipes = { familiar: [], local: [] };
+      resultData.imagePath = imagePath; // 保留本地路径以便显示
+
+      this.setData({ 
+        loadingVision: false,
+        errorVision: false,
+        result: resultData
+      });
+      this.stopTypingEffect();
+
+      // 视觉识别完成后，开始获取菜谱
+      if (resultData.ingredient_name) {
+        this.fetchExtraData(resultData.ingredient_name, nationality, location);
+      }
+
+    } catch (err) {
+      console.error('Vision analysis error:', err);
+      let title = app.t('err_analyze_failed');
+      
+      if (err.message === 'timeout') {
+        title = app.t('err_timeout');
+      } else if (err.message && err.message.startsWith('network_error:')) {
+        title = app.t('err_network');
+        wx.showModal({
+          title: app.t('err_cloud_func'),
+          content: err.message,
+          showCancel: false
+        });
+      } else if (err.message === 'network_error') {
+        title = app.t('err_network');
+      } else if (err.message === 'model_error') {
+        title = app.t('err_model');
+      } else if (err.message === 'file_read_error') {
+        title = app.t('err_file_read');
+      }
+      
+      wx.showToast({
+        title,
+        icon: 'none',
+        duration: 2000
+      });
+
+      this.setData({ 
+        loadingVision: false,
+        errorVision: true 
+      });
+      this.stopTypingEffect();
     }
   },
 
@@ -271,6 +384,24 @@ Page({
       // 4. 记录到“集邮”历史 (histories 集合)
       try {
         const db = wx.cloud.database();
+
+        // 如果是本地临时图片路径且尚未上传到云端，则进行上传，以避免在“我的厨房”中因临时文件过期而无法显示
+        if (result.imagePath && !result.imagePath.startsWith('cloud://') && !result.cloudImagePath) {
+          try {
+            const userId = app.globalData.userId || wx.getStorageSync('pf_user_id') || 'anonymous';
+            const ext = result.imagePath.match(/\.([^.]+)$/)?.[1] || 'jpg';
+            const cloudPath = `stamps/${userId}-${Date.now()}-${Math.floor(Math.random() * 1000)}.${ext}`;
+            const uploadRes = await wx.cloud.uploadFile({
+              cloudPath: cloudPath,
+              filePath: result.imagePath
+            });
+            result.cloudImagePath = uploadRes.fileID;
+            this.setData({ 'result.cloudImagePath': uploadRes.fileID });
+          } catch (uploadErr) {
+            console.error('上传图片到云存储失败:', uploadErr);
+          }
+        }
+
         await db.collection('histories').add({
           data: {
             ingredient_name: result.ingredient_name,

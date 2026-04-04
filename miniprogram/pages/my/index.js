@@ -494,6 +494,18 @@ Page({
     });
   },
 
+  onImageError(e) {
+    const index = e.currentTarget.dataset.index;
+    if (index !== undefined) {
+      const key1 = `histories[${index}].analysisResult.cloudImagePath`;
+      const key2 = `histories[${index}].analysisResult.imagePath`;
+      this.setData({
+        [key1]: '',
+        [key2]: ''
+      });
+    }
+  },
+
   onDeleteHistory(e) {
     const index = e.currentTarget.dataset.index;
     const history = this.data.histories[index];

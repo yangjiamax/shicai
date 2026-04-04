@@ -94,6 +94,8 @@ async function analyzeImage(filePath, options = {}) {
     wx.compressImage({
       src: filePath,
       quality: 60,
+      compressedWidth: 800,
+      compressedHeight: 800,
       success: (compressRes) => {
         uploadAndAnalyze(compressRes.tempFilePath);
       },
@@ -104,22 +106,19 @@ async function analyzeImage(filePath, options = {}) {
     });
 
     function uploadAndAnalyze(targetPath) {
-      const ext = targetPath.match(/\.([^.]+)$/)?.[1] || 'jpg';
-      const cloudPath = `uploads/${userId}_${Date.now()}_${Math.floor(Math.random()*1000)}.${ext}`;
-      
-      wx.cloud.uploadFile({
-        cloudPath: cloudPath,
+      wx.getFileSystemManager().readFile({
         filePath: targetPath,
-        success: (uploadRes) => {
+        encoding: 'base64',
+        success: (readRes) => {
           if (isTimeout) return;
-          const fileID = uploadRes.fileID;
+          const base64Data = readRes.data;
           
           wx.cloud.callFunction({
             name: 'analyze',
             data: {
               action: 'analyze',
               analyzeType: 'vision',
-              fileID: fileID,
+              imageBase64: base64Data, // 直接传 base64
               userId: userId,
               source: 'wx_miniprogram',
               lang: lang
@@ -143,8 +142,7 @@ async function analyzeImage(filePath, options = {}) {
                   taste: data.taste || '',
                   texture: data.texture || '',
                   similar: data.similar || '',
-                  imagePath: targetPath,
-                  cloudImagePath: fileID
+                  imagePath: targetPath
                 });
               } else {
                 reject(new Error('bad_response'));
@@ -161,8 +159,8 @@ async function analyzeImage(filePath, options = {}) {
         fail: (err) => {
           if (isTimeout) return;
           clearTimeout(timer);
-          console.error('[Analyze] Upload file failed:', err);
-          reject(new Error('network_error: 上传图片失败 ' + (err.errMsg || '')));
+          console.error('[Analyze] Read file failed:', err);
+          reject(new Error('file_read_error: 读取图片失败 ' + (err.errMsg || '')));
         }
       });
     }

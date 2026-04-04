@@ -47,11 +47,20 @@ module.exports = {
  */
 async function getActiveList() {
   const collection = db.collection(COLLECTIONS.SHOPPING_LISTS);
+  const auth = require('./auth.js');
+  const userId = auth.getUserId();
+  const _ = db.command;
   
-  // 查询状态为 active 的清单，可以加个日期限制或者只查 active 状态即可（假设 active 就是当前的）
-  const res = await collection.where({
-    status: 'active'
-  }).orderBy('created_at', 'desc').limit(1).get();
+  // 查询当前用户的 active 清单
+  const query = userId ? _.and([
+    { status: 'active' },
+    _.or([
+      { _openid: userId },
+      { user_id: userId }
+    ])
+  ]) : { status: 'active', user_id: 'unauthenticated' };
+
+  const res = await collection.where(query).orderBy('created_at', 'desc').limit(1).get();
 
   if (res.data && res.data.length > 0) {
     return res.data[0]._id;
@@ -66,6 +75,7 @@ async function getActiveList() {
   const newList = {
     title: `${yy}-${mm}-${dd} 采购清单`,
     status: 'active',
+    user_id: userId,
     created_at: Date.now()
   };
 
@@ -84,6 +94,8 @@ async function getActiveList() {
 async function addIngredientsToList(listId, ingredients) {
   if (!listId || !ingredients || ingredients.length === 0) return;
   
+  const auth = require('./auth.js');
+  const userId = auth.getUserId();
   const collection = db.collection(COLLECTIONS.INGREDIENTS);
   
   // 小程序端 db 限制了不能直接通过 add() 批量添加对象数组，需要循环添加，或者通过云函数批量添加
@@ -92,6 +104,7 @@ async function addIngredientsToList(listId, ingredients) {
     return collection.add({
       data: {
         list_id: listId,
+        user_id: userId,
         name: item.name || item.standard_name,
         standard_name: item.standard_name,
         category: item.category,

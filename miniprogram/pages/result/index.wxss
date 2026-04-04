@@ -50,11 +50,10 @@ page {
 }
 
 .ingredient-thumb {
-  width: 140rpx;
-  height: 140rpx;
+  width: 100%;
+  height: 100%;
   border-radius: 20rpx;
   background-color: #f6f3f2;
-  flex-shrink: 0;
 }
 
 .ingredient-features {
@@ -69,42 +68,162 @@ page {
 
 /* Skeleton Loaders */
 .skeleton-features {
-  background: transparent;
-  padding: 12rpx 0;
+  background: #f6f3f2;
+  padding: 24rpx;
 }
 
 .skeleton-feature-item {
   height: 36rpx;
-  background: #f0f0f0;
   border-radius: 8rpx;
   margin-bottom: 16rpx;
   width: 80%;
-  animation: pulse 1.5s infinite ease-in-out;
+  background-color: var(--skeleton-color, #f0f0f0);
+}
+.skeleton-feature-item:last-child {
+  margin-bottom: 0;
 }
 .skeleton-feature-item:nth-child(2) { width: 60%; }
 .skeleton-feature-item:nth-child(3) { width: 90%; }
 
-.skeleton-header {
-  opacity: 0.7;
+.skeleton-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  flex: 1;
+  justify-content: center;
+}
+.skeleton-name {
+  width: 240rpx;
+  height: 56rpx;
+  margin-bottom: 8rpx;
+}
+.skeleton-desc {
+  width: 320rpx;
+  height: 32rpx;
+  margin-bottom: 6rpx;
+}
+.skeleton-desc-short {
+  width: 200rpx;
+  height: 32rpx;
+}
+.skeleton-tags {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 12rpx;
+}
+.skeleton-tag {
+  height: 48rpx;
+  background-color: var(--skeleton-color, #f0f0f0);
+  border-radius: 24rpx;
+  background-image: var(--skeleton-gradient, linear-gradient(90deg, #f0f0f0 25%, #e2e2e2 37%, #f0f0f0 63%));
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.4s ease infinite;
+}
+
+.ingredient-thumb-wrap {
+  position: relative;
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 20rpx;
+  overflow: hidden;
+  flex-shrink: 0;
+  background-color: var(--skeleton-color, #f0f0f0);
+}
+.scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4rpx;
+  background: rgba(75, 99, 56, 0.8);
+  box-shadow: 0 0 10rpx rgba(75, 99, 56, 0.8);
+  animation: scan 2s linear infinite;
+  z-index: 2;
+}
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(140rpx); }
+}
+
+.skeleton-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  padding: 30rpx !important;
+}
+.skeleton-icon {
+  width: 36rpx;
+  height: 36rpx;
+  background-color: var(--skeleton-color, #f0f0f0);
+  border-radius: 50%;
+  margin-right: 12rpx;
+  background-image: var(--skeleton-gradient, linear-gradient(90deg, #f0f0f0 25%, #e2e2e2 37%, #f0f0f0 63%));
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.4s ease infinite;
+}
+.skeleton-title {
+  width: 200rpx;
+  height: 36rpx;
+}
+.skeleton-clue-box {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  gap: 24rpx;
+  align-items: center;
+}
+.skeleton-clue-left {
+  flex-shrink: 0;
+}
+.skeleton-icon-large {
+  width: 80rpx;
+  height: 80rpx;
+  background-color: var(--skeleton-color, #f0f0f0);
+  border-radius: 50%;
+  background-image: var(--skeleton-gradient, linear-gradient(90deg, #f0f0f0 25%, #e2e2e2 37%, #f0f0f0 63%));
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.4s ease infinite;
+}
+.skeleton-clue-right {
+  flex: 1;
 }
 
 .skeleton-card {
-  height: 200rpx;
-  background: #f0f0f0;
-  animation: pulse 1.5s infinite ease-in-out;
-  border: none;
-  box-shadow: none;
+  height: 240rpx;
+  background: #ffffff;
+  border: 2rpx solid transparent;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.02);
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+.skeleton-recipe-icon-box {
+  width: 70rpx;
+  height: 70rpx;
+  border-radius: 16rpx;
+  background-color: var(--skeleton-color, #f0f0f0);
+  background-image: var(--skeleton-gradient, linear-gradient(90deg, #f0f0f0 25%, #e2e2e2 37%, #f0f0f0 63%));
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.4s ease infinite;
 }
 
-.loading-pulse {
-  animation: pulse 1.5s infinite ease-in-out;
-  color: #74796d;
+.skeleton-header {
+  margin-bottom: 24rpx;
 }
 
-@keyframes pulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 0.3; }
-  100% { opacity: 0.6; }
+.loading-pulse-text {
+  color: #4b6338;
+  font-weight: 600;
+  transition: opacity 0.5s ease;
+  animation: pulse-text 2s infinite ease-in-out;
+}
+
+@keyframes pulse-text {
+  0% { opacity: 0.7; transform: scale(0.99); }
+  50% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0.7; transform: scale(0.99); }
 }
 
 .feature-item {

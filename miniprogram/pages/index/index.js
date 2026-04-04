@@ -22,11 +22,17 @@ Page({
 
   onLoad() {
     console.log('index page loaded, userId:', app.globalData?.userId);
-    this.setData({ i18n: app.globalData.i18n });
+    this.setData({ 
+      i18n: app.globalData.i18n,
+      language: app.globalData.language
+    });
   },
 
   async onShow() {
-    this.setData({ i18n: app.globalData.i18n });
+    this.setData({ 
+      i18n: app.globalData.i18n,
+      language: app.globalData.language
+    });
     wx.setNavigationBarTitle({ title: app.t('app_name') });
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       // custom tabbar logic if any
@@ -36,6 +42,18 @@ Page({
       wx.setTabBarItem({ index: 2, text: app.t('tab_my') });
     }
     await this.loadListProgress();
+  },
+
+  onHide() {
+    if (this.loadingTimer) {
+      clearInterval(this.loadingTimer);
+    }
+  },
+
+  onUnload() {
+    if (this.loadingTimer) {
+      clearInterval(this.loadingTimer);
+    }
   },
 
   async loadListProgress() {
@@ -191,13 +209,11 @@ Page({
     voiceUtil.initRecordManager({
       onStart: () => {
         this.setData({ isRecording: true });
-        wx.showToast({ title: '录音中，再次点击停止', icon: 'none', duration: 60000 });
       },
       onRecognize: (text) => {
         // 可以实时展示识别结果，目前先忽略
       },
       onStop: async (res) => {
-        wx.hideToast();
         this.setData({ isRecording: false });
         const text = res.result;
         console.log('语音识别最终结果:', text);
@@ -222,7 +238,25 @@ Page({
 
   async processTextToList(text) {
     this.setData({ isProcessing: true });
-    wx.showLoading({ title: '正在提取清单...', mask: true });
+    
+    // 动态 loading 文案逻辑
+    const loadingTexts = [
+      '正在理解您的需求...',
+      '大厨正在拆解菜谱...',
+      '正在挑选新鲜食材...',
+      '快好了，再等一下下...',
+      '正在为您生成购物清单...'
+    ];
+    let textIndex = 0;
+    
+    this.setData({ dynamicLoadingText: loadingTexts[textIndex] });
+    
+    // 每 4 秒切换一次文案，缓解用户等待焦虑
+    this.loadingTimer = setInterval(() => {
+      textIndex = (textIndex + 1) % loadingTexts.length;
+      this.setData({ dynamicLoadingText: loadingTexts[textIndex] });
+    }, 4000);
+
     try {
       // 调用 extractList 云函数
       const res = await wx.cloud.callFunction({
@@ -233,6 +267,7 @@ Page({
         }
       });
 
+      if (this.loadingTimer) clearInterval(this.loadingTimer);
       const data = res.result;
       if (data && data.error) {
         throw new Error(data.message || '提取清单失败');
@@ -271,6 +306,7 @@ Page({
       }, 1500);
 
     } catch (err) {
+      if (this.loadingTimer) clearInterval(this.loadingTimer);
       console.error('处理文本失败:', err);
       wx.hideLoading();
       this.setData({ isProcessing: false });
@@ -370,39 +406,14 @@ Page({
       const nationalityObj = list.find(item => item.id === nationalityId);
       const nationality = nationalityObj ? nationalityObj.name : '';
 
-      // 调用云函数，不再静默 fallback，确保能测试异常情况
-      let result = await analyzeUtil.analyzeImage(filePath, { forceMock: false });
-
-      if (result) {
-        // 将 nationality 和 location 传递给结果页，用于后续分步请求
-        const extraParams = `&nationality=${encodeURIComponent(nationality || '')}&location=${encodeURIComponent(JSON.stringify(location || {}))}`;
-        wx.navigateTo({
-          url: `/pages/result/index?data=${encodeURIComponent(JSON.stringify(result))}${extraParams}`
-        });
-      } else {
-        throw new Error('empty_result');
-      }
+      // 直接跳转结果页，将 imagePath 和必要参数传过去，由结果页发起请求
+      const extraParams = `&nationality=${encodeURIComponent(nationality || '')}&location=${encodeURIComponent(JSON.stringify(location || {}))}&imagePath=${encodeURIComponent(filePath)}`;
+      wx.navigateTo({
+        url: `/pages/result/index?action=analyze${extraParams}`
+      });
     } catch (err) {
       console.error('analyze error:', err);
-      let title = app.t('err_analyze_failed');
-      
-      if (err.message === 'timeout') {
-        title = app.t('err_timeout');
-      } else if (err.message && err.message.startsWith('network_error:')) {
-        title = app.t('err_network');
-        // 弹出具体错误以便真机排查
-        wx.showModal({
-          title: app.t('err_cloud_func'),
-          content: err.message,
-          showCancel: false
-        });
-      } else if (err.message === 'network_error') {
-        title = app.t('err_network');
-      } else if (err.message === 'model_error') {
-        title = app.t('err_model');
-      } else if (err.message === 'file_read_error') {
-        title = app.t('err_file_read');
-      }
+      let title = app.t('err_analyze_failed') || '分析失败';
       
       wx.showToast({
         title,

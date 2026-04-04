@@ -148,41 +148,30 @@ async function handleSearchTutorial(keyword, lang) {
     return cachedResult;
   }
 
-  const bochaApiKey = process.env.BOCHA_API_KEY || 'sk-118c4eb421804e86bf997d383584b387';
-
   if (lang === 'en') {
     let foodcomResults = [];
 
-    // Bocha API for Food.com
+    // Food.com Native API
     try {
-      const fcRes = await axios.post('https://api.bochaai.com/v1/web-search', {
-        query: `site:food.com/recipe/ "${keyword}"`,
-        count: 10,
-        freshness: 'noLimit'
-      }, {
-        headers: {
-          'Authorization': `Bearer ${bochaApiKey}`,
-          'Content-Type': 'application/json'
+      const fcRes = await axios.get('https://api.food.com/services/mobile/fdc/search/sectionfront', {
+        params: {
+          pn: 1,
+          recordType: 'Recipe',
+          q: keyword
         },
-        timeout: 15000
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        },
+        timeout: 8000
       });
-      const webPages = fcRes.data?.data?.webPages?.value || fcRes.data?.webPages?.value;
-      if (webPages && Array.isArray(webPages)) {
-        foodcomResults = webPages.slice(0, 10).map(v => ({
-          title: v.name.replace(/ - Food\.com$/, ''),
-          url: v.url,
-          thumbnail: v.siteIcon || 'https://www.food.com/favicon.ico',
+      
+      const results = fcRes.data?.response?.results;
+      if (results && Array.isArray(results)) {
+        foodcomResults = results.slice(0, 10).map(v => ({
+          title: v.title,
+          url: v.record_url,
+          thumbnail: v.primary_photo_url || v.recipe_photo_url || 'https://www.food.com/favicon.ico',
           source: 'foodcom'
-        }));
-        
-        foodcomResults = await Promise.all(foodcomResults.map(async (item) => {
-          if (item.thumbnail === 'https://www.food.com/favicon.ico') {
-            const firstImg = await extractFirstImageFromUrl(item.url, 'foodcom');
-            if (firstImg) {
-              item.thumbnail = firstImg;
-            }
-          }
-          return item;
         }));
       }
     } catch (err) {
@@ -308,47 +297,6 @@ async function handleSearchTutorial(keyword, lang) {
     console.error('下厨房搜索失败:', err.message);
   }
 
-  // 3. 如果下厨房为空但 B 站不为空，单独触发一次下厨房的 Bocha 兜底
-  if (xiachufangResults.length === 0) {
-    try {
-      const response = await axios.post('https://api.bochaai.com/v1/web-search', {
-        query: `site:xiachufang.com/recipe/ "${keyword}"`,
-        count: 10,
-        freshness: 'noLimit'
-      }, {
-        headers: {
-          'Authorization': `Bearer ${bochaApiKey}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
-      });
-
-      const webPages = response.data?.data?.webPages?.value || response.data?.webPages?.value;
-      if (webPages && Array.isArray(webPages) && webPages.length > 0) {
-        let results = webPages.slice(0, 10).map(p => ({
-          title: p.name,
-          url: p.url,
-          thumbnail: 'https://i2.chuimg.com/logo/xiachufang.png',
-          source: 'xiachufang'
-        }));
-        
-        results = await Promise.all(results.map(async (item) => {
-          const firstImg = await extractFirstImageFromUrl(item.url, 'xiachufang');
-          if (firstImg) {
-            item.thumbnail = firstImg;
-          }
-          return item;
-        }));
-        
-        if (results.length > 0) {
-          xiachufangResults = results;
-        }
-      }
-    } catch (err) {
-      console.error('单独补救下厨房 Bocha API 请求失败:', err.message);
-    }
-  }
-
   // 4. 返回合并数据
   if (biliResults.length > 0 || xiachufangResults.length > 0) {
     // 为了兼容前端，如果某一方为空，我们尽量用另一方的数据兜底
@@ -366,7 +314,7 @@ async function handleSearchTutorial(keyword, lang) {
     return result;
   }
 
-  // 5. 完全降级使用 Bocha API 进行网页搜索 (两个都失败的情况)
+  // 5. 完全降级使用 Mock 数据 (两个都失败的情况)
   const mockData = {
     error: false,
     data: {
@@ -413,61 +361,9 @@ async function handleSearchTutorial(keyword, lang) {
     }
   };
 
-  try {
-    // 优化搜索关键词：在 Bocha API 兜底时也更直接
-    const response = await axios.post('https://api.bochaai.com/v1/web-search', {
-      query: `site:xiachufang.com/recipe/ "${keyword}"`,
-      count: 10,
-      freshness: 'noLimit'
-    }, {
-      headers: {
-        'Authorization': `Bearer ${bochaApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      timeout: 15000
-    });
-
-    const webPages = response.data?.data?.webPages?.value || response.data?.webPages?.value;
-    if (webPages && Array.isArray(webPages) && webPages.length > 0) {
-      let results = webPages.slice(0, 10).map(p => ({
-        title: p.name,
-        url: p.url,
-        thumbnail: 'https://i2.chuimg.com/logo/xiachufang.png', // 下厨房默认logo作为占位
-        source: 'xiachufang'
-      }));
-      
-      // 补充：如果菜谱搜索结果是静态的网页信息，则抓取正文的第一张图片作为搜索结果的缩略图
-      results = await Promise.all(results.map(async (item) => {
-        const firstImg = await extractFirstImageFromUrl(item.url, 'xiachufang');
-        if (firstImg) {
-          item.thumbnail = firstImg;
-        }
-        return item;
-      }));
-      
-      if (results.length > 0) {
-        const result = {
-          error: false,
-          data: {
-            bilibili: results, // 为了兼容前端结构，在找不到b站结果时，用下厨房兜底
-            xiachufang: results
-          }
-        };
-        await setCache(cacheKey, result);
-        return result;
-      }
-    }
-    
-    console.warn('Bocha API 或 B站解析返回数据为空，使用 Mock 数据');
-    await setCache(cacheKey, mockData);
-    return mockData;
-
-  } catch (err) {
-    console.error('Bocha API 请求失败:', err.response ? err.response.data : err.message);
-    // 降级使用 mock
-    await setCache(cacheKey, mockData);
-    return mockData;
-  }
+  console.warn('B站和下厨房解析返回数据为空，使用 Mock 数据');
+  await setCache(cacheKey, mockData);
+  return mockData;
 }
 
 exports.main = async (event, context) => {
@@ -490,37 +386,12 @@ exports.main = async (event, context) => {
 
   try {
     let prompt = '';
-    let locationText = '';
-    if (location && location.lat && location.lng) {
-      locationText = lang === 'en' 
-        ? `User Location: latitude ${location.lat}, longitude ${location.lng}. ` 
-        : `用户当前位置：纬度 ${location.lat}，经度 ${location.lng}。`;
-    } else {
-      locationText = lang === 'en' ? `User Location: unknown. ` : `用户当前位置：未知。`;
-    }
-    
-    let nationalityText = '';
-    if (nationality) {
-      nationalityText = lang === 'en' ? `User Nationality: ${nationality}. ` : `用户国籍：${nationality}。`;
-    } else {
-      nationalityText = lang === 'en' ? `User Nationality: unknown. ` : `用户国籍：未知。`;
-    }
-
     let messages = [];
     let cacheKey = null;
 
     // --- STEP 1: Vision (视觉识别：食材与鲜度) ---
     if (analyzeType === 'vision') {
       let finalBase64 = imageBase64;
-      if (fileID) {
-        try {
-          const res = await cloud.downloadFile({ fileID: fileID });
-          finalBase64 = res.fileContent.toString('base64');
-        } catch (err) {
-          console.error('下载云存储图片失败:', err);
-          return { error: true, errorType: 'file_read_error', message: '读取云端图片失败' };
-        }
-      }
       if (!finalBase64 || typeof finalBase64 !== 'string') {
         return { error: true, errorType: 'bad_response', message: '未收到图片数据' };
       }

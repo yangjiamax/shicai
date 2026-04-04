@@ -25,22 +25,32 @@
 
     <!-- Middle Transition / Brand Section -->
     <view class="middle-transition">
-      <view class="transition-left">
-        <text class="transition-text">{{i18n.transition_identify || '鉴食材'}}</text>
-        <view class="transition-line left-line"></view>
-      </view>
-      
-      <view class="brand-center">
-        <view class="brand-logo-wrapper">
-          <image class="brand-logo" src="/images/app_logo.png" mode="aspectFill"></image>
+      <block wx:if="{{language === 'en'}}">
+        <view class="brand-center english-mode">
+          <view class="brand-logo-wrapper">
+            <image class="brand-logo" src="/images/app_logo.png" mode="aspectFill"></image>
+          </view>
+          <text class="brand-slogan">{{i18n.app_slogan}}</text>
         </view>
-        <text class="brand-name">{{i18n.app_name}}</text>
-      </view>
+      </block>
+      <block wx:else>
+        <view class="transition-left">
+          <text class="transition-text">{{i18n.transition_identify || '鉴食材'}}</text>
+          <view class="transition-line left-line"></view>
+        </view>
+        
+        <view class="brand-center">
+          <view class="brand-logo-wrapper">
+            <image class="brand-logo" src="/images/app_logo.png" mode="aspectFill"></image>
+          </view>
+          <text class="brand-name">{{i18n.app_name}}</text>
+        </view>
 
-      <view class="transition-right">
-        <view class="transition-line right-line"></view>
-        <text class="transition-text">{{i18n.transition_list || '列清单'}}</text>
-      </view>
+        <view class="transition-right">
+          <view class="transition-line right-line"></view>
+          <text class="transition-text">{{i18n.transition_list || '列清单'}}</text>
+        </view>
+      </block>
     </view>
     
     <!-- Today's Shopping List Dashboard (Secondary Line) -->
@@ -89,12 +99,35 @@
       </view>
     </view>
     
+    <!-- 视觉分析 Loading -->
     <view wx:if="{{analyzing}}" class="loading-overlay">
       <view class="loading-content">
         <view class="loading-spinner"></view>
         <text class="loading-text">{{i18n.analyzing_title}}</text>
         <view class="loading-hint">
           <text>{{i18n.analyzing_hint}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 文本提取专属动态 Loading -->
+    <view wx:if="{{isProcessing}}" class="loading-overlay custom-extract-loading">
+      <view class="loading-content extract-loading-content">
+        <view class="chef-icon-container">
+          <text class="sys-icon icon-flash chef-icon"></text>
+          <view class="sparkles">
+            <view class="sparkle s1"></view>
+            <view class="sparkle s2"></view>
+            <view class="sparkle s3"></view>
+          </view>
+        </view>
+        <text class="loading-text animated-text">{{dynamicLoadingText}}</text>
+        <view class="loading-hint">
+          <text>AI大厨正在为您处理，请稍候</text>
+        </view>
+        <!-- 底部加载进度条动画 -->
+        <view class="loading-progress-track">
+          <view class="loading-progress-bar"></view>
         </view>
       </view>
     </view>

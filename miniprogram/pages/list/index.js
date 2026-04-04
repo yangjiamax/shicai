@@ -108,9 +108,21 @@ Page({
         if (res.confirm) {
           wx.showLoading({ title: this.data.i18n.saving || '正在保存...' });
           try {
-            // 1. 将所有 active 状态的清单都置为 completed (防范后台存在多条脏数据导致表面清不空)
+            // 1. 将当前用户的所有 active 状态的清单都置为 completed (防范后台存在多条脏数据导致表面清不空)
+            const auth = require('../../utils/auth.js');
+            const userId = auth.getUserId();
+            const _ = dbUtil.db.command;
+            
+            const query = userId ? _.and([
+              { status: 'active' },
+              _.or([
+                { _openid: userId },
+                { user_id: userId }
+              ])
+            ]) : { status: 'active', user_id: 'unauthenticated' };
+
             const activeListsRes = await dbUtil.db.collection(dbUtil.COLLECTIONS.SHOPPING_LISTS)
-              .where({ status: 'active' })
+              .where(query)
               .get();
 
             const activeLists = activeListsRes.data || [];
@@ -408,11 +420,15 @@ Page({
     try {
       wx.showLoading({ title: '添加中...', mask: true });
       
+      const auth = require('../../utils/auth.js');
+      const userId = auth.getUserId();
+
       const ingredientData = {
         name: name,
         source_recipe: recipe,
         status: 'pending',
         list_id: this.data.listId,
+        user_id: userId,
         add_time: dbUtil.db.serverDate(),
         standard_name: name,
         category: 'other'
@@ -449,11 +465,15 @@ Page({
     try {
       wx.showLoading({ title: '添加中...', mask: true });
       
+      const auth = require('../../utils/auth.js');
+      const userId = auth.getUserId();
+
       const ingredientData = {
         name: name,
         source_recipe: '其他',
         status: 'pending',
         list_id: this.data.listId,
+        user_id: userId,
         add_time: dbUtil.db.serverDate(),
         standard_name: name,
         category: 'other'

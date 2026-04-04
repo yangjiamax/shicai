@@ -310,8 +310,16 @@ module.exports = {
   res_incomplete: '食材特征未完全识别，请换个角度重拍',
   res_back_home: '返回首页',
   res_load_failed: '加载识别结果失败',
-  loading_familiar: '正在为您翻阅菜谱...',
-  loading_local: '探索当地做法...',
+  loading_familiar: '正在为您定制地道做法...',
+  loading_local: '正在寻找当地特色...',
+  res_analyzing: 'AI 正在分析食材特征...',
+  loading_phrases_vision: [
+    'AI 正在扫描食材纹理...',
+    '正在分析新鲜度特征...',
+    '正在匹配全球食材库...',
+    '正在生成食材档案...',
+    '马上就好，稍等片刻...'
+  ],
   btn_search_tutorial: '搜 B站 做法',
   btn_search_tutorial_xcf: '搜 下厨房 做法',
   tutorial_sheet_title: 'B站 推荐做法',

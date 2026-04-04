@@ -2,14 +2,27 @@
   <view wx:if="{{result}}" class="result-card">
     <view class="ingredient-info">
       <view class="ingredient-header-wrap">
-        <view class="ingredient-header-left">
+        <view class="ingredient-header-left" wx:if="{{!loadingVision}}">
           <text class="ingredient-name">{{result.ingredient_name}}</text>
           <text class="ingredient-desc">{{result.ingredient_desc}}</text>
         </view>
-        <image class="ingredient-thumb" wx:if="{{result.imagePath}}" src="{{result.imagePath}}" mode="aspectFill" bindtap="previewImage"></image>
+        <view class="ingredient-header-left skeleton-header-left" wx:else>
+          <view class="skeleton-text skeleton-name"></view>
+          <view class="skeleton-text skeleton-desc"></view>
+          <view class="skeleton-text skeleton-desc-short"></view>
+        </view>
+        <view class="ingredient-thumb-wrap">
+          <image class="ingredient-thumb" wx:if="{{result.imagePath}}" src="{{result.imagePath}}" mode="aspectFill" bindtap="previewImage"></image>
+          <view class="scan-line" wx:if="{{loadingVision}}"></view>
+        </view>
       </view>
       
-      <view class="ingredient-features" wx:if="{{result.taste || result.texture || result.similar}}">
+      <view class="ingredient-features skeleton-features" wx:if="{{loadingVision}}">
+        <view class="skeleton-text skeleton-feature-item"></view>
+        <view class="skeleton-text skeleton-feature-item"></view>
+        <view class="skeleton-text skeleton-feature-item"></view>
+      </view>
+      <view class="ingredient-features" wx:if="{{!loadingVision && (result.taste || result.texture || result.similar)}}">
         <view class="feature-item" wx:if="{{result.taste}}">
           <text class="feature-label">{{i18n.res_taste}}</text>
           <text class="feature-value">{{result.taste}}</text>
@@ -25,7 +38,7 @@
       </view>
     </view>
 
-    <view class="analysis-section">
+    <view class="analysis-section" wx:if="{{!loadingVision}}">
       <view class="section-header">
         <image class="icon-eco" src="/images/icons/eco.svg" mode="aspectFit"></image>
         <text class="section-title">{{i18n.res_freshness_title}}</text>
@@ -45,16 +58,34 @@
         <image class="icon-check" src="/images/icons/check_circle.svg" mode="aspectFit"></image>
       </view>
     </view>
+    
+    <view class="analysis-section skeleton-section" wx:else>
+      <view class="section-header">
+        <view class="skeleton-icon"></view>
+        <view class="skeleton-text skeleton-title"></view>
+      </view>
+      <view class="skeleton-clue-box">
+        <view class="skeleton-clue-left">
+          <view class="skeleton-icon-large"></view>
+        </view>
+        <view class="skeleton-clue-right">
+          <view class="skeleton-text" style="width: 40%; height: 28rpx; margin-bottom: 16rpx;"></view>
+          <view class="skeleton-text" style="width: 100%; height: 24rpx; margin-bottom: 12rpx;"></view>
+          <view class="skeleton-text" style="width: 80%; height: 24rpx; margin-bottom: 12rpx;"></view>
+          <view class="skeleton-text" style="width: 60%; height: 24rpx;"></view>
+        </view>
+      </view>
+    </view>
 
-    <view class="recipes-section" wx:if="{{(displayRecipes && displayRecipes.length > 0) || loadingFamiliar || loadingLocal}}">
-      <view class="section-header" wx:if="{{!showTabs && !loadingFamiliar && (!loadingLocal || activeTab === 'familiar')}}">
+    <view class="recipes-section" wx:if="{{loadingVision || (displayRecipes && displayRecipes.length > 0) || loadingFamiliar || loadingLocal}}">
+      <view class="section-header" wx:if="{{!showTabs && !loadingVision && !loadingFamiliar && (!loadingLocal || activeTab === 'familiar')}}">
         <image class="icon-recipe" src="/images/icons/restaurant_menu.svg" mode="aspectFit"></image>
         <text class="section-title">{{i18n.res_recipes_title}}</text>
       </view>
       
-      <view class="section-header skeleton-header" wx:if="{{loadingFamiliar}}">
+      <view class="section-header skeleton-header" wx:if="{{loadingVision || loadingFamiliar}}">
         <image class="icon-recipe" src="/images/icons/restaurant_menu.svg" mode="aspectFit"></image>
-        <text class="section-title loading-pulse">{{i18n.loading_familiar}}</text>
+        <text class="section-title loading-pulse-text">{{loadingVision ? loadingText : i18n.loading_familiar}}</text>
       </view>
 
       <view class="recipe-tabs" wx:if="{{showTabs || (!loadingFamiliar && loadingLocal)}}">
@@ -83,9 +114,19 @@
         </view>
       </view>
       
-      <view class="recipe-grid skeleton-grid" wx:elif="{{loadingFamiliar || (loadingLocal && activeTab === 'local')}}">
-        <view class="recipe-card skeleton-card"></view>
-        <view class="recipe-card skeleton-card"></view>
+      <view class="recipe-grid skeleton-grid" wx:elif="{{loadingVision || loadingFamiliar || (loadingLocal && activeTab === 'local')}}">
+        <view class="recipe-card skeleton-card">
+          <view class="skeleton-recipe-icon-box"></view>
+          <view class="skeleton-text" style="width: 70%; height: 32rpx; margin-top: 24rpx; border-radius: 8rpx;"></view>
+          <view class="skeleton-text" style="width: 100%; height: 24rpx; margin-top: 16rpx; border-radius: 8rpx;"></view>
+          <view class="skeleton-text" style="width: 50%; height: 24rpx; margin-top: 8rpx; border-radius: 8rpx;"></view>
+        </view>
+        <view class="recipe-card skeleton-card">
+          <view class="skeleton-recipe-icon-box"></view>
+          <view class="skeleton-text" style="width: 80%; height: 32rpx; margin-top: 24rpx; border-radius: 8rpx;"></view>
+          <view class="skeleton-text" style="width: 90%; height: 24rpx; margin-top: 16rpx; border-radius: 8rpx;"></view>
+          <view class="skeleton-text" style="width: 40%; height: 24rpx; margin-top: 8rpx; border-radius: 8rpx;"></view>
+        </view>
       </view>
     </view>
 
@@ -107,7 +148,7 @@
       <text>{{i18n.res_disclaimer}}</text>
     </view>
 
-    <view class="incomplete-state" wx:elif="{{!loadingFamiliar && !loadingLocal}}">
+    <view class="incomplete-state" wx:elif="{{!loadingVision && !loadingFamiliar && !loadingLocal}}">
       <text class="incomplete-tips">{{i18n.res_incomplete}}</text>
       <view class="action-bar">
         <view class="action-buttons">

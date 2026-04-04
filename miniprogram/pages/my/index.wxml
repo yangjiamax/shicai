@@ -63,7 +63,7 @@
         >
           <view class="history-thumb">
             <image wx:if="{{item.type === 'bill'}}" class="history-thumb-img" src="/images/icons/list-tab-active.png" mode="aspectFit" style="padding: 10px; box-sizing: border-box; opacity: 0.7;"></image>
-            <image wx:elif="{{item.analysisResult.cloudImagePath || item.analysisResult.imagePath}}" class="history-thumb-img" src="{{item.analysisResult.cloudImagePath || item.analysisResult.imagePath}}" mode="aspectFill"></image>
+            <image wx:elif="{{item.analysisResult.cloudImagePath || item.analysisResult.imagePath}}" class="history-thumb-img" src="{{item.analysisResult.cloudImagePath || item.analysisResult.imagePath}}" mode="aspectFill" binderror="onImageError" data-index="{{index}}"></image>
             <text wx:else class="history-thumb-text">{{item.initial}}</text>
           </view>
           
