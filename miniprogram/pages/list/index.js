@@ -36,13 +36,13 @@ Page({
       i18n: app.globalData.i18n,
       lang: app.globalData.language
     });
-    wx.setNavigationBarTitle({ title: app.t('page_title_list') || '采购清单' });
+    wx.setNavigationBarTitle({ title: app.t('page_title_list') });
     
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       // custom tabbar logic
     } else {
       wx.setTabBarItem({ index: 0, text: app.t('tab_home') });
-      wx.setTabBarItem({ index: 1, text: app.t('tab_list') || '清单' });
+      wx.setTabBarItem({ index: 1, text: app.t('tab_list') });
       wx.setTabBarItem({ index: 2, text: app.t('tab_my') });
     }
 
@@ -57,38 +57,45 @@ Page({
       const listId = await dbUtil.getActiveList();
       this.setData({ listId });
       
-      const countRes = await dbUtil.db.collection(dbUtil.COLLECTIONS.INGREDIENTS)
-        .where({
-          list_id: listId,
-          status: dbUtil.db.command.neq('deleted')
-        }).count();
-      const total = countRes.total;
-      
-      let allIngredients = [];
-      const MAX_LIMIT = 20;
-      
-      for (let i = 0; i < total; i += MAX_LIMIT) {
-        const res = await dbUtil.db.collection(dbUtil.COLLECTIONS.INGREDIENTS)
-          .where({
-            list_id: listId,
-            status: dbUtil.db.command.neq('deleted')
-          })
-          .orderBy('add_time', 'desc')
-          .skip(i)
-          .limit(MAX_LIMIT)
-          .get();
-        allIngredients = allIngredients.concat(res.data || []);
+      const list = await dbUtil.getListById(listId);
+      let ingredients = [];
+      if (list && list.items) {
+        ingredients = list.items;
       }
-        
-      const ingredients = allIngredients;
+      
       this._rawIngredients = ingredients;
       
       const planningGroups = listUtil.derivePlanningView(ingredients);
       const executionGroups = listUtil.deriveExecutionView(ingredients);
       
+      // 检查当前用户已收藏的菜谱，用于点亮红心
+      let savedRecipesMap = {};
+      const authSource = app.globalData.authSource || wx.getStorageSync('pf_auth_source');
+      if (authSource === 'cloud_openid' && wx.cloud) {
+        try {
+          const db = wx.cloud.database();
+          const userId = app.globalData.userId || wx.getStorageSync('pf_user_id');
+          // 获取当前列表中所有的菜谱名
+          const recipeNames = planningGroups.map(g => g.title).filter(title => title && title !== 'list_independent_ingredients' && title !== 'list_other_ingredients' && title !== 'list_direct_add');
+          if (recipeNames.length > 0) {
+             const _ = db.command;
+             const { data: savedData } = await db.collection('recipes').where({
+               _openid: userId,
+               recipeName: _.in(recipeNames)
+             }).get();
+             savedData.forEach(item => {
+               savedRecipesMap[item.recipeName] = true;
+             });
+          }
+        } catch (err) {
+          console.error('Failed to check saved recipes:', err);
+        }
+      }
+
       this.setData({
         planningGroups,
         executionGroups,
+        savedRecipesMap,
         loading: false
       });
     } catch (err) {
@@ -99,14 +106,14 @@ Page({
 
   finishPurchasing() {
     wx.showModal({
-      title: this.data.i18n.title_finish_purchase || '结束采购',
-      content: this.data.i18n.content_finish_purchase || '确认结束本次采购吗？未勾选的食材将保留在历史记录中，并开启新的采购清单。',
-      confirmText: this.data.i18n.confirm_finish || '确认结束',
-      cancelText: this.data.i18n.cancel || '取消',
+      title: this.data.i18n.title_finish_purchase,
+      content: this.data.i18n.content_finish_purchase,
+      confirmText: this.data.i18n.confirm_finish,
+      cancelText: this.data.i18n.cancel,
       confirmColor: '#4b6338',
       success: async (res) => {
         if (res.confirm) {
-          wx.showLoading({ title: this.data.i18n.saving || '正在保存...' });
+          wx.showLoading({ title: this.data.i18n.saving });
           try {
             // 1. 将当前用户的所有 active 状态的清单都置为 completed (防范后台存在多条脏数据导致表面清不空)
             const auth = require('../../utils/auth.js');
@@ -160,14 +167,14 @@ Page({
 
             wx.hideLoading();
             wx.showToast({
-              title: this.data.i18n.purchase_finished || '采购已结束',
+              title: this.data.i18n.purchase_finished,
               icon: 'success'
             });
           } catch (err) {
             console.error('Failed to finish purchasing:', err);
             wx.hideLoading();
             wx.showToast({
-              title: this.data.i18n.save_failed || '保存失败，请重试',
+              title: this.data.i18n.save_failed,
               icon: 'none'
             });
           }
@@ -219,7 +226,7 @@ Page({
 
   showExecutionEditToast() {
     wx.showToast({
-      title: '如需修改或删除，请切换至“逐道菜选购”操作',
+      title: app.t('list_edit_hint'),
       icon: 'none',
       duration: 2000
     });
@@ -232,10 +239,10 @@ Page({
     // 乐观更新 UI
     if (this._rawIngredients) {
       const updatedIngredients = this._rawIngredients.map(item => {
-        if (id && item._id === id) {
+        if (id && item.id === id) {
           return { ...item, status: newStatus };
         }
-        if (ids && ids.includes(item._id)) {
+        if (ids && ids.includes(item.id)) {
           return { ...item, status: newStatus };
         }
         return item;
@@ -253,21 +260,8 @@ Page({
     }
 
     try {
-      const db = dbUtil.db;
-      if (ids && ids.length > 0) {
-        // Update multiple (execution view)
-        const promises = ids.map(_id => 
-          db.collection(dbUtil.COLLECTIONS.INGREDIENTS).doc(_id).update({
-            data: { status: newStatus }
-          })
-        );
-        await Promise.all(promises);
-      } else if (id) {
-        // Update single (planning view)
-        await db.collection(dbUtil.COLLECTIONS.INGREDIENTS).doc(id).update({
-          data: { status: newStatus }
-        });
-      }
+      const targetIds = ids && ids.length > 0 ? ids : [id];
+      await dbUtil.updateIngredientStatus(this.data.listId, targetIds, newStatus);
       
       // 后台静默刷新，不显示 loading
       this.loadActiveList(false);
@@ -281,24 +275,13 @@ Page({
   async deleteIngredient(e) {
     const { id, ids } = e.currentTarget.dataset;
     wx.showModal({
-      title: '删除食材',
-      content: '确认删除？',
+      title: app.t('list_delete_ingredient'),
+      content: app.t('list_confirm_delete'),
       success: async (res) => {
         if (res.confirm) {
           try {
-            const db = dbUtil.db;
-            if (ids && ids.length > 0) {
-              const promises = ids.map(_id => 
-                db.collection(dbUtil.COLLECTIONS.INGREDIENTS).doc(_id).update({
-                  data: { status: 'deleted' }
-                })
-              );
-              await Promise.all(promises);
-            } else if (id) {
-              await db.collection(dbUtil.COLLECTIONS.INGREDIENTS).doc(id).update({
-                data: { status: 'deleted' }
-              });
-            }
+            const targetIds = ids && ids.length > 0 ? ids : [id];
+            await dbUtil.deleteIngredients(this.data.listId, targetIds);
             this.loadActiveList(false);
           } catch (err) {
             console.error('Delete failed:', err);
@@ -311,19 +294,12 @@ Page({
   async deleteRecipe(e) {
     const { recipe } = e.currentTarget.dataset;
     wx.showModal({
-      title: '删除整道菜',
-      content: `确认删除【${recipe}】下的所有食材吗？`,
+      title: app.t('list_delete_recipe'),
+      content: app.t('list_delete_recipe_confirm').replace('{recipe}', recipe),
       success: async (res) => {
         if (res.confirm) {
           try {
-            const db = dbUtil.db;
-            const _ = db.command;
-            await db.collection(dbUtil.COLLECTIONS.INGREDIENTS).where({
-              list_id: this.data.listId,
-              source_recipe: recipe
-            }).update({
-              data: { status: 'deleted' }
-            });
+            await dbUtil.deleteRecipe(this.data.listId, recipe);
             this.loadActiveList(false);
           } catch (err) {
             console.error('Delete recipe failed:', err);
@@ -340,24 +316,66 @@ Page({
     });
   },
 
+  async saveRecipe(e) {
+    const authSource = app.globalData.authSource || wx.getStorageSync('pf_auth_source');
+    if (authSource !== 'cloud_openid' || !wx.cloud) {
+      wx.showToast({ title: this.data.i18n.my_err_cloud_user, icon: 'none' });
+      return;
+    }
+
+    const title = e.currentTarget.dataset.recipe;
+    const items = e.currentTarget.dataset.items;
+    if (!title || !items) return;
+
+    // 如果已经是收藏状态，这里可以选择执行取消收藏，目前按您的要求只做添加逻辑
+    if (this.data.savedRecipesMap && this.data.savedRecipesMap[title]) {
+       wx.showToast({ title: app.t('list_saved'), icon: 'none' });
+       return;
+    }
+
+    wx.showLoading({ title: app.t('recipe_saving'), mask: true });
+
+    try {
+      const db = wx.cloud.database();
+      const userId = app.globalData.userId || wx.getStorageSync('pf_user_id');
+
+      await db.collection('recipes').add({
+        data: {
+          recipeName: title,
+          ingredientName: title, 
+          ingredientsNeeded: items.map(ing => ing.name),
+          sourceType: 'familiar', 
+          cloudImagePath: '',
+          createdAt: db.serverDate(),
+          updatedAt: db.serverDate()
+        }
+      });
+
+      // 更新本地状态，点亮红心
+      this.setData({
+        [`savedRecipesMap.${title}`]: true
+      });
+
+      wx.hideLoading();
+      wx.showToast({ title: app.t('recipe_saved_success'), icon: 'success' });
+    } catch (err) {
+      console.error('收藏食谱失败:', err);
+      wx.hideLoading();
+      wx.showToast({ title: app.t('recipe_save_failed'), icon: 'none' });
+    }
+  },
+
   async handleMerge(e) {
     const { source, target, targetname, sourcename } = e.currentTarget.dataset;
     wx.showModal({
-      title: '智能合并提示',
-      content: `AI发现 [${sourcename}] 和 [${targetname}] 可能是同类计划，合并为 [${targetname}] 还是 [保持分开]？`,
-      confirmText: '合并',
-      cancelText: '保持分开',
+      title: app.t('list_merge_hint'),
+      content: app.t('list_merge_confirm_content').replace('{source}', sourcename).replace('{target}', targetname).replace('{target}', targetname),
+      confirmText: app.t('list_merge_confirm_yes'),
+      cancelText: app.t('list_merge_confirm_no'),
       success: async (res) => {
         if (res.confirm) {
           try {
-            const db = dbUtil.db;
-            // 将 source 中的所有食材 standard_name 修改为 targetname
-            const promises = source.map(_id => 
-              db.collection(dbUtil.COLLECTIONS.INGREDIENTS).doc(_id).update({
-                data: { standard_name: targetname }
-              })
-            );
-            await Promise.all(promises);
+            await dbUtil.updateIngredientName(this.data.listId, source, targetname);
             this.loadActiveList(false);
           } catch (err) {
             console.error('Merge failed:', err);
@@ -377,16 +395,16 @@ Page({
 
   showAddRecipeModal() {
     wx.showModal({
-      title: '添加菜谱/菜品',
+      title: app.t('list_add_recipe_title'),
       editable: true,
-      placeholderText: '请输入名称 (如: 辣椒炒肉)',
+      placeholderText: app.t('list_add_recipe_placeholder'),
       success: (res) => {
         if (res.confirm && res.content) {
           const dishName = res.content.trim();
           if (dishName) {
             const exists = this.data.planningGroups.find(g => g.title === dishName);
             if (exists) {
-              wx.showToast({ title: '已存在该菜谱', icon: 'none' });
+              wx.showToast({ title: app.t('list_recipe_exists'), icon: 'none' });
               return;
             }
             
@@ -418,25 +436,16 @@ Page({
     if (!name) return;
 
     try {
-      wx.showLoading({ title: '添加中...', mask: true });
-      
-      const auth = require('../../utils/auth.js');
-      const userId = auth.getUserId();
+      wx.showLoading({ title: app.t('recipe_adding'), mask: true });
 
       const ingredientData = {
         name: name,
-        source_recipe: recipe,
-        status: 'pending',
-        list_id: this.data.listId,
-        user_id: userId,
-        add_time: dbUtil.db.serverDate(),
-        standard_name: name,
-        category: 'other'
+        sourceRecipe: recipe,
+        standardName: name,
+        category: 'list_other_ingredients'
       };
 
-      await dbUtil.db.collection(dbUtil.COLLECTIONS.INGREDIENTS).add({
-        data: ingredientData
-      });
+      await dbUtil.addIngredientsToList(this.data.listId, [ingredientData]);
 
       // Clear input
       this.setData({
@@ -448,7 +457,7 @@ Page({
     } catch (err) {
       console.error('Add ingredient failed:', err);
       wx.hideLoading();
-      wx.showToast({ title: '添加失败', icon: 'none' });
+      wx.showToast({ title: app.t('err_add_failed'), icon: 'none' });
     }
   },
 
@@ -463,25 +472,16 @@ Page({
     if (!name) return;
 
     try {
-      wx.showLoading({ title: '添加中...', mask: true });
-      
-      const auth = require('../../utils/auth.js');
-      const userId = auth.getUserId();
+      wx.showLoading({ title: app.t('recipe_adding'), mask: true });
 
       const ingredientData = {
         name: name,
-        source_recipe: '其他',
-        status: 'pending',
-        list_id: this.data.listId,
-        user_id: userId,
-        add_time: dbUtil.db.serverDate(),
-        standard_name: name,
-        category: 'other'
+        sourceRecipe: 'list_other_ingredients',
+        standardName: name,
+        category: 'list_other_ingredients'
       };
 
-      await dbUtil.db.collection(dbUtil.COLLECTIONS.INGREDIENTS).add({
-        data: ingredientData
-      });
+      await dbUtil.addIngredientsToList(this.data.listId, [ingredientData]);
 
       this.setData({
         newOtherIngredient: ''
@@ -492,30 +492,24 @@ Page({
     } catch (err) {
       console.error('Add other ingredient failed:', err);
       wx.hideLoading();
-      wx.showToast({ title: '添加失败', icon: 'none' });
+      wx.showToast({ title: app.t('err_add_failed'), icon: 'none' });
     }
   },
 
   editOtherIngredient(e) {
     const { ids, name } = e.currentTarget.dataset;
     wx.showModal({
-      title: '编辑食材',
+      title: app.t('list_edit_ingredient_title'),
       editable: true,
       content: name,
-      placeholderText: '请输入新食材名称',
+      placeholderText: app.t('list_edit_ingredient_placeholder'),
       success: async (res) => {
         if (res.confirm && res.content) {
           const newName = res.content.trim();
           if (newName && newName !== name) {
             try {
-              wx.showLoading({ title: '保存中...', mask: true });
-              const db = dbUtil.db;
-              const promises = ids.map(_id => 
-                db.collection(dbUtil.COLLECTIONS.INGREDIENTS).doc(_id).update({
-                  data: { name: newName, standard_name: newName }
-                })
-              );
-              await Promise.all(promises);
+              wx.showLoading({ title: app.t('list_saving'), mask: true });
+              await dbUtil.updateIngredientName(this.data.listId, ids, newName);
               wx.hideLoading();
               this.loadActiveList(false);
             } catch (err) {

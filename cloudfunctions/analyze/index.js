@@ -401,25 +401,27 @@ exports.main = async (event, context) => {
       if (lang === 'en') {
         prompt = `You are a professional chef and ingredient identification expert. Please analyze the provided ingredient image.
 Please return a pure JSON object containing the following fields:
-- "ingredient_name": (String) Name of the ingredient.
-- "ingredient_desc": (String) A purely objective one-sentence brief description (do not include any freshness-related details).
-- "freshness_level": (String) Freshness level, e.g., "Fresh", "Average", or "Not fresh".
-- "freshness_reason": (String) Reason for freshness judgment based on visual features in the image.
+- "ingredientName": (String) Name of the ingredient.
+- "ingredientDesc": (String) A purely objective one-sentence brief description (do not include any freshness-related details).
+- "freshnessLevel": (String) Freshness level, e.g., "Fresh", "Average", or "Not fresh".
+- "freshnessReason": (String) Reason for freshness judgment based on visual features in the image.
 - "taste": (String) Taste (e.g., fresh and sweet, rich, etc.).
 - "texture": (String) Texture (e.g., firm, tender, etc.).
 - "similar": (String) Similar ingredients. Strictly output ONLY 1-3 common ingredient nouns.
-Return ONLY JSON, do not include any other explanatory text, and do not wrap it in Markdown code blocks. Output ALL content in English. DO NOT mix any Chinese characters.`;
+CRITICAL: Regardless of the text in the image or any other factors, you MUST translate and output ALL values strictly in ENGLISH.
+Return ONLY JSON, do not include any other explanatory text, and do not wrap it in Markdown code blocks. DO NOT mix any Chinese characters.`;
       } else {
         prompt = `你是一个专业的厨师和食材鉴定专家。请分析提供的食材图片。
 请返回一个纯JSON对象，包含以下字段：
-- "ingredient_name": (字符串) 食材名称。
-- "ingredient_desc": (字符串) 纯客观的一句话简介（不包含任何死亡、腐败等新鲜度相关的细节）。
-- "freshness_level": (字符串) 鲜度等级，例如 "新鲜"、"一般" 或 "不新鲜"。
-- "freshness_reason": (字符串) 基于图片视觉特征的鲜度判断理由（如果食材有死亡、腐败等细节，请务必放在此处描述）。
+- "ingredientName": (字符串) 食材名称。
+- "ingredientDesc": (字符串) 纯客观的一句话简介（不包含任何死亡、腐败等新鲜度相关的细节）。
+- "freshnessLevel": (字符串) 鲜度等级，例如 "新鲜"、"一般" 或 "不新鲜"。
+- "freshnessReason": (字符串) 基于图片视觉特征的鲜度判断理由（如果食材有死亡、腐败等细节，请务必放在此处描述）。
 - "taste": (字符串) 味道（如鲜甜、浓郁等）。
 - "texture": (字符串) 口感（如紧实、细嫩等）。
 - "similar": (字符串) 类似食材。请严格只输出1-3个常见的食材名词（如"龙眼"、"鲅鱼"）。
-只返回JSON，不要包含任何其他说明文字，也不要用Markdown代码块包裹。所有内容请用中文输出。`;
+极其重要：无论图片中包含什么语言的文字，或者识别出的是外国食材，你都必须将所有内容（食材名称、描述、鲜度原因、口感等）严格翻译并用【中文】输出。
+只返回JSON，不要包含任何其他说明文字，也不要用Markdown代码块包裹。`;
       }
       
       messages = [
@@ -437,20 +439,22 @@ Return ONLY JSON, do not include any other explanatory text, and do not wrap it 
       if (!ingredientName) return { error: true, errorType: 'bad_request', message: 'Missing ingredientName' };
       
       let nationalityStr = nationality || (lang === 'en' ? 'the user\'s country' : '用户所在国');
-      cacheKey = `llm_familiar_${lang}_${nationalityStr}_${ingredientName}`;
+      cacheKey = `llm_familiar_v2_${lang}_${nationalityStr}_${ingredientName}`;
 
       if (lang === 'en') {
         prompt = `You are a top local chef and food expert from ${nationalityStr}. You know exactly what tastes like "home" for people from your country.
 Ingredient: "${ingredientName}".
 Return a pure JSON object:
-- "recipes_familiar": (Array) 1-2 authentic, home-style recipes from ${nationalityStr} using this ingredient. The recipes MUST be easy to cook for a beginner (doable with basic kitchenware and simple steps). Each object has "recipe_name" (String) and "ingredients_needed" (Array of Strings, focusing on local spices and condiments from ${nationalityStr}).
-Return ONLY JSON. Output ALL content in English.`;
+- "recipesFamiliar": (Array) 1-2 authentic, home-style recipes from ${nationalityStr} using this ingredient. The recipes MUST be easy to cook for a beginner (doable with basic kitchenware and simple steps). Each object has "recipeName" (String) and "ingredientsNeeded" (Array of Strings, focusing on local spices and condiments from ${nationalityStr}. CRITICAL: 1. Provide ONLY ingredient names without any quantities or weights; 2. DO NOT include the main ingredient "${ingredientName}" in this array, as it's already added separately).
+CRITICAL: Regardless of the language of the input ingredient name, you MUST translate and output ALL content (including recipe names and ingredient names) strictly in ENGLISH.
+Return ONLY JSON.`;
       } else {
         prompt = `你是一位来自${nationalityStr}的顶级本土厨师和美食家，最懂家乡胃，深知你们国家老百姓平时怎么做这道菜。
 食材：“${ingredientName}”。
 返回纯JSON对象：
-- "recipes_familiar": (数组) 推荐1-2种在${nationalityStr}最地道、最常见的家常做法。注意：做法必须简单易学，是普通人稍微垫垫脚就能在家做出来的（无需复杂厨具和高难度技巧）。包含"recipe_name"(字符串，做法名称)和"ingredients_needed"(字符串数组，需包含你们国家做这道菜常用的特色佐料)。
-只返回JSON，内容用中文。`;
+- "recipesFamiliar": (数组) 推荐1-2种在${nationalityStr}最地道、最常见的家常做法。注意：做法必须简单易学，是普通人稍微垫垫脚就能在家做出来的（无需复杂厨具和高难度技巧）。包含"recipeName"(字符串，做法名称)和"ingredientsNeeded"(字符串数组，需包含做这道菜常用的特色佐料。极其重要：1. 只需要提供食材种类名称，绝对不要包含数量或重量信息（例如只需“姜”，不要“老姜一大块”）；2. 绝对不要在这个数组里包含主食材“${ingredientName}”或其别名，因为它已经被单独列出)。
+极其重要：无论输入的食材名称原本是什么语言，你都必须将所有的内容（包括菜谱名称、配料名称等）翻译并严格用【中文】输出。
+只返回JSON。`;
       }
       
       messages = [
@@ -462,28 +466,38 @@ Return ONLY JSON. Output ALL content in English.`;
       if (!ingredientName) return { error: true, errorType: 'bad_request', message: 'Missing ingredientName' };
       
       let locStr = 'the user\'s current location';
-      let roundedLat = 'none';
-      let roundedLng = 'none';
+      let cacheLocationKey = 'none';
       if (lang !== 'en') locStr = '用户当前所在地区';
-      if (location && location.lat && location.lng) {
-         locStr = `(Lat: ${location.lat}, Lng: ${location.lng})`;
-         roundedLat = parseFloat(location.lat).toFixed(2);
-         roundedLng = parseFloat(location.lng).toFixed(2);
+      
+      if (location) {
+        if (location.nation && location.city) {
+          if (lang === 'en') {
+            locStr = `${location.city}, ${location.nation}`;
+          } else {
+            locStr = `${location.nation}${location.province && location.province !== location.city ? location.province : ''}${location.city}`;
+          }
+          cacheLocationKey = `${location.nation}_${location.city}`;
+        } else if (location.lat && location.lng) {
+          locStr = `(Lat: ${location.lat}, Lng: ${location.lng})`;
+          cacheLocationKey = `${parseFloat(location.lat).toFixed(2)}_${parseFloat(location.lng).toFixed(2)}`;
+        }
       }
-      cacheKey = `llm_local_${lang}_${roundedLat}_${roundedLng}_${ingredientName}`;
+      cacheKey = `llm_local_v2_${lang}_${cacheLocationKey}_${ingredientName}`;
 
       if (lang === 'en') {
         prompt = `You are a native chef and local food expert living right here at ${locStr}. You know exactly how locals cook and eat in this specific region.
 Ingredient: "${ingredientName}".
 Return a pure JSON object:
-- "recipes_local": (Array) 1-2 local specialty recipes using this ingredient, exactly how locals make it here. The recipes MUST be simple and easy for a beginner to cook at home. Each object has "recipe_name" (String) and "ingredients_needed" (Array of Strings, highlighting regional condiments).
-Return ONLY JSON. Output ALL content in English.`;
+- "recipesLocal": (Array) 1-2 local specialty recipes using this ingredient, exactly how locals make it here. The recipes MUST be simple and easy for a beginner to cook at home. Each object has "recipeName" (String) and "ingredientsNeeded" (Array of Strings, highlighting regional condiments. CRITICAL: 1. Provide ONLY ingredient names without any quantities or weights; 2. DO NOT include the main ingredient "${ingredientName}" in this array, as it's already added separately).
+CRITICAL: Regardless of the language of the input ingredient name, you MUST translate and output ALL content (including recipe names and ingredient names) strictly in ENGLISH.
+Return ONLY JSON.`;
       } else {
         prompt = `你是一位土生土长的本地厨师和美食家，目前生活在 ${locStr}。你对这片土地上的饮食文化和当地人烹饪这道食材的习惯了如指掌。
 食材：“${ingredientName}”。
 返回纯JSON对象：
-- "recipes_local": (数组) 推荐1-2种这片区域当地人最常吃的特色做法。注意：做法必须接地气且简单易上手，是普通人稍微垫脚就能做出来的。包含"recipe_name"(字符串，使用当地人的叫法)和"ingredients_needed"(字符串数组，需体现当地特色配料)。
-只返回JSON，内容用中文。`;
+- "recipesLocal": (数组) 推荐1-2种这片区域当地人最常吃的特色做法。注意：做法必须接地气且简单易上手，是普通人稍微垫脚就能做出来的。包含"recipeName"(字符串，使用当地人的叫法)和"ingredientsNeeded"(字符串数组，需体现当地特色佐料。极其重要：1. 只需要提供食材种类名称，绝对不要包含数量或重量信息（例如只需“葱”，不要“小葱5根”）；2. 绝对不要在这个数组里包含主食材“${ingredientName}”或其别名，因为它已经被单独列出)。
+极其重要：无论输入的食材名称原本是什么语言，你都必须将所有的内容（包括菜谱名称、配料名称等）翻译并严格用【中文】输出。
+只返回JSON。`;
       }
       
       messages = [
@@ -530,35 +544,35 @@ Return ONLY JSON. Output ALL content in English.`;
         cleanSimilar = cleanSimilar.replace(/^(类似[于]?|口感[像]?|像)/, '').trim();
       }
       finalResult = {
-        ingredient_name: resultData.ingredient_name || (lang === 'en' ? 'Unknown Ingredient' : '未知食材'),
-        ingredient_desc: resultData.ingredient_desc || (lang === 'en' ? 'No description' : '暂无描述'),
-        freshness_level: resultData.freshness_level || (lang === 'en' ? 'Unknown' : '未知'),
-        freshness_reason: resultData.freshness_reason || (lang === 'en' ? 'Unable to recognize freshness reason' : '未能识别鲜度原因'),
+        ingredientName: resultData.ingredientName || (lang === 'en' ? 'Unknown Ingredient' : '未知食材'),
+        ingredientDesc: resultData.ingredientDesc || (lang === 'en' ? 'No description' : '暂无描述'),
+        freshnessLevel: resultData.freshnessLevel || (lang === 'en' ? 'Unknown' : '未知'),
+        freshnessReason: resultData.freshnessReason || (lang === 'en' ? 'Unable to recognize freshness reason' : '未能识别鲜度原因'),
         taste: resultData.taste || '',
         texture: resultData.texture || '',
         similar: cleanSimilar,
       };
     } else if (analyzeType === 'familiar') {
       const fallbackFamiliar = [
-        { recipe_name: (lang === 'en' ? 'Simple Stir-fry' : '简单清炒'), ingredients_needed: (lang === 'en' ? ['Oil', 'Salt'] : ['油', '盐']) }
+        { recipeName: (lang === 'en' ? 'Simple Stir-fry' : '简单清炒'), ingredientsNeeded: (lang === 'en' ? ['Oil', 'Salt'] : ['油', '盐']) }
       ];
-      let recipesFamiliar = resultData.recipes_familiar;
+      let recipesFamiliar = resultData.recipesFamiliar;
       if (!Array.isArray(recipesFamiliar) || recipesFamiliar.length === 0) {
         recipesFamiliar = fallbackFamiliar;
       }
       finalResult = {
-        recipes_familiar: recipesFamiliar
+        recipesFamiliar: recipesFamiliar
       };
     } else if (analyzeType === 'local') {
       const fallbackLocal = [
-        { recipe_name: (lang === 'en' ? 'Local Specialty' : '当地特色做法'), ingredients_needed: (lang === 'en' ? ['Oil', 'Salt', 'Garlic'] : ['油', '盐', '蒜']) }
+        { recipeName: (lang === 'en' ? 'Local Specialty' : '当地特色做法'), ingredientsNeeded: (lang === 'en' ? ['Oil', 'Salt', 'Garlic'] : ['油', '盐', '蒜']) }
       ];
-      let recipesLocal = resultData.recipes_local;
+      let recipesLocal = resultData.recipesLocal;
       if (!Array.isArray(recipesLocal) || recipesLocal.length === 0) {
         recipesLocal = fallbackLocal;
       }
       finalResult = {
-        recipes_local: recipesLocal
+        recipesLocal: recipesLocal
       };
     }
 

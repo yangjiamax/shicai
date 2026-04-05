@@ -42,44 +42,49 @@ Page({
   async loadList(listId) {
     this.setData({ loading: true });
     try {
-      const countRes = await dbUtil.db.collection(dbUtil.COLLECTIONS.INGREDIENTS)
-        .where({
-          list_id: listId,
-          status: dbUtil.db.command.neq('deleted')
-        }).count();
-      const total = countRes.total;
+      const list = await dbUtil.getListById(listId);
       
-      let allIngredients = [];
-      const MAX_LIMIT = 20;
-      
-      for (let i = 0; i < total; i += MAX_LIMIT) {
-        const res = await dbUtil.db.collection(dbUtil.COLLECTIONS.INGREDIENTS)
-          .where({
-            list_id: listId,
-            status: dbUtil.db.command.neq('deleted')
-          })
-          .orderBy('add_time', 'desc')
-          .skip(i)
-          .limit(MAX_LIMIT)
-          .get();
-        allIngredients = allIngredients.concat(res.data || []);
-      }
-        
-      const ingredients = allIngredients;
+      const ingredients = list && list.items ? list.items.filter(item => item.status !== 'deleted') : [];
       this._rawIngredients = ingredients;
       
       const planningGroups = listUtil.derivePlanningView(ingredients);
       const executionGroups = listUtil.deriveExecutionView(ingredients);
+
+      // 检查当前用户已收藏的菜谱，用于点亮红心
+      let savedRecipesMap = {};
+      const authSource = app.globalData.authSource || wx.getStorageSync('pf_auth_source');
+      if (authSource === 'cloud_openid' && wx.cloud) {
+        try {
+          const db = wx.cloud.database();
+          const userId = app.globalData.userId || wx.getStorageSync('pf_user_id');
+          // 获取当前列表中所有的菜谱名
+          const recipeNames = planningGroups.map(g => g.title).filter(title => title && title !== 'list_independent_ingredients' && title !== 'list_other_ingredients' && title !== 'list_direct_add');
+          if (recipeNames.length > 0) {
+             const _ = db.command;
+             const { data: savedData } = await db.collection('recipes').where({
+               _openid: userId,
+               recipeName: _.in(recipeNames)
+             }).get();
+             savedData.forEach(item => {
+               savedRecipesMap[item.recipeName] = true;
+             });
+          }
+        } catch (err) {
+          console.error('Failed to check saved recipes:', err);
+        }
+      }
       
       this.setData({
         planningGroups,
         executionGroups,
-        loading: false
+        savedRecipesMap,
+        loading: false,
+        listStatus: list ? list.status : 'completed'
       });
     } catch (err) {
       console.error('Failed to load history list:', err);
       this.setData({ loading: false });
-      wx.showToast({ title: '加载失败', icon: 'none' });
+      wx.showToast({ title: app.t('err_load_failed'), icon: 'none' });
     }
   },
 
@@ -90,11 +95,13 @@ Page({
   },
 
   async addRecipeToNewList(e) {
+    if (this.data.listStatus === 'active') return;
+    
     const title = e.currentTarget.dataset.recipe;
     const items = e.currentTarget.dataset.items;
     if (!items || items.length === 0) return;
 
-    wx.showLoading({ title: '添加中...' });
+    wx.showLoading({ title: app.t('recipe_adding') });
     try {
       const activeListId = await dbUtil.getActiveList();
       await dbUtil.addIngredientsToList(activeListId, items);
@@ -106,48 +113,107 @@ Page({
     } catch (err) {
       console.error('Failed to add recipe to list:', err);
       wx.hideLoading();
-      wx.showToast({ title: '添加失败', icon: 'none' });
+      wx.showToast({ title: app.t('err_add_failed'), icon: 'none' });
     }
   },
 
   async addAllToNewList() {
+    if (this.data.listStatus === 'active') return;
+
     const allItems = this._rawIngredients || [];
     if (allItems.length === 0) return;
 
-    wx.showLoading({ title: '添加中...' });
+    wx.showLoading({ title: app.t('recipe_adding') });
     try {
       const activeListId = await dbUtil.getActiveList();
       await dbUtil.addIngredientsToList(activeListId, allItems);
       wx.hideLoading();
       wx.showToast({
-        title: '全部食材已加入当前清单',
+        title: app.t('list_all_added'),
         icon: 'none'
       });
     } catch (err) {
       console.error('Failed to add all to list:', err);
       wx.hideLoading();
-      wx.showToast({ title: '添加失败', icon: 'none' });
+      wx.showToast({ title: app.t('err_add_failed'), icon: 'none' });
+    }
+  },
+
+  async saveRecipe(e) {
+    const authSource = app.globalData.authSource || wx.getStorageSync('pf_auth_source');
+    if (authSource !== 'cloud_openid' || !wx.cloud) {
+      wx.showToast({ title: this.data.i18n.my_err_cloud_user, icon: 'none' });
+      return;
+    }
+
+    const title = e.currentTarget.dataset.recipe;
+    const items = e.currentTarget.dataset.items;
+    if (!title || !items) return;
+
+    wx.showLoading({ title: app.t('recipe_saving'), mask: true });
+
+    try {
+      const db = wx.cloud.database();
+      const userId = app.globalData.userId || wx.getStorageSync('pf_user_id');
+
+      // 检查是否已经收藏过
+      const { data: existing } = await db.collection('recipes').where({
+        _openid: userId,
+        recipeName: title
+      }).get();
+
+      if (existing && existing.length > 0) {
+        wx.hideLoading();
+        wx.showToast({ title: app.t('recipe_saved_already'), icon: 'none' });
+        return;
+      }
+
+      await db.collection('recipes').add({
+        data: {
+          recipeName: title,
+          ingredientName: title, 
+          ingredientsNeeded: items.map(ing => ing.name),
+          sourceType: 'familiar', 
+          cloudImagePath: '',
+          createdAt: db.serverDate(),
+          updatedAt: db.serverDate()
+        }
+      });
+
+      // 更新本地状态，点亮红心
+      this.setData({
+        [`savedRecipesMap.${title}`]: true
+      });
+
+      wx.hideLoading();
+      wx.showToast({ title: app.t('recipe_saved_success'), icon: 'success' });
+    } catch (err) {
+      console.error('收藏食谱失败:', err);
+      wx.hideLoading();
+      wx.showToast({ title: app.t('recipe_save_failed'), icon: 'none' });
     }
   },
 
   // Allow user to tap a single ingredient to add it
   async addSingleIngredient(e) {
+    if (this.data.listStatus === 'active') return;
+
     const item = e.currentTarget.dataset.item;
     if (!item) return;
 
-    wx.showLoading({ title: '添加中...' });
+    wx.showLoading({ title: app.t('recipe_adding') });
     try {
       const activeListId = await dbUtil.getActiveList();
       await dbUtil.addIngredientsToList(activeListId, [item]);
       wx.hideLoading();
       wx.showToast({
-        title: `已添加"${item.name || item.standard_name}"`,
+        title: `已添加"${item.name || item.standardName}"`,
         icon: 'none'
       });
     } catch (err) {
       console.error('Failed to add ingredient:', err);
       wx.hideLoading();
-      wx.showToast({ title: '添加失败', icon: 'none' });
+      wx.showToast({ title: app.t('err_add_failed'), icon: 'none' });
     }
   },
 
@@ -155,7 +221,7 @@ Page({
   async searchTutorial(e) {
     const recipeName = e.currentTarget.dataset.recipe;
     const platform = e.currentTarget.dataset.platform || 'bilibili';
-    if (!recipeName || recipeName === '其他' || recipeName === '直接添加') return;
+    if (!recipeName || recipeName === 'list_independent_ingredients' || recipeName === 'list_other_ingredients' || recipeName === 'list_direct_add') return;
 
     this.setData({ 
       showTutorialSheet: true,
@@ -199,7 +265,7 @@ Page({
       this.setData({
         tutorialLoading: false,
         tutorialError: true,
-        tutorialErrorMsg: this.data.i18n.tutorial_error || '加载教程失败，请重试'
+        tutorialErrorMsg: this.data.i18n.err_cloud_func
       });
     }
   },
@@ -222,7 +288,7 @@ Page({
       data: url,
       success: () => {
         wx.showToast({
-          title: this.data.i18n.tutorial_link_copied || '链接已复制，请在浏览器中打开',
+          title: this.data.i18n.tutorial_copy_success,
           icon: 'none',
           duration: 3000
         });

@@ -3,8 +3,8 @@
     <view class="ingredient-info">
       <view class="ingredient-header-wrap">
         <view class="ingredient-header-left" wx:if="{{!loadingVision}}">
-          <text class="ingredient-name">{{result.ingredient_name}}</text>
-          <text class="ingredient-desc">{{result.ingredient_desc}}</text>
+          <text class="ingredient-name">{{result.ingredientName}}</text>
+          <text class="ingredient-desc">{{result.ingredientDesc}}</text>
         </view>
         <view class="ingredient-header-left skeleton-header-left" wx:else>
           <view class="skeleton-text skeleton-name"></view>
@@ -42,8 +42,8 @@
       <view class="section-header">
         <image class="icon-eco" src="/images/icons/eco.svg" mode="aspectFit"></image>
         <text class="section-title">{{i18n.res_freshness_title}}</text>
-        <view class="freshness-badge freshness-{{result.freshness_class}}">
-          {{result.freshness_level}}
+        <view class="freshness-badge freshness-{{result.freshnessClass}}">
+          {{result.freshnessLevel}}
         </view>
       </view>
       
@@ -53,7 +53,7 @@
         </view>
         <view class="clue-text">
           <text class="clue-title">{{i18n.res_clue_title}}</text>
-          <text class="clue-desc">{{result.freshness_reason}}</text>
+          <text class="clue-desc">{{result.freshnessReason}}</text>
         </view>
         <image class="icon-check" src="/images/icons/check_circle.svg" mode="aspectFit"></image>
       </view>
@@ -108,13 +108,13 @@
           <view class="recipe-card-icon-wrapper">
             <image class="recipe-card-icon" src="/images/icons/cooking-{{index % 3 + 1}}.svg" mode="aspectFit"></image>
           </view>
-          <text class="recipe-name">{{item.recipe_name}}</text>
+          <text class="recipe-name">{{item.recipeName}}</text>
           <text class="recipe-ingredients" wx:if="{{item.ingredients_summary}}">{{item.ingredients_summary}}</text>
           <image wx:if="{{selectedIndex === index}}" class="recipe-selected-icon" src="/images/icons/check_circle.svg" mode="aspectFit"></image>
         </view>
       </view>
       
-      <view class="recipe-grid skeleton-grid" wx:elif="{{loadingVision || loadingFamiliar || (loadingLocal && activeTab === 'local')}}">
+      <view class="recipe-grid skeleton-grid" wx:elif="{{ loadingVision || loadingFamiliar || (loadingLocal && activeTab === 'local') }}">
         <view class="recipe-card skeleton-card">
           <view class="skeleton-recipe-icon-box"></view>
           <view class="skeleton-text" style="width: 70%; height: 32rpx; margin-top: 24rpx; border-radius: 8rpx;"></view>
@@ -131,15 +131,21 @@
     </view>
 
     <view class="action-bar" wx:if="{{displayRecipes && displayRecipes.length > 0 && !loadingFamiliar}}">
-      <view class="action-buttons">
-        <button class="btn-primary" bindtap="generateList">
-          <view class="btn-content">
+      <view class="action-buttons" style="display:flex; width: 100%; gap: 16rpx;">
+        <button class="btn-secondary btn-icon-only" bindtap="retry" style="flex: 0 0 96rpx;">
+          <image class="btn-icon-center" src="/images/icons/retry.svg" mode="aspectFit"></image>
+        </button>
+        <button class="btn-secondary" bindtap="generateList" style="flex: 1.4; padding: 0 10rpx; font-size: 28rpx;">
+          <view class="btn-content" style="justify-content: center;">
             <image class="btn-icon" src="/images/icons/shopping_cart.svg" mode="aspectFit"></image>
             <text>{{i18n.res_generate_list}}</text>
           </view>
         </button>
-        <button class="btn-secondary btn-icon-only" bindtap="retry">
-          <image class="btn-icon-center" src="/images/icons/retry.svg" mode="aspectFit"></image>
+        <button class="btn-primary" bindtap="viewRecipe" style="flex: 1; padding: 0 10rpx; font-size: 28rpx;">
+          <view class="btn-content" style="justify-content: center;">
+            <text class="sys-icon icon-menu_book"></text>
+            <text style="margin-left: 8rpx;">{{i18n.res_view_recipe}}</text>
+          </view>
         </button>
       </view>
     </view>
@@ -169,13 +175,13 @@
   <view class="custom-modal-mask {{showSuccessModal ? 'show' : ''}}" catchtouchmove="preventTouchMove">
     <view class="custom-modal-dialog {{showSuccessModal ? 'show' : ''}}">
       <view class="custom-modal-content">
-        <view class="custom-modal-title">已加入今日采购清单</view>
-        <view class="custom-modal-desc">佐料已成功加入，是否前往查看？</view>
+        <view class="custom-modal-title">{{i18n.res_modal_title}}</view>
+        <view class="custom-modal-desc">{{i18n.res_modal_desc}}</view>
       </view>
       <view class="custom-modal-footer">
-        <view class="custom-modal-btn" bindtap="modalClose">返回</view>
-        <view class="custom-modal-btn" bindtap="modalContinue">继续识物</view>
-        <view class="custom-modal-btn btn-primary-text" bindtap="modalViewList">查看清单</view>
+        <view class="custom-modal-btn" bindtap="modalClose">{{i18n.res_modal_back}}</view>
+        <view class="custom-modal-btn" bindtap="modalContinue">{{i18n.res_modal_continue}}</view>
+        <view class="custom-modal-btn btn-primary-text" bindtap="modalViewList">{{i18n.res_modal_view_list}}</view>
       </view>
     </view>
   </view>

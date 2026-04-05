@@ -2,11 +2,11 @@
   <!-- Top Toggle Bar -->
   <view class="toggle-bar">
     <view class="toggle-item {{activeView === 'planning' ? 'active' : ''}}" bindtap="toggleView">
-      <text>逐道菜选购</text>
+      <text>{{i18n.list_tab_planning}}</text>
       <view class="toggle-indicator"></view>
     </view>
     <view class="toggle-item {{activeView === 'execution' ? 'active' : ''}}" bindtap="toggleView">
-      <text>汇总选购</text>
+      <text>{{i18n.list_tab_execution}}</text>
       <view class="toggle-indicator"></view>
     </view>
   </view>
@@ -19,7 +19,7 @@
   <!-- Empty State -->
   <view class="empty-state" wx:elif="{{(activeView === 'planning' && planningGroups.length === 0) || (activeView === 'execution' && executionGroups.length === 0)}}">
     <image class="empty-icon" src="/images/icons/empty-vegetable.svg" mode="aspectFit"></image>
-    <text class="empty-text">当前清单为空</text>
+    <text class="empty-text">{{i18n.list_empty_title}}</text>
   </view>
 
   <!-- Planning View (按菜谱) -->
@@ -30,24 +30,34 @@
       
       <view class="list-group">
         <view class="group-header">
-          <text class="group-title">{{item.title}}</text>
+          <text class="group-title">{{item.title === 'list_independent_ingredients' ? i18n.list_independent_ingredients : item.title}}</text>
+          
+          <!-- 收藏按钮（绝对定位，与标题对齐） -->
+          <view wx:if="{{item.title && item.title !== 'list_independent_ingredients' && item.title !== 'list_other_ingredients' && item.title !== 'list_direct_add'}}" class="btn-favorite" catchtap="saveRecipe" data-recipe="{{item.title}}" data-items="{{item.items}}" hover-class="btn-favorite-hover">
+            <image src="{{savedRecipesMap[item.title] ? '/images/icons/heart_filled.svg' : '/images/icons/heart.svg'}}" class="icon-heart" mode="aspectFit"></image>
+          </view>
+
           <view class="group-actions">
-            <!-- B站/下厨房入口 (仅针对非"其他/直接添加"的菜谱) -->
+            <!-- 搜索操作行 -->
             <view class="search-action-wrapper">
-              <view class="btn-tutorial-small add-btn" catchtap="addRecipeToNewList" data-recipe="{{item.title}}" data-items="{{item.items}}">
-                <text class="sys-icon icon-plus"></text> 加入新清单
+              <view class="search-action-left">
+                <view class="btn-tutorial-small add-btn" wx:if="{{listStatus !== 'active'}}" catchtap="addRecipeToNewList" data-recipe="{{item.title}}" data-items="{{item.items}}">
+                  <text class="sys-icon icon-plus"></text> {{i18n.list_add_to_new}}
+                </view>
               </view>
-              <block wx:if="{{item.title && item.title !== '其他' && item.title !== '直接添加'}}">
-                <view wx:if="{{lang !== 'en'}}" class="btn-tutorial-small" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="bilibili">
-                  <text class="sys-icon icon-tv"></text> {{i18n.btn_search_tutorial || '搜B站'}}
-                </view>
-                <view wx:if="{{lang === 'en'}}" class="btn-tutorial-small xcf-btn" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="foodcom">
-                  <text class="sys-icon icon-pan"></text> {{i18n.btn_search_tutorial_xcf || 'Search'}}
-                </view>
-                <view wx:elif="{{lang !== 'en'}}" class="btn-tutorial-small xcf-btn" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="xiachufang">
-                  <text class="sys-icon icon-pan"></text> {{i18n.btn_search_tutorial_xcf || '下厨房'}}
-                </view>
-              </block>
+              <view class="search-action-right">
+                <block wx:if="{{item.title && item.title !== 'list_independent_ingredients' && item.title !== 'list_other_ingredients' && item.title !== 'list_direct_add'}}">
+                  <view wx:if="{{lang !== 'en'}}" class="btn-tutorial-small" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="bilibili">
+                    <text class="sys-icon icon-tv"></text> {{i18n.btn_search_tutorial}}
+                  </view>
+                  <view wx:if="{{lang === 'en'}}" class="btn-tutorial-small xcf-btn" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="foodcom">
+                    <text class="sys-icon icon-pan"></text> {{i18n.btn_search_tutorial_xcf}}
+                  </view>
+                  <view wx:elif="{{lang !== 'en'}}" class="btn-tutorial-small xcf-btn" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="xiachufang">
+                    <text class="sys-icon icon-pan"></text> {{i18n.btn_search_tutorial_xcf}}
+                  </view>
+                </block>
+              </view>
             </view>
           </view>
         </view>
@@ -86,7 +96,7 @@
           bindtap="addSingleIngredient" data-item="{{ing}}">
           <view class="item-content">
             <view class="ingredient-info">
-              <text class="ingredient-name {{ing.status === 'bought' ? 'checked-text' : ''}}">{{ing.standard_name || ing.name}}</text>
+              <text class="ingredient-name {{ing.status === 'bought' ? 'checked-text' : ''}}">{{ing.standardName || ing.name}}</text>
             </view>
           </view>
         </view>
@@ -95,8 +105,8 @@
   </view>
 
   <!-- Add Entire List Button -->
-  <view class="finish-btn-container" wx:if="{{!loading && (planningGroups.length > 0 || executionGroups.length > 0)}}">
-    <button class="btn-primary" bindtap="addAllToNewList">全部加入新清单</button>
+  <view class="finish-btn-container" wx:if="{{!loading && listStatus !== 'active' && (planningGroups.length > 0 || executionGroups.length > 0)}}">
+    <button class="btn-primary" bindtap="addAllToNewList">{{i18n.list_add_all}}</button>
   </view>
 
   <!-- Tutorial Bottom Sheet -->
@@ -132,7 +142,7 @@
                 </view>
                 <text class="view-count" wx:if="{{item.viewCountFormatted}}">▶ {{item.viewCountFormatted}}</text>
               </view>
-              <text class="tutorial-link-text"><text class="sys-icon icon-link"></text> {{i18n.tutorial_open || '前往查看'}}</text>
+              <text class="tutorial-link-text"><text class="sys-icon icon-link"></text> {{i18n.tutorial_open}}</text>
             </view>
           </view>
         </view>

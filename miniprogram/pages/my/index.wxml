@@ -1,19 +1,16 @@
 <view class="container">
   <view class="user-card">
     <view class="avatar-section">
-      <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+      <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar" bindtap="goToOnboarding">
         <image class="avatar-img" src="{{userInfo.avatar || '/images/icons/user.svg'}}" mode="aspectFill"></image>
       </button>
     </view>
-    <view class="nickname-section">
-      <input
-        class="nickname-input"
-        type="nickname"
-        placeholder="{{showLoginPrompt ? i18n.my_set_nickname : i18n.my_input_nickname}}"
-        value="{{userInfo.nickname || ''}}"
-        bindinput="onNicknameInput"
-        bindblur="saveNickname"
-      />
+    <view class="nickname-wrapper" bindtap="goToOnboarding">
+      <view class="nickname-section">
+        <text class="nickname-text">{{userInfo.nickname || (showLoginPrompt ? i18n.my_set_nickname : i18n.my_input_nickname)}}</text>
+        <text class="sys-icon icon-arrow-right edit-arrow"></text>
+      </view>
+      <text class="account-settings-tip">{{i18n.my_account_settings_tip}}</text>
     </view>
     <view wx:if="{{showLoginPrompt}}" class="login-tip">
       <text>{{i18n.my_login_tip}}</text>
@@ -24,13 +21,13 @@
     <view class="section-header">
       <view class="history-tabs">
         <view class="tab-item {{historyTab === 'collection' ? 'active' : ''}}" bindtap="switchHistoryTab" data-tab="collection">
-          <text>食材集邮册</text>
+          <text>{{i18n.my_tab_collection}}</text>
         </view>
         <view class="tab-item {{historyTab === 'planning' ? 'active' : ''}}" bindtap="switchHistoryTab" data-tab="planning">
-          <text>宝藏菜谱</text>
+          <text>{{i18n.my_tab_planning}}</text>
         </view>
         <view class="tab-item {{historyTab === 'execution' ? 'active' : ''}}" bindtap="switchHistoryTab" data-tab="execution">
-          <text>历史购物单</text>
+          <text>{{i18n.my_tab_execution}}</text>
         </view>
       </view>
     </view>
@@ -47,8 +44,12 @@
     </view>
     <view wx:elif="{{histories.length === 0}}" class="empty-state">
       <image class="empty-icon-img" src="/images/icons/empty-vegetable.svg" mode="aspectFit"></image>
-      <text class="empty-text">{{i18n.my_empty_title}}</text>
-      <text class="empty-hint">{{i18n.my_empty_desc}}</text>
+      <text class="empty-text" wx:if="{{historyTab === 'collection'}}">{{i18n.my_empty_collection_title}}</text>
+      <text class="empty-hint" wx:if="{{historyTab === 'collection'}}">{{i18n.my_empty_collection_desc}}</text>
+      <text class="empty-text" wx:if="{{historyTab === 'planning'}}">{{i18n.my_empty_planning_title}}</text>
+      <text class="empty-hint" wx:if="{{historyTab === 'planning'}}">{{i18n.my_empty_planning_desc}}</text>
+      <text class="empty-text" wx:if="{{historyTab === 'execution'}}">{{i18n.my_empty_execution_title}}</text>
+      <text class="empty-hint" wx:if="{{historyTab === 'execution'}}">{{i18n.my_empty_execution_desc}}</text>
     </view>
 
     <view wx:else class="history-list-wrapper">
@@ -56,68 +57,84 @@
         <view 
           wx:for="{{histories}}" 
           wx:key="_id" 
-          class="history-item" 
-          bindtap="navigateToHistory" 
+          class="history-item {{item.selected ? 'selected' : ''}}" 
+          bindtap="{{isEditing ? 'toggleSelectItem' : 'navigateToHistory'}}" 
           bindlongpress="onDeleteHistory"
           data-index="{{index}}"
         >
+          <view class="history-checkbox" wx:if="{{isEditing}}">
+            <view class="checkbox-circle {{item.selected ? 'checked' : ''}}"></view>
+          </view>
+          
           <view class="history-thumb">
             <image wx:if="{{item.type === 'bill'}}" class="history-thumb-img" src="/images/icons/list-tab-active.png" mode="aspectFit" style="padding: 10px; box-sizing: border-box; opacity: 0.7;"></image>
-            <image wx:elif="{{item.analysisResult.cloudImagePath || item.analysisResult.imagePath}}" class="history-thumb-img" src="{{item.analysisResult.cloudImagePath || item.analysisResult.imagePath}}" mode="aspectFill" binderror="onImageError" data-index="{{index}}"></image>
+            <image wx:elif="{{item.cloudImagePath}}" class="history-thumb-img" src="{{item.cloudImagePath}}" mode="aspectFill" binderror="onImageError" data-index="{{index}}"></image>
             <text wx:else class="history-thumb-text">{{item.initial}}</text>
           </view>
           
           <view class="history-info">
-            <view class="history-title-row">
-                <text class="history-name">{{item.ingredient_name}}</text>
-                <text wx:if="{{item.type === 'bill' && item.status === 'active'}}" class="status-tag">{{i18n.status_in_progress || '进行中'}}</text>
+            <view class="history-title-row" catchtap="{{isEditing ? 'triggerRename' : ''}}" data-index="{{index}}">
+                <text class="history-name">{{item.ingredientName}}</text>
+                <text wx:if="{{isEditing}}" class="rename-icon sys-icon icon-edit"></text>
+                <text wx:if="{{item.type === 'bill' && item.status === 'active'}}" class="status-tag">{{i18n.status_in_progress}}</text>
               </view>
             <view class="history-meta">
-              <view class="history-recipe" wx:if="{{historyTab !== 'collection'}}">{{item.selected_recipe.recipe_name}}</view>
-              <text class="meta-dot" wx:if="{{item.selected_recipe.recipe_name && item.formattedDate && historyTab !== 'collection'}}">·</text>
-              <text class="history-time">{{item.formattedDate}}</text>
+              <view class="history-recipe" wx:if="{{historyTab !== 'collection'}}">{{item.selectedRecipe.recipeName}}</view>
+              <text class="meta-dot" wx:if="{{item.selectedRecipe.recipeName && item.formattedDate && historyTab !== 'collection' && historyTab !== 'execution'}}">·</text>
+              <text class="history-time" wx:if="{{historyTab !== 'execution'}}">{{item.formattedDate}}</text>
             </view>
           </view>
 
-          <view class="history-arrow-box">
+          <view class="history-arrow-box" wx:if="{{!isEditing}}">
             <text class="history-arrow">></text>
           </view>
         </view>
       </view>
 
-      <view class="pagination" wx:if="{{totalPages > 1}}">
+      <view class="pagination" wx:if="{{totalPages > 1 && !isEditing}}">
         <view class="page-btn {{currentPage === 1 ? 'disabled' : ''}}" bindtap="prevPage">
-          <text>{{i18n.my_prev_page || '上一页'}}</text>
+          <text>{{i18n.my_prev_page}}</text>
         </view>
         <view class="page-info">
           <text>{{currentPage}} / {{totalPages}}</text>
         </view>
         <view class="page-btn {{currentPage === totalPages ? 'disabled' : ''}}" bindtap="nextPage">
-          <text>{{i18n.my_next_page || '下一页'}}</text>
+          <text>{{i18n.my_next_page}}</text>
+        </view>
+      </view>
+
+      <view class="edit-action-bar" wx:if="{{isEditing}}">
+        <view class="action-btn" bindtap="toggleSelectAll">
+          <text>{{isAllSelected ? i18n.my_unselect_all : i18n.my_select_all}}</text>
+        </view>
+        <view class="action-btn danger" bindtap="deleteSelected">
+          <text>{{i18n.my_delete_selected}}</text>
         </view>
       </view>
     </view>
   </view>
 
+  <view class="edit-btn-wrapper" wx:if="{{!isAnonymous && histories.length > 0}}">
+    <text class="edit-btn" bindtap="toggleEditMode">{{isEditing ? i18n.my_cancel : i18n.my_edit}}</text>
+  </view>
+
   <view class="settings-section">
-    <!-- Nationality Picker -->
-    <picker bindchange="onNationalityChange" value="{{nationalityIndex}}" range="{{i18n.nationality_list}}" range-key="name">
-      <view class="settings-item border-bottom">
-        <view class="settings-left">
-          <text class="settings-icon sys-icon icon-user"></text>
-          <text class="settings-text">{{i18n.nationality_title}}</text>
-        </view>
-        <view class="settings-right">
-          <text class="settings-value" wx:if="{{nationalityIndex !== null && i18n.nationality_list[nationalityIndex]}}">{{i18n.nationality_list[nationalityIndex].name}}</text>
-          <text class="settings-arrow">></text>
-        </view>
+    <!-- Nationality Picker (Custom) -->
+    <view class="settings-item border-bottom" bindtap="showNationalityPicker">
+      <view class="settings-left">
+        <text class="settings-icon sys-icon icon-user"></text>
+        <text class="settings-text">{{i18n.nationality_title}}</text>
       </view>
-    </picker>
+      <view class="settings-right">
+        <text class="settings-value" wx:if="{{nationalityIndex !== null && i18n.nationality_list[nationalityIndex]}}">{{i18n.nationality_list[nationalityIndex].name}}</text>
+        <text class="settings-arrow">></text>
+      </view>
+    </view>
 
     <view class="settings-item border-bottom" bindtap="switchLanguage">
       <view class="settings-left">
         <text class="settings-icon sys-icon icon-globe"></text>
-        <text class="settings-text">{{i18n.my_language || '语言 / Language'}}</text>
+        <text class="settings-text">{{i18n.my_language}}</text>
       </view>
       <text class="settings-arrow">></text>
     </view>
@@ -125,15 +142,23 @@
     <view class="settings-item" bindtap="navigateToFeedback">
       <view class="settings-left">
         <text class="settings-icon sys-icon icon-lightbulb"></text>
-        <text class="settings-text">{{i18n.my_feedback || '意见反馈与联系作者'}}</text>
+        <text class="settings-text">{{i18n.my_feedback}}</text>
       </view>
       <text class="settings-arrow">></text>
     </view>
   </view>
+</view>
 
-  <view class="footer-section">
-    <view class="clear-btn" bindtap="clearLocalData">
-      <text class="clear-btn-text">{{i18n.my_clear_btn}}</text>
-    </view>
+<!-- Custom Nationality Picker -->
+<view class="custom-picker-mask {{showPicker ? 'show' : ''}}" bindtap="hideNationalityPicker"></view>
+<view class="custom-picker {{showPicker ? 'show' : ''}}">
+  <view class="custom-picker-header">
+    <view class="custom-picker-cancel" bindtap="hideNationalityPicker">{{i18n.my_cancel}}</view>
+    <view class="custom-picker-confirm" bindtap="confirmNationality">{{i18n.my_confirm}}</view>
   </view>
+  <picker-view class="custom-picker-view" value="{{[tempNationalityIndex]}}" bindchange="onNationalityPickerChange">
+    <picker-view-column>
+      <view class="custom-picker-item" wx:for="{{i18n.nationality_list}}" wx:key="id">{{item.name}}</view>
+    </picker-view-column>
+  </picker-view>
 </view>

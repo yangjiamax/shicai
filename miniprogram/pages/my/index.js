@@ -14,7 +14,17 @@ Page({
     isAnonymous: false,
     loadError: false,
     i18n: {},
-    nationalityIndex: null
+    nationalityIndex: null,
+    isEditing: false,
+    isAllSelected: false,
+    showPicker: false,
+    tempNationalityIndex: 0
+  },
+
+  goToOnboarding() {
+    wx.navigateTo({
+      url: '/pages/onboarding/index?mode=edit'
+    });
   },
 
   onLoad() {
@@ -49,12 +59,35 @@ Page({
     }
   },
 
-  onNationalityChange(e) {
-    const index = parseInt(e.detail.value, 10);
-    this.setData({ nationalityIndex: index });
+  showNationalityPicker() {
+    this.setData({
+      showPicker: true,
+      tempNationalityIndex: this.data.nationalityIndex || 0
+    });
+  },
+
+  hideNationalityPicker() {
+    this.setData({ showPicker: false });
+  },
+
+  onNationalityPickerChange(e) {
+    this.setData({ tempNationalityIndex: e.detail.value[0] });
+  },
+
+  confirmNationality() {
+    const index = this.data.tempNationalityIndex;
+    this.setData({ 
+      nationalityIndex: index,
+      showPicker: false 
+    });
     const selectedItem = this.data.i18n.nationality_list[index];
     if (selectedItem) {
       wx.setStorageSync('userNationality', selectedItem.id);
+      
+      // 同步到云端
+      if (app.syncUserPreferences) {
+        app.syncUserPreferences({ nationality: selectedItem.id });
+      }
     }
   },
 
@@ -64,16 +97,16 @@ Page({
       // custom tabbar logic if any
     } else {
       wx.setTabBarItem({ index: 0, text: app.t('tab_home') });
-      wx.setTabBarItem({ index: 1, text: app.t('tab_list') || '清单' });
+      wx.setTabBarItem({ index: 1, text: app.t('tab_list') });
       wx.setTabBarItem({ index: 2, text: app.t('tab_my') });
     }
   },
 
   switchLanguage() {
     const itemList = [
-      app.t('lang_system') || '跟随系统',
-      app.t('lang_zh') || '简体中文',
-      app.t('lang_en') || 'English'
+      app.t('lang_system'),
+      app.t('lang_zh'),
+      app.t('lang_en')
     ];
     const modes = ['system', 'zh', 'en'];
     
@@ -124,6 +157,18 @@ Page({
               showLoginPrompt: false
             });
             wx.setStorageSync('userInfo', cloudUserInfo);
+            
+            // Sync preferences from cloud
+            if (data[0].nationality) {
+              wx.setStorageSync('userNationality', data[0].nationality);
+              const natIndex = this.data.i18n.nationality_list.findIndex(n => n.id === data[0].nationality);
+              if (natIndex !== -1) {
+                this.setData({ nationalityIndex: natIndex });
+              }
+            }
+            if (data[0].language) {
+              app.switchLanguage(data[0].language);
+            }
           } else {
             this.setData({ hasUserInfo: false, showLoginPrompt: true });
           }
@@ -181,78 +226,60 @@ Page({
         
         const { data } = await db.collection('shopping_lists')
           .where({ _openid: userId })
-          .orderBy('created_at', 'desc')
+          .orderBy('createdAt', 'desc')
           .skip(skip)
           .limit(pageSize)
           .get();
           
         formattedHistories = data.map(item => {
-          let dateStr = this.formatDate(item.created_at);
-          let title = item.title || '采购清单';
-          // 如果原来的 title 是 "2026-04-03 购物清单" 的格式，我们统一转成 "yy-mm-dd 采购清单" 的显示
-          if (title.includes('购物清单')) {
-             title = title.replace('购物清单', '采购清单');
-          }
-          if (/^\d{4}-\d{2}-\d{2}/.test(title)) {
-             title = title.substring(2); // 去掉年份前两位，变成 yy-mm-dd
-          }
+          let dateStr = this.formatDate(item.createdAt);
+          let title = item.title || app.t('my_shopping_list');
+
+          // 不再显示右下角日期，可以从 selectedRecipe 处移除或者在 wxml 控制，为了安全起见我们保留 dateStr 仅隐藏 wxml
 
           return {
             _id: item._id,
-            ingredient_name: title,
-            selected_recipe: { recipe_name: '完整采购汇总' },
+            ingredientName: title,
+            selectedRecipe: { recipeName: app.t('my_full_purchase') },
             formattedDate: dateStr,
-            initial: '单',
+            initial: app.t('my_initial_bill'),
             type: 'bill',
             status: item.status
           };
         });
       } else if (tab === 'planning') {
-        // 菜谱: 历史上保存过的每一个菜谱的食材清单 (ingredients group by source_recipe)
-        const countRes = await db.collection('ingredients').aggregate()
-          .match({
-            _openid: userId,
-            source_recipe: _.nin(['', '其他', '直接添加'])
-          })
-          .group({ _id: '$source_recipe' })
-          .count('total')
-          .end();
+        // 菜谱: 收藏的宝藏食谱 (recipes)
+        const countRes = await db.collection('recipes').where({ _openid: userId }).count();
           
-        total = (countRes.list && countRes.list.length > 0) ? countRes.list[0].total : 0;
+        total = countRes.total;
         totalPages = Math.ceil(total / pageSize);
         
-        const res = await db.collection('ingredients').aggregate()
-          .match({
-            _openid: userId,
-            source_recipe: _.nin(['', '其他', '直接添加'])
-          })
-          .group({
-            _id: '$source_recipe',
-            add_time: $.max('$add_time'),
-            ingredients: $.addToSet('$name')
-          })
-          .sort({ add_time: -1 })
+        const { data } = await db.collection('recipes')
+          .where({ _openid: userId })
+          .orderBy('createdAt', 'desc')
           .skip(skip)
           .limit(pageSize)
-          .end();
+          .get();
           
-        formattedHistories = res.list.map(item => {
-          let dateStr = this.formatDate(item.add_time);
+        formattedHistories = data.map(item => {
+          let dateStr = this.formatDate(item.createdAt);
           return {
             _id: item._id,
-            ingredient_name: item._id,
-            selected_recipe: { recipe_name: `包含 ${item.ingredients.length} 种食材` },
-            formattedDate: dateStr,
-            initial: item._id.charAt(0),
-            ingredientsList: item.ingredients,
+            ingredientName: item.recipeName,
+            selectedRecipe: { recipeName: app.t('my_ingredients_count').replace('{count}', (item.ingredientsNeeded || []).length) },
+            formattedDate: this.formatDate(item.createdAt),
+            initial: item.recipeName ? item.recipeName.charAt(0) : app.t('my_initial_recipe'),
+            ingredientsList: item.ingredientsNeeded || [],
             type: 'recipe'
           };
         });
       } else {
         // 集邮: 拍照保存过的主食材清单 (histories)
+        // 仅查询 sourceType 为 'vision' 的记录
+        // 过滤巨大字段 analysisResult
         const countRes = await db.collection('histories').aggregate()
-          .match({ _openid: userId })
-          .group({ _id: '$ingredient_name' })
+          .match({ _openid: userId, sourceType: 'vision' })
+          .group({ _id: '$ingredientName' })
           .count('total')
           .end();
           
@@ -260,15 +287,16 @@ Page({
         totalPages = Math.ceil(total / pageSize);
         
         const res = await db.collection('histories').aggregate()
-          .match({ _openid: userId })
+          .match({ _openid: userId, sourceType: 'vision' })
+          .project({ analysisResult: false })
           .sort({ createdAt: -1 })
           .group({
-            _id: '$ingredient_name',
+            _id: '$ingredientName',
             originalId: $.first('$_id'),
             createdAt: $.first('$createdAt'),
-            ingredient_name: $.first('$ingredient_name'),
-            selected_recipe: $.first('$selected_recipe'),
-            analysisResult: $.first('$analysisResult')
+            ingredientName: $.first('$ingredientName'),
+            selectedRecipe: $.first('$selectedRecipe'),
+            cloudImagePath: $.first('$cloudImagePath')
           })
           .sort({ createdAt: -1 })
           .skip(skip)
@@ -278,14 +306,14 @@ Page({
         formattedHistories = res.list.map(item => {
           let dateStr = this.formatDate(item.createdAt);
           let initial = '';
-          if (item.ingredient_name) {
-            initial = item.ingredient_name.trim().charAt(0);
+          if (item.ingredientName) {
+            initial = item.ingredientName.trim().charAt(0);
           }
           return {
             _id: item.originalId,
-            ingredient_name: item.ingredient_name,
-            selected_recipe: item.selected_recipe,
-            analysisResult: item.analysisResult,
+            ingredientName: item.ingredientName,
+            selectedRecipe: item.selectedRecipe,
+            cloudImagePath: item.cloudImagePath,
             createdAt: item.createdAt,
             formattedDate: dateStr,
             initial,
@@ -431,7 +459,7 @@ Page({
     }
   },
 
-  navigateToHistory(e) {
+  async navigateToHistory(e) {
     const index = e.currentTarget.dataset.index;
     const history = this.data.histories[index];
     
@@ -439,14 +467,14 @@ Page({
 
     if (history.type === 'bill') {
       wx.navigateTo({
-        url: `/pages/history-list/index?listId=${history._id}&title=${encodeURIComponent(history.ingredient_name)}`
+        url: `/pages/history-list/index?listId=${history._id}&title=${encodeURIComponent(history.ingredientName)}`
       });
       return;
     }
     
     if (history.type === 'recipe') {
       const recipeData = {
-        recipeName: history.ingredient_name,
+        recipeName: history.ingredientName,
         ingredients: history.ingredientsList.map(name => ({
           name: name,
           checked: false
@@ -459,49 +487,60 @@ Page({
     }
 
     // type === 'stamp'
-    if (!history.selected_recipe) return;
+    if (!history.selectedRecipe) return;
 
-    // 如果包含完整的分析结果上下文，则走“动线复用”，先进入结果页
-    if (history.analysisResult) {
-      const listData = {
-        ingredientName: history.ingredient_name,
-        recipeName: history.selected_recipe.recipe_name,
-        ingredients: (history.selected_recipe.ingredients_needed || []).map(name => ({
-          name: name,
-          checked: history.selected_recipe.checked_ingredients ? history.selected_recipe.checked_ingredients.includes(name) : false
-        })),
-        analysisResult: history.analysisResult
-      };
+    // 单条拉取完整数据以获取 analysisResult
+    wx.showLoading({ title: app.t('loading'), mask: true });
+    try {
+      const db = wx.cloud.database();
+      const res = await db.collection('histories').doc(history._id).get();
+      const fullHistory = res.data;
       
+      wx.hideLoading();
+
+      if (fullHistory.analysisResult) {
+        const listData = {
+          ingredientName: fullHistory.ingredientName,
+          recipeName: fullHistory.selectedRecipe.recipeName,
+          ingredients: (fullHistory.selectedRecipe.ingredientsNeeded || []).map(name => ({
+            name: name,
+            checked: fullHistory.selectedRecipe.checkedIngredients ? fullHistory.selectedRecipe.checkedIngredients.includes(name) : false
+          })),
+          analysisResult: fullHistory.analysisResult
+        };
+        
+        wx.navigateTo({
+          url: `/pages/result/index?fromHistory=1&data=${encodeURIComponent(JSON.stringify(listData))}`
+        });
+        return;
+      }
+
+      // 兼容旧的没有 analysisResult 的历史记录，直接跳转到菜谱详情页
+      const listData = {
+        ingredientName: fullHistory.ingredientName,
+        recipeName: fullHistory.selectedRecipe.recipeName,
+        ingredients: (fullHistory.selectedRecipe.ingredientsNeeded || []).map(name => ({
+          name: name,
+          checked: false
+        }))
+      };
+
       wx.navigateTo({
-        url: `/pages/result/index?fromHistory=1&data=${encodeURIComponent(JSON.stringify(listData))}`
+        url: `/pages/recipe/index?data=${encodeURIComponent(JSON.stringify(listData))}`
       });
-      return;
+    } catch (err) {
+      console.error('Fetch full history failed:', err);
+      wx.hideLoading();
+      wx.showToast({ title: app.t('err_load_failed'), icon: 'none' });
     }
-
-    // 兼容旧的没有 analysisResult 的历史记录，直接跳转到菜谱详情页
-    const listData = {
-      ingredientName: history.ingredient_name,
-      recipeName: history.selected_recipe.recipe_name,
-      ingredients: (history.selected_recipe.ingredients_needed || []).map(name => ({
-        name: name,
-        checked: false
-      }))
-    };
-
-    wx.navigateTo({
-      url: `/pages/recipe/index?data=${encodeURIComponent(JSON.stringify(listData))}`
-    });
   },
 
   onImageError(e) {
     const index = e.currentTarget.dataset.index;
     if (index !== undefined) {
-      const key1 = `histories[${index}].analysisResult.cloudImagePath`;
-      const key2 = `histories[${index}].analysisResult.imagePath`;
+      const key = `histories[${index}].cloudImagePath`;
       this.setData({
-        [key1]: '',
-        [key2]: ''
+        [key]: ''
       });
     }
   },
@@ -512,11 +551,11 @@ Page({
     if (!history) return;
 
     wx.showModal({
-      title: app.t('my_delete') || '删除',
-      content: app.t('my_delete_confirm') || '确定删除这条记录吗？',
+      title: app.t('my_delete'),
+      content: app.t('my_delete_confirm'),
       success: async (res) => {
         if (res.confirm) {
-          wx.showLoading({ title: app.t('my_clearing') || '删除中...', mask: true });
+          wx.showLoading({ title: app.t('my_clearing'), mask: true });
           try {
             if (!wx.cloud) throw new Error('Cloud not initialized');
             const db = wx.cloud.database();
@@ -525,22 +564,11 @@ Page({
             
             if (history.type === 'bill') {
               await db.collection('shopping_lists').doc(history._id).remove();
-              // 删除该清单下的所有食材
-              const { data } = await db.collection('ingredients').where({ list_id: history._id }).get();
-              if (data && data.length > 0) {
-                const promises = data.map(item => db.collection('ingredients').doc(item._id).remove());
-                await Promise.all(promises);
-              }
             } else if (history.type === 'recipe') {
-              // 删除所有此菜谱的食材
-              const { data } = await db.collection('ingredients').where({ _openid: userId, source_recipe: history._id }).get();
-              if (data && data.length > 0) {
-                const promises = data.map(item => db.collection('ingredients').doc(item._id).remove());
-                await Promise.all(promises);
-              }
+              await db.collection('recipes').doc(history._id).remove();
             } else {
-              // stamp: delete all histories with the same ingredient_name
-              const { data } = await db.collection('histories').where({ _openid: userId, ingredient_name: history.ingredient_name }).get();
+              // stamp: delete all histories with the same ingredientName
+              const { data } = await db.collection('histories').where({ _openid: userId, ingredientName: history.ingredientName }).get();
               if (data && data.length > 0) {
                 const promises = data.map(item => db.collection('histories').doc(item._id).remove());
                 await Promise.all(promises);
@@ -551,80 +579,146 @@ Page({
             this.loadHistories(this.data.currentPage);
             
             wx.hideLoading();
-            wx.showToast({ title: app.t('my_delete_success') || '已删除', icon: 'success' });
+            wx.showToast({ title: app.t('my_delete_success'), icon: 'success' });
           } catch (err) {
             console.error('[My] Delete history failed:', err);
             wx.hideLoading();
-            wx.showToast({ title: app.t('my_delete_fail') || '删除失败', icon: 'none' });
+            wx.showToast({ title: app.t('my_delete_fail'), icon: 'none' });
           }
         }
       }
     });
+  },
+
+  toggleEditMode() {
+    const isEditing = !this.data.isEditing;
+    const histories = this.data.histories.map(h => ({ ...h, selected: false }));
+    this.setData({ 
+      isEditing, 
+      histories,
+      isAllSelected: false 
+    });
+  },
+
+  toggleSelectItem(e) {
+    const index = e.currentTarget.dataset.index;
+    const histories = this.data.histories;
+    histories[index].selected = !histories[index].selected;
+    const isAllSelected = histories.every(h => h.selected);
+    this.setData({ histories, isAllSelected });
+  },
+
+  toggleSelectAll() {
+    const isAllSelected = !this.data.isAllSelected;
+    const histories = this.data.histories.map(h => ({ ...h, selected: isAllSelected }));
+    this.setData({ histories, isAllSelected });
+  },
+
+  deleteSelected() {
+    const selectedHistories = this.data.histories.filter(h => h.selected);
+    if (selectedHistories.length === 0) {
+      wx.showToast({ title: app.t('my_no_selection'), icon: 'none' });
+      return;
+    }
+
+    wx.showModal({
+      title: app.t('my_batch_delete'),
+      content: app.t('my_batch_delete_confirm').replace('{count}', selectedHistories.length),
+      success: async (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: app.t('my_deleting'), mask: true });
+          try {
+            const db = wx.cloud.database();
+            const userId = app.globalData.userId || wx.getStorageSync('pf_user_id');
+            const promises = [];
+            
+            for (const history of selectedHistories) {
+              if (history.type === 'bill') {
+                promises.push(db.collection('shopping_lists').doc(history._id).remove());
+              } else if (history.type === 'recipe') {
+                promises.push(db.collection('recipes').doc(history._id).remove());
+              } else {
+                const { data } = await db.collection('histories').where({ _openid: userId, ingredientName: history.ingredientName }).get();
+                if (data && data.length > 0) {
+                  data.forEach(item => {
+                    promises.push(db.collection('histories').doc(item._id).remove());
+                  });
+                }
+              }
+            }
+            
+            await Promise.all(promises);
+            this.setData({ isEditing: false, isAllSelected: false });
+            this.loadHistories(this.data.currentPage);
+            wx.hideLoading();
+            wx.showToast({ title: app.t('my_deleted'), icon: 'success' });
+          } catch (err) {
+            console.error('[My] Batch delete failed:', err);
+            wx.hideLoading();
+            wx.showToast({ title: app.t('my_delete_failed'), icon: 'none' });
+          }
+        }
+      }
+    });
+  },
+
+  triggerRename(e) {
+    const index = e.currentTarget.dataset.index;
+    const history = this.data.histories[index];
+    if (!history) return;
+    
+    // 目前重命名主要是改 bill 的名称或集邮的食材名称
+    if (history.type === 'recipe') {
+       wx.showToast({ title: app.t('my_rename_unsupported'), icon: 'none' });
+       return;
+    }
+
+    // Since wx.showModal in older versions doesn't support text input directly, we could use a custom component or `wx.showModal` with editable (base library >= 2.30.0)
+    if (wx.canIUse('showModal.object.editable')) {
+      wx.showModal({
+        title: app.t('my_rename_title'),
+        editable: true,
+        placeholderText: app.t('my_rename_placeholder'),
+        content: history.ingredientName,
+        success: async (res) => {
+          if (res.confirm && res.content && res.content.trim() !== '') {
+            const newName = res.content.trim();
+            wx.showLoading({ title: app.t('list_saving') });
+            try {
+              const db = wx.cloud.database();
+              if (history.type === 'bill') {
+                await db.collection('shopping_lists').doc(history._id).update({
+                  data: { title: newName }
+                });
+              } else if (history.type === 'stamp') {
+                const userId = app.globalData.userId || wx.getStorageSync('pf_user_id');
+                const { data } = await db.collection('histories').where({ _openid: userId, ingredientName: history.ingredientName }).get();
+                if (data && data.length > 0) {
+                  const promises = data.map(item => db.collection('histories').doc(item._id).update({
+                    data: { ingredientName: newName }
+                  }));
+                  await Promise.all(promises);
+                }
+              }
+              this.loadHistories(this.data.currentPage);
+              wx.hideLoading();
+              wx.showToast({ title: app.t('my_modify_success'), icon: 'success' });
+            } catch (err) {
+              console.error('Rename failed:', err);
+              wx.hideLoading();
+              wx.showToast({ title: app.t('my_modify_failed'), icon: 'none' });
+            }
+          }
+        }
+      });
+    } else {
+      wx.showToast({ title: app.t('my_wx_version_low'), icon: 'none' });
+    }
   },
 
   navigateToFeedback() {
     wx.navigateTo({
       url: '/pages/feedback/index'
-    });
-  },
-
-  clearLocalData() {
-    const tab = this.data.historyTab;
-    let tabName = tab === 'execution' ? '所有账单' : (tab === 'planning' ? '所有菜谱' : '所有集邮');
-    
-    wx.showModal({
-      title: '清空记录',
-      content: `确定要清空${tabName}吗？清空后无法恢复。`,
-      success: async (res) => {
-        if (res.confirm) {
-          wx.showLoading({ title: app.t('my_clearing'), mask: true });
-          try {
-            if (!wx.cloud) throw new Error('Cloud not initialized');
-            const db = wx.cloud.database();
-            const userId = app.globalData.userId || wx.getStorageSync('pf_user_id');
-            const _ = db.command;
-            
-            if (tab === 'execution') {
-              // Clear bills
-              let hasMore = true;
-              while (hasMore) {
-                const { data } = await db.collection('shopping_lists').where({ _openid: userId }).limit(20).get();
-                if (data.length === 0) { hasMore = false; break; }
-                await Promise.all(data.map(item => db.collection('shopping_lists').doc(item._id).remove()));
-              }
-            } else if (tab === 'planning') {
-              // Clear recipes
-              let hasMore = true;
-              while (hasMore) {
-                const { data } = await db.collection('ingredients').where({ _openid: userId, source_recipe: _.nin(['', '其他', '直接添加']) }).limit(20).get();
-                if (data.length === 0) { hasMore = false; break; }
-                await Promise.all(data.map(item => db.collection('ingredients').doc(item._id).remove()));
-              }
-            } else {
-              // Clear stamps
-              let hasMore = true;
-              while (hasMore) {
-                const { data } = await db.collection('histories').where({ _openid: userId }).limit(20).get();
-                if (data.length === 0) { hasMore = false; break; }
-                await Promise.all(data.map(item => db.collection('histories').doc(item._id).remove()));
-              }
-            }
-            
-            this.setData({ 
-              histories: [],
-              currentPage: 1,
-              totalPages: 0,
-              totalHistories: 0
-            });
-            wx.hideLoading();
-            wx.showToast({ title: app.t('my_clear_success'), icon: 'success' });
-          } catch (err) {
-            console.error('[My] Clear histories failed:', err);
-            wx.hideLoading();
-            wx.showToast({ title: app.t('my_clear_fail'), icon: 'none' });
-          }
-        }
-      }
     });
   }
 });

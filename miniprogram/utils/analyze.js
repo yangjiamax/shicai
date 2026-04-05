@@ -1,11 +1,11 @@
 const MOCK_DATA_ZH = {
-  ingredient_name: "本地Mock鲈鱼",
-  ingredient_desc: "适合清蒸，注意去腥",
+  ingredientName: "本地Mock鲈鱼",
+  ingredientDesc: "适合清蒸，注意去腥",
   taste: "鲜甜",
   texture: "肉质细嫩，蒜瓣肉",
   similar: "黑鱼",
-  freshness_level: "新鲜",
-  freshness_reason: "鱼眼清澈微凸，鱼身有光泽",
+  freshnessLevel: "新鲜",
+  freshnessReason: "鱼眼清澈微凸，鱼身有光泽",
   recipes: {
     familiar: [
       {
@@ -23,8 +23,8 @@ const MOCK_DATA_ZH = {
 };
 
 const MOCK_DATA_EN = {
-  ingredient_name: "Local Mock Sea Bass",
-  ingredient_desc: "Suitable for steaming, remember to remove fishy smell",
+  ingredientName: "Local Mock Sea Bass",
+  ingredientDesc: "Suitable for steaming, remember to remove fishy smell",
   taste: "Fresh and sweet",
   texture: "Tender meat, flaky texture",
   similar: "Snakehead",
@@ -73,10 +73,10 @@ async function analyzeImage(filePath, options = {}) {
     console.log('[Analyze] Using local mock data, lang:', lang);
     const mockResult = await getMockResult(lang);
     return { 
-      ingredient_name: mockResult.ingredient_name,
-      ingredient_desc: mockResult.ingredient_desc,
-      freshness_level: mockResult.freshness_level,
-      freshness_reason: mockResult.freshness_reason,
+      ingredientName: mockResult.ingredientName,
+      ingredientDesc: mockResult.ingredientDesc,
+      freshnessLevel: mockResult.freshnessLevel,
+      freshnessReason: mockResult.freshnessReason,
       imagePath: filePath 
     };
   }
@@ -135,10 +135,10 @@ async function analyzeImage(filePath, options = {}) {
                 
                 const data = res.result;
                 resolve({
-                  ingredient_name: data.ingredient_name || (lang === 'en' ? 'Unknown Ingredient' : '未知食材'),
-                  ingredient_desc: data.ingredient_desc || (lang === 'en' ? 'No description' : '暂无描述'),
-                  freshness_level: data.freshness_level || (lang === 'en' ? 'Unknown' : '未知'),
-                  freshness_reason: data.freshness_reason || (lang === 'en' ? 'Unable to recognize freshness reason' : '未能识别鲜度原因'),
+                  ingredientName: data.ingredientName || data.ingredient_name || (lang === 'en' ? 'Unknown Ingredient' : '未知食材'),
+                  ingredientDesc: data.ingredientDesc || data.ingredient_desc || (lang === 'en' ? 'No description' : '暂无描述'),
+                  freshnessLevel: data.freshnessLevel || data.freshness_level || (lang === 'en' ? 'Unknown' : '未知'),
+                  freshnessReason: data.freshnessReason || data.freshness_reason || (lang === 'en' ? 'Unable to recognize freshness reason' : '未能识别鲜度原因'),
                   taste: data.taste || '',
                   texture: data.texture || '',
                   similar: data.similar || '',
@@ -181,7 +181,7 @@ async function analyzeFamiliar(ingredientName, nationality, options = {}) {
       taste: mockResult.taste,
       texture: mockResult.texture,
       similar: mockResult.similar,
-      recipes_familiar: mockResult.recipes.familiar
+      recipesFamiliar: mockResult.recipes.familiar
     };
   }
 
@@ -202,7 +202,7 @@ async function analyzeFamiliar(ingredientName, nationality, options = {}) {
         if (res.result && !res.result.error) {
           const data = res.result;
           resolve({
-            recipes_familiar: data.recipes_familiar || []
+            recipesFamiliar: data.recipesFamiliar || data.recipes_familiar || []
           });
         } else {
           reject(new Error(res.result?.errorType || 'model_error'));
@@ -226,7 +226,7 @@ async function analyzeLocal(ingredientName, location, options = {}) {
   if (MODE === 'mock' || forceMock) {
     const mockResult = await getMockResult(lang);
     return {
-      recipes_local: mockResult.recipes.local
+      recipesLocal: mockResult.recipes.local
     };
   }
 
@@ -246,7 +246,7 @@ async function analyzeLocal(ingredientName, location, options = {}) {
       success: (res) => {
         if (res.result && !res.result.error) {
           resolve({
-            recipes_local: res.result.recipes_local || []
+            recipesLocal: res.result.recipesLocal || res.result.recipes_local || []
           });
         } else {
           reject(new Error(res.result?.errorType || 'model_error'));

@@ -126,13 +126,14 @@ page {
 
 .group-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
   margin-bottom: 24rpx;
   padding-bottom: 16rpx;
   border-bottom: 2rpx solid #f6f3f2;
-  flex-wrap: wrap;
-  gap: 16rpx;
+  position: relative;
+  min-height: 50rpx;
 }
 
 .group-title {
@@ -145,22 +146,59 @@ page {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
+  padding-right: 60rpx; /* 留出空间给右侧的心形 */
+}
+
+.btn-favorite {
+  position: absolute;
+  right: 0rpx;
+  top: -8rpx;
+  background: transparent;
+  padding: 8rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-favorite-hover {
+  transform: scale(0.85);
+  opacity: 0.8;
+}
+
+.icon-heart {
+  width: 44rpx;
+  height: 44rpx;
 }
 
 .group-actions {
   display: flex;
   align-items: center;
-  gap: 16rpx;
   flex-shrink: 0;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  width: 100%;
 }
 
 .search-action-wrapper {
   display: flex;
-  gap: 12rpx;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12rpx;
+  width: 100%;
+}
+
+.search-action-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.search-action-right {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16rpx;
 }
 
 .btn-tutorial-small {

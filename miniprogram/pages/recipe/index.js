@@ -5,7 +5,12 @@ Page({
   data: {
     recipeName: '',
     ingredients: [],
+    ingredientName: '',
+    sourceType: 'familiar',
+    imagePath: '',
+    cloudImagePath: '',
     loading: true,
+    isSaved: false,
     i18n: {},
     lang: 'zh',
     showTutorialSheet: false,
@@ -23,7 +28,11 @@ Page({
         const data = JSON.parse(decodeURIComponent(options.data));
         this.setData({ 
           recipeName: data.recipeName,
-          ingredients: data.ingredients || []
+          ingredients: data.ingredients || [],
+          ingredientName: data.ingredientName || data.recipeName,
+          sourceType: data.sourceType || 'familiar',
+          imagePath: data.imagePath || '',
+          cloudImagePath: data.cloudImagePath || ''
         });
       } catch (e) {
         console.error('Failed to parse recipe data:', e);
@@ -35,7 +44,7 @@ Page({
       i18n: app.globalData.i18n,
       lang: app.globalData.language
     });
-    wx.setNavigationBarTitle({ title: this.data.recipeName || '菜谱详情' });
+    wx.setNavigationBarTitle({ title: this.data.recipeName === 'list_independent_ingredients' ? app.t('list_independent_ingredients') : (this.data.recipeName || app.t('recipe_title_default')) });
   },
 
   async onShow() {
@@ -51,22 +60,29 @@ Page({
       const userId = app.globalData.openid || wx.getStorageSync('pf_user_id');
 
       // Get unique ingredients for this recipe, picking the latest status and docId
-      const res = await db.collection(dbUtil.COLLECTIONS.INGREDIENTS).aggregate()
+      const res = await db.collection(dbUtil.COLLECTIONS.SHOPPING_LISTS).aggregate()
         .match({
-          source_recipe: this.data.recipeName,
-          status: _.neq('deleted')
+          _openid: userId,
+          'items.sourceRecipe': this.data.recipeName
+        })
+        .unwind('$items')
+        .match({
+          'items.sourceRecipe': this.data.recipeName,
+          'items.status': _.neq('deleted')
         })
         .group({
-          _id: '$name',
+          _id: '$items.name',
           docId: $.last('$_id'),
-          status: $.last('$status'),
-          add_time: $.max('$add_time')
+          itemId: $.last('$items.id'),
+          status: $.last('$items.status'),
+          createdAt: $.max('$items.createdAt')
         })
-        .sort({ add_time: -1 })
+        .sort({ createdAt: -1 })
         .end();
 
       const dbIngredients = (res.list || []).map(item => ({
         _id: item.docId,
+        itemId: item.itemId,
         name: item._id,
         status: item.status
       }));
@@ -90,39 +106,157 @@ Page({
         }
       });
 
-      this.setData({ ingredients: mergedIngredients, loading: false });
+      // 检查是否已收藏
+      let isSaved = false;
+      try {
+        const { data: existing } = await db.collection('recipes').where({
+          _openid: userId,
+          recipeName: this.data.recipeName
+        }).get();
+        if (existing && existing.length > 0) {
+          isSaved = true;
+        }
+      } catch (err) {
+        console.error('Check saved recipe failed:', err);
+      }
+
+      this.setData({ ingredients: mergedIngredients, isSaved, loading: false });
     } catch (err) {
       console.error('Failed to load recipe details:', err);
       this.setData({ loading: false });
     }
   },
 
-  async addAllToNewList() {
-    if (!this.data.ingredients || this.data.ingredients.length === 0) {
-      wx.showToast({ title: '无食材可添加', icon: 'none' });
+  async deleteIngredient(e) {
+    const { id, itemid } = e.currentTarget.dataset;
+    if (!id) {
+      // 本地假数据直接删除
+      const updatedIngredients = this.data.ingredients.filter(item => item.name !== e.currentTarget.dataset.name);
+      this.setData({ ingredients: updatedIngredients });
       return;
     }
 
-    wx.showLoading({ title: '添加中...' });
+    wx.showModal({
+      title: app.t('recipe_delete_ingredient'),
+      content: app.t('recipe_confirm_delete'),
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            if (itemid) {
+              await dbUtil.deleteIngredients(id, [itemid]);
+            }
+            this.loadRecipeDetails();
+          } catch (err) {
+            console.error('Delete failed:', err);
+          }
+        }
+      }
+    });
+  },
+
+  async addAllToNewList() {
+    if (!this.data.ingredients || this.data.ingredients.length === 0) {
+      wx.showToast({ title: app.t('recipe_no_ingredient'), icon: 'none' });
+      return;
+    }
+
+    wx.showLoading({ title: app.t('recipe_adding') });
     try {
       const activeListId = await dbUtil.getActiveList();
       const itemsToAdd = this.data.ingredients.map(ing => ({
         name: ing.name,
-        standard_name: ing.name,
-        category: 'other',
-        source_recipe: this.data.recipeName
+        standardName: ing.name,
+        category: 'list_other_ingredients',
+        sourceRecipe: this.data.recipeName
       }));
+      
+      // 添加主食材，如果是在识物流程中传入的
+      if (this.data.ingredientName && this.data.ingredientName !== this.data.recipeName) {
+        itemsToAdd.push({
+          name: this.data.ingredientName,
+          standardName: this.data.ingredientName,
+          category: 'list_other_ingredients',
+          sourceRecipe: this.data.recipeName
+        });
+      }
       
       await dbUtil.addIngredientsToList(activeListId, itemsToAdd);
       wx.hideLoading();
       wx.showToast({
-        title: '已加入当前清单',
+        title: app.t('recipe_added'),
         icon: 'success'
       });
     } catch (err) {
       console.error('Add to list failed:', err);
       wx.hideLoading();
-      wx.showToast({ title: '添加失败', icon: 'none' });
+      wx.showToast({ title: app.t('recipe_add_failed'), icon: 'none' });
+    }
+  },
+
+  async saveRecipe() {
+    const authSource = app.globalData.authSource || wx.getStorageSync('pf_auth_source');
+    if (authSource !== 'cloud_openid' || !wx.cloud) {
+      wx.showToast({ title: this.data.i18n.my_err_cloud_user, icon: 'none' });
+      return;
+    }
+
+    if (!this.data.recipeName || this.data.recipeName === 'list_independent_ingredients' || this.data.recipeName === 'list_other_ingredients' || this.data.recipeName === 'list_direct_add') return;
+
+    wx.showLoading({ title: app.t('recipe_saving'), mask: true });
+
+    try {
+      const db = wx.cloud.database();
+      const userId = app.globalData.userId || wx.getStorageSync('pf_user_id');
+
+      // 如果有图片且是本地图片，先上传
+      let cloudImagePath = this.data.cloudImagePath || '';
+      if (this.data.imagePath && !this.data.imagePath.startsWith('cloud://') && !cloudImagePath) {
+        try {
+          const ext = this.data.imagePath.match(/\.([^.]+)$/)?.[1] || 'jpg';
+          const cloudPath = `recipes/${userId}-${Date.now()}-${Math.floor(Math.random() * 1000)}.${ext}`;
+          const uploadRes = await wx.cloud.uploadFile({
+            cloudPath: cloudPath,
+            filePath: this.data.imagePath
+          });
+          cloudImagePath = uploadRes.fileID;
+          this.setData({ cloudImagePath });
+        } catch (uploadErr) {
+          console.error('上传菜谱封面图失败:', uploadErr);
+        }
+      }
+
+      // 检查是否已经收藏过
+      const { data: existing } = await db.collection('recipes').where({
+        _openid: userId,
+        recipeName: this.data.recipeName
+      }).get();
+
+      if (existing && existing.length > 0) {
+        wx.hideLoading();
+        this.setData({ isSaved: true });
+        wx.showToast({ title: app.t('recipe_saved_already'), icon: 'none' });
+        return;
+      }
+
+      await db.collection('recipes').add({
+        data: {
+          recipeName: this.data.recipeName,
+          ingredientName: this.data.ingredientName || this.data.recipeName,
+          ingredientsNeeded: this.data.ingredients.map(ing => ing.name),
+          sourceType: this.data.sourceType || 'familiar',
+          cloudImagePath: cloudImagePath,
+          createdAt: db.serverDate(),
+          updatedAt: db.serverDate()
+        }
+      });
+
+      wx.hideLoading();
+      this.setData({ isSaved: true });
+      wx.showToast({ title: app.t('recipe_saved_success'), icon: 'success' });
+    } catch (err) {
+      console.error('收藏食谱失败:', err);
+      wx.hideLoading();
+      wx.showToast({ title: app.t('recipe_save_failed'), icon: 'none' });
     }
   },
 
@@ -130,7 +264,7 @@ Page({
   searchTutorial(e) {
     const platform = e.currentTarget.dataset.platform || 'bilibili';
     const recipeName = this.data.recipeName;
-    if (!recipeName) return;
+    if (!recipeName || recipeName === 'list_independent_ingredients' || recipeName === 'list_other_ingredients' || recipeName === 'list_direct_add') return;
 
     this.setData({
       showTutorialSheet: true,
@@ -174,7 +308,7 @@ Page({
       this.setData({
         tutorialLoading: false,
         tutorialError: true,
-        tutorialErrorMsg: this.data.i18n.err_cloud_func || '加载失败，请重试'
+        tutorialErrorMsg: this.data.i18n.err_cloud_func
       });
     }
   },
@@ -203,14 +337,14 @@ Page({
       data: url,
       success: () => {
         wx.showToast({
-          title: this.data.i18n.tutorial_copy_success || '链接已复制，请在浏览器中打开',
+          title: this.data.i18n.tutorial_copy_success,
           icon: 'none',
           duration: 3000
         });
       },
       fail: () => {
         wx.showToast({
-          title: '复制失败',
+          title: this.data.i18n.tutorial_copy_fail,
           icon: 'none'
         });
       }

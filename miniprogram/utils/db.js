@@ -3,46 +3,55 @@
 const db = wx.cloud.database();
 
 const COLLECTIONS = {
+  USERS: 'users',
   SHOPPING_LISTS: 'shopping_lists',
-  INGREDIENTS: 'ingredients',
-  HISTORY: 'history' // V1 遗留的识物历史记录
+  HISTORIES: 'histories',
+  CACHES: 'caches',
+  FEEDBACKS: 'feedbacks'
 };
 
 /**
  * Entity: Shopping List (购物清单)
  * @typedef {Object} ShoppingList
- * @property {string} _id - 数据库自动生成的 _id (作为 list_id)
- * @property {string} _openid - 微信用户的 openid (作为 user_id)
- * @property {string} title - 清单标题，如 "2026-04-03 购物清单"
- * @property {string} status - 状态: "active" (活跃中) | "completed" (已完成)
- * @property {number} created_at - 创建时间戳
+ * @property {string} _id - 数据库自动生成的 _id
+ * @property {string} _openid - 微信用户的 openid
+ * @property {string} title - 清单标题
+ * @property {string} status - 状态: "active" | "completed"
+ * @property {Array<Ingredient>} items - 内嵌食材数组
+ * @property {Date} createdAt - 创建时间
+ * @property {Date} updatedAt - 更新时间
  */
 
 /**
- * Entity: Ingredient (清单内的食材项)
- * @typedef {Object} Ingredient
- * @property {string} _id - 数据库自动生成的 _id
- * @property {string} _openid - 微信用户的 openid
- * @property {string} list_id - 关联的购物清单 _id
- * @property {string} name - 原始名称，如 "排骨"
- * @property {string} standard_name - AI 归一化后的标准名称，如 "猪排骨"
- * @property {string} category - 超市动线分类，如 "肉类海鲜区"
- * @property {string} source_recipe - 来源菜谱，如 "糖醋排骨" (为空代表直接添加)
- * @property {string} status - 状态: "pending" (待买) | "bought" (已买) | "deleted" (已删除)
- * @property {number} add_time - 添加时间戳
+ * Entity: Item (清单内的食材项)
+ * @typedef {Object} Item
+ * @property {string} id - 自动生成的唯一 ID
+ * @property {string} name - 原始名称
+ * @property {string} standardName - 驼峰命名，标准名称
+ * @property {string} category - 超市动线分类
+ * @property {string} sourceRecipe - 驼峰命名，来源菜谱
+ * @property {string} status - 状态: "pending" | "bought"
+ * @property {Date} createdAt - 创建时间
  */
 
 module.exports = {
   db,
   COLLECTIONS,
   getActiveList,
-  addIngredientsToList
+  getListById,
+  addIngredientsToList,
+  updateIngredientStatus,
+  updateIngredientName,
+  deleteIngredients,
+  deleteRecipe
 };
+
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).substring(2);
+}
 
 /**
  * [M2.1] 获取今日活跃清单
- * 检查今日是否已有未完成的购物清单。如果有，则获取其 `list_id`；
- * 如果没有，则自动创建一个标题为“YYYY-MM-DD 购物清单”的新 List。
  * @returns {Promise<string>} 返回 active list 的 _id
  */
 async function getActiveList() {
@@ -51,32 +60,44 @@ async function getActiveList() {
   const userId = auth.getUserId();
   const _ = db.command;
   
-  // 查询当前用户的 active 清单
   const query = userId ? _.and([
     { status: 'active' },
-    _.or([
-      { _openid: userId },
-      { user_id: userId }
-    ])
+    { _openid: userId }
   ]) : { status: 'active', user_id: 'unauthenticated' };
 
-  const res = await collection.where(query).orderBy('created_at', 'desc').limit(1).get();
+  const res = await collection.where(query).orderBy('createdAt', 'desc').limit(1).get();
 
   if (res.data && res.data.length > 0) {
     return res.data[0]._id;
   }
 
-  // 如果没有，创建新的
   const dateObj = new Date();
-  const yy = dateObj.getFullYear().toString().substring(2);
-  const mm = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-  const dd = dateObj.getDate().toString().padStart(2, '0');
+  const mm = (dateObj.getMonth() + 1).toString();
+  const dd = dateObj.getDate().toString();
+  const hour = dateObj.getHours();
+  
+  const app = getApp();
+  
+  let timePrefix = '';
+  let title = '';
+
+  if (app && app.t) {
+    const timePrefixKey = hour >= 5 && hour < 12 ? 'my_time_morning' : (hour >= 12 && hour < 18 ? 'my_time_noon' : 'my_time_evening');
+    timePrefix = app.t(timePrefixKey);
+    title = app.t('my_shopping_list_title').replace('{mm}', mm).replace('{dd}', dd).replace('{timePrefix}', timePrefix);
+  } else {
+    if (hour >= 5 && hour < 12) timePrefix = '早上';
+    else if (hour >= 12 && hour < 18) timePrefix = '中午';
+    else timePrefix = '晚上';
+    title = `${mm}月${dd}日${timePrefix}的采购单`;
+  }
   
   const newList = {
-    title: `${yy}-${mm}-${dd} 采购清单`,
+    title: title,
     status: 'active',
-    user_id: userId,
-    created_at: Date.now()
+    items: [],
+    createdAt: db.serverDate(),
+    updatedAt: db.serverDate()
   };
 
   const addRes = await collection.add({
@@ -87,34 +108,128 @@ async function getActiveList() {
 }
 
 /**
- * 批量添加食材到指定的清单
- * @param {string} listId 清单 _id
- * @param {Array<Object>} ingredients 食材列表
+ * 获取指定清单及其 items
+ */
+async function getListById(listId) {
+  if (!listId) return null;
+  try {
+    const res = await db.collection(COLLECTIONS.SHOPPING_LISTS).doc(listId).get();
+    return res.data;
+  } catch (err) {
+    console.error('getListById error:', err);
+    return null;
+  }
+}
+
+/**
+ * 批量添加食材到指定的清单 (内嵌 items)
  */
 async function addIngredientsToList(listId, ingredients) {
   if (!listId || !ingredients || ingredients.length === 0) return;
   
-  const auth = require('./auth.js');
-  const userId = auth.getUserId();
-  const collection = db.collection(COLLECTIONS.INGREDIENTS);
+  const formattedItems = ingredients.map(item => ({
+    id: generateId(),
+    name: item.name || item.standardName,
+    standardName: item.standardName || item.name,
+    category: item.category || '其他',
+    sourceRecipe: item.sourceRecipe || '',
+    status: 'pending',
+    createdAt: db.serverDate()
+  }));
+
+  const updateData = {
+    items: db.command.push(formattedItems),
+    updatedAt: db.serverDate()
+  };
+
+  await db.collection(COLLECTIONS.SHOPPING_LISTS).doc(listId).update({
+    data: updateData
+  });
+}
+
+/**
+ * 批量更新食材状态
+ */
+async function updateIngredientStatus(listId, itemIds, newStatus) {
+  if (!listId || !itemIds || itemIds.length === 0) return;
   
-  // 小程序端 db 限制了不能直接通过 add() 批量添加对象数组，需要循环添加，或者通过云函数批量添加
-  // 这里先简单使用 Promise.all 并发添加，如果量大建议走云函数
-  const promises = ingredients.map(item => {
-    return collection.add({
-      data: {
-        list_id: listId,
-        user_id: userId,
-        name: item.name || item.standard_name,
-        standard_name: item.standard_name,
-        category: item.category,
-        source_recipe: item.source_recipe || '',
-        status: 'pending',
-        add_time: Date.now()
-      }
-    });
+  const list = await getListById(listId);
+  if (!list || !list.items) return;
+
+  const items = list.items.map(item => {
+    if (itemIds.includes(item.id)) {
+      return { ...item, status: newStatus };
+    }
+    return item;
   });
 
-  await Promise.all(promises);
+  await db.collection(COLLECTIONS.SHOPPING_LISTS).doc(listId).update({
+    data: {
+      items: items,
+      updatedAt: db.serverDate()
+    }
+  });
+}
+
+/**
+ * 批量更新食材名称
+ */
+async function updateIngredientName(listId, itemIds, newName) {
+  if (!listId || !itemIds || itemIds.length === 0) return;
+  
+  const list = await getListById(listId);
+  if (!list || !list.items) return;
+
+  const items = list.items.map(item => {
+    if (itemIds.includes(item.id)) {
+      return { ...item, name: newName, standardName: newName };
+    }
+    return item;
+  });
+
+  await db.collection(COLLECTIONS.SHOPPING_LISTS).doc(listId).update({
+    data: {
+      items: items,
+      updatedAt: db.serverDate()
+    }
+  });
+}
+
+/**
+ * 批量删除食材 (从数组中移除)
+ */
+async function deleteIngredients(listId, itemIds) {
+  if (!listId || !itemIds || itemIds.length === 0) return;
+  
+  const list = await getListById(listId);
+  if (!list || !list.items) return;
+
+  const items = list.items.filter(item => !itemIds.includes(item.id));
+
+  await db.collection(COLLECTIONS.SHOPPING_LISTS).doc(listId).update({
+    data: {
+      items: items,
+      updatedAt: db.serverDate()
+    }
+  });
+}
+
+/**
+ * 删除整道菜的所有食材
+ */
+async function deleteRecipe(listId, recipeName) {
+  if (!listId || !recipeName) return;
+  
+  const list = await getListById(listId);
+  if (!list || !list.items) return;
+
+  const items = list.items.filter(item => item.sourceRecipe !== recipeName);
+
+  await db.collection(COLLECTIONS.SHOPPING_LISTS).doc(listId).update({
+    data: {
+      items: items,
+      updatedAt: db.serverDate()
+    }
+  });
 }
 

@@ -22,6 +22,15 @@ Page({
 
   onLoad() {
     console.log('index page loaded, userId:', app.globalData?.userId);
+    
+    // 检查是否已经完成引导授权
+    if (!wx.getStorageSync('has_onboarded')) {
+      wx.reLaunch({
+        url: '/pages/onboarding/index'
+      });
+      return;
+    }
+
     this.setData({ 
       i18n: app.globalData.i18n,
       language: app.globalData.language
@@ -29,6 +38,11 @@ Page({
   },
 
   async onShow() {
+    // 检查是否已经完成引导授权
+    if (!wx.getStorageSync('has_onboarded')) {
+      return;
+    }
+
     this.setData({ 
       i18n: app.globalData.i18n,
       language: app.globalData.language
@@ -38,7 +52,7 @@ Page({
       // custom tabbar logic if any
     } else {
       wx.setTabBarItem({ index: 0, text: app.t('tab_home') });
-      wx.setTabBarItem({ index: 1, text: app.t('tab_list') || '清单' });
+      wx.setTabBarItem({ index: 1, text: app.t('tab_list') });
       wx.setTabBarItem({ index: 2, text: app.t('tab_my') });
     }
     await this.loadListProgress();
@@ -59,29 +73,9 @@ Page({
   async loadListProgress() {
     try {
       const listId = await dbUtil.getActiveList();
+      const listData = await dbUtil.getListById(listId);
       
-      const countRes = await dbUtil.db.collection(dbUtil.COLLECTIONS.INGREDIENTS)
-        .where({
-          list_id: listId,
-          status: dbUtil.db.command.neq('deleted')
-        }).count();
-      const total = countRes.total;
-      
-      let allIngredients = [];
-      const MAX_LIMIT = 20;
-      
-      for (let i = 0; i < total; i += MAX_LIMIT) {
-        const res = await dbUtil.db.collection(dbUtil.COLLECTIONS.INGREDIENTS)
-          .where({
-            list_id: listId,
-            status: dbUtil.db.command.neq('deleted')
-          })
-          .orderBy('add_time', 'desc')
-          .skip(i)
-          .limit(MAX_LIMIT)
-          .get();
-        allIngredients = allIngredients.concat(res.data || []);
-      }
+      const allIngredients = listData && listData.items ? listData.items.filter(item => item.status !== 'deleted') : [];
       
       const executionGroups = listUtil.deriveExecutionView(allIngredients);
       let totalCount = 0;
@@ -94,7 +88,7 @@ Page({
         }
       });
       
-      let progressText = `${boughtCount} / ${totalCount} 项已购`;
+      let progressText = `${boughtCount} / ${totalCount} ` + (this.data.language === 'en' ? 'bought' : '项已购');
       if (this.data.i18n && this.data.i18n.list_progress_desc) {
         progressText = this.data.i18n.list_progress_desc.replace('{bought}', boughtCount).replace('{total}', totalCount);
       }
@@ -133,9 +127,10 @@ Page({
     const currentX = e.touches[0].clientX;
     let deltaX = currentX - this.data.startX;
     
-    // limit max swipe
-    if (deltaX < -120) deltaX = -120;
-    if (deltaX > 120) deltaX = 120;
+    // limit max swipe, now width is 260rpx, half is 130rpx, space is (602 - 260) / 2 = 171rpx = 85.5px
+    // 增加一点冗余，限制在 85px 左右
+    if (deltaX < -85) deltaX = -85;
+    if (deltaX > 85) deltaX = 85;
     
     this.setData({ swipeX: deltaX });
   },
@@ -143,7 +138,7 @@ Page({
   onSwipeEnd(e) {
     if (this.data.isRecording) return;
     const deltaX = this.data.swipeX;
-    const threshold = 80;
+    const threshold = 60; // 降低阈值，确保在可用滑动空间内能触发
     
     this.setData({
       swipeX: 0,
@@ -162,7 +157,7 @@ Page({
       this.handleVoiceRecord();
     } else {
       wx.showToast({
-        title: '请向左或向右滑动',
+        title: app.t('index_swipe_hint'),
         icon: 'none'
       });
     }
@@ -195,7 +190,7 @@ Page({
     const text = this.data.textInputValue;
     if (!text || text.trim() === '') {
       wx.showToast({
-        title: '请输入食材内容',
+        title: app.t('index_input_empty'),
         icon: 'none'
       });
       return;
@@ -219,7 +214,7 @@ Page({
         console.log('语音识别最终结果:', text);
         
         if (!text || text.trim() === '') {
-          wx.showToast({ title: '未能识别到语音内容', icon: 'none' });
+          wx.showToast({ title: app.t('index_voice_empty'), icon: 'none' });
           return;
         }
         
@@ -229,7 +224,7 @@ Page({
       onError: (errMsg) => {
         this.setData({ isRecording: false });
         if (errMsg !== 'user_denied') {
-          wx.showToast({ title: '录音失败: ' + errMsg, icon: 'none' });
+          wx.showToast({ title: app.t('index_record_failed') + errMsg, icon: 'none' });
         }
       }
     });
@@ -240,7 +235,13 @@ Page({
     this.setData({ isProcessing: true });
     
     // 动态 loading 文案逻辑
-    const loadingTexts = [
+    const loadingTexts = this.data.language === 'en' ? [
+      'Understanding your needs...',
+      'Chef is breaking down the recipe...',
+      'Picking fresh ingredients...',
+      'Almost done, hold on...',
+      'Generating shopping list...'
+    ] : [
       '正在理解您的需求...',
       '大厨正在拆解菜谱...',
       '正在挑选新鲜食材...',
@@ -263,22 +264,26 @@ Page({
         name: 'extractList',
         data: {
           text: text,
-          lang: wx.getStorageSync('language') || 'zh'
+          lang: this.data.language || 'zh'
         }
       });
 
       if (this.loadingTimer) clearInterval(this.loadingTimer);
       const data = res.result;
       if (data && data.error) {
-        throw new Error(data.message || '提取清单失败');
+        throw new Error(data.message || (this.data.language === 'en' ? 'Failed to extract list' : '提取清单失败'));
       }
 
       const ingredients = data.data;
       console.log('提取清单结果:', ingredients);
 
       if (!ingredients || ingredients.length === 0) {
-        wx.showToast({ title: '未能识别到食材', icon: 'none' });
-        this.setData({ isProcessing: false });
+        wx.showToast({ title: app.t('index_voice_no_ingredient'), icon: 'none' });
+        this.setData({ 
+          isProcessing: false,
+          showTextInput: true,
+          textInputValue: text
+        });
         return;
       }
 
@@ -286,11 +291,45 @@ Page({
       const listId = await dbUtil.getActiveList();
       await dbUtil.addIngredientsToList(listId, ingredients);
 
+      // 追加写入 histories 操作，携带 sourceType: 'text'
+      const recipesMap = {};
+      ingredients.forEach(ing => {
+        const recipe = ing.sourceRecipe || ing.source_recipe;
+        if (recipe && recipe !== 'list_independent_ingredients' && recipe !== 'list_other_ingredients' && recipe !== 'list_direct_add') {
+          if (!recipesMap[recipe]) {
+            recipesMap[recipe] = [];
+          }
+          recipesMap[recipe].push(ing.name);
+        }
+      });
+
+      const db = wx.cloud.database();
+      for (const recipeName in recipesMap) {
+        try {
+          await db.collection('histories').add({
+            data: {
+              sourceType: 'text',
+              ingredientName: recipeName, // 修改点：将主食材名置为菜谱名，避免展示为空
+              selectedRecipe: {
+                recipeName: recipeName,
+                ingredientsNeeded: recipesMap[recipeName]
+              },
+              analysisResult: null,
+              cloudImagePath: '',
+              createdAt: db.serverDate(),
+              updatedAt: db.serverDate()
+            }
+          });
+        } catch (err) {
+          console.error('保存纯文本集邮失败:', err);
+        }
+      }
+
       wx.hideLoading();
       this.setData({ isProcessing: false });
       
       wx.showToast({ 
-        title: '添加成功', 
+        title: app.t('index_add_success'), 
         icon: 'success',
         duration: 2000
       });
@@ -309,8 +348,12 @@ Page({
       if (this.loadingTimer) clearInterval(this.loadingTimer);
       console.error('处理文本失败:', err);
       wx.hideLoading();
-      this.setData({ isProcessing: false });
-      wx.showToast({ title: err.message || '提取失败，请重试', icon: 'none' });
+      this.setData({ 
+        isProcessing: false,
+        showTextInput: true,
+        textInputValue: text
+      });
+      wx.showToast({ title: err.message || (this.data.language === 'en' ? 'Extraction failed, please retry' : '提取失败，请重试'), icon: 'none' });
     }
   },
 
@@ -361,7 +404,7 @@ Page({
 
   getLocation() {
     return new Promise((resolve) => {
-      // Set 3 seconds timeout
+      // 模糊定位和解析可能会比较慢，适当延长超时到 5 秒
       let isResolved = false;
       const timeoutId = setTimeout(() => {
         if (!isResolved) {
@@ -369,27 +412,87 @@ Page({
           console.warn('Get location timeout');
           resolve(null);
         }
-      }, 3000);
+      }, 5000);
 
-      wx.getLocation({
-        type: 'wgs84',
-        success(res) {
-          if (!isResolved) {
-            isResolved = true;
-            clearTimeout(timeoutId);
-            resolve({
-              lat: res.latitude,
-              lng: res.longitude
+      wx.getSetting({
+        success: (settingRes) => {
+          if (settingRes.authSetting['scope.userFuzzyLocation'] === false) {
+            // 用户曾经拒绝过，引导开启
+            wx.showModal({
+              title: app.t('location_auth_title'),
+              content: app.t('location_auth_content'),
+              confirmText: app.t('go_to_setting'),
+              success(modalRes) {
+                if (modalRes.confirm) {
+                  wx.openSetting();
+                }
+              }
             });
+            if (!isResolved) {
+              isResolved = true;
+              clearTimeout(timeoutId);
+              resolve(null);
+            }
+            return;
           }
-        },
-        fail(err) {
-          if (!isResolved) {
-            isResolved = true;
-            clearTimeout(timeoutId);
-            console.warn('Get location failed:', err);
-            resolve(null);
-          }
+
+          // 发起模糊定位
+          wx.getFuzzyLocation({
+            type: 'wgs84',
+            success: (res) => {
+              const latitude = res.latitude;
+              const longitude = res.longitude;
+              
+              // TODO: 请替换为您申请的腾讯位置服务 Key (目前使用的是腾讯官方示例Key)
+              const TENCENT_MAP_KEY = '7JWBZ-2ZVEH-YKLD6-WHB26-IJODE-Q4FVO'; 
+              
+              wx.request({
+                url: 'https://apis.map.qq.com/ws/geocoder/v1/',
+                data: {
+                  location: `${latitude},${longitude}`,
+                  key: TENCENT_MAP_KEY,
+                  get_poi: 0
+                },
+                success: (geoRes) => {
+                  if (!isResolved) {
+                    isResolved = true;
+                    clearTimeout(timeoutId);
+                    
+                    if (geoRes.data && geoRes.data.status === 0) {
+                      const adInfo = geoRes.data.result.ad_info;
+                      resolve({
+                        lat: latitude,
+                        lng: longitude,
+                        nation: adInfo.nation,
+                        city: adInfo.city,
+                        province: adInfo.province
+                      });
+                    } else {
+                      console.warn('Reverse geocode failed:', geoRes.data);
+                      // 解析失败时，降级返回经纬度
+                      resolve({ lat: latitude, lng: longitude });
+                    }
+                  }
+                },
+                fail: (err) => {
+                  if (!isResolved) {
+                    isResolved = true;
+                    clearTimeout(timeoutId);
+                    console.warn('Reverse geocode request failed:', err);
+                    resolve({ lat: latitude, lng: longitude });
+                  }
+                }
+              });
+            },
+            fail: (err) => {
+              if (!isResolved) {
+                isResolved = true;
+                clearTimeout(timeoutId);
+                console.warn('Get fuzzy location failed:', err);
+                resolve(null);
+              }
+            }
+          });
         }
       });
     });
@@ -413,7 +516,7 @@ Page({
       });
     } catch (err) {
       console.error('analyze error:', err);
-      let title = app.t('err_analyze_failed') || '分析失败';
+      let title = app.t('err_analyze_failed');
       
       wx.showToast({
         title,

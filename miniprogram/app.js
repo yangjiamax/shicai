@@ -11,9 +11,6 @@ App({
 
   onLaunch() {
     console.log('[App] Launching...');
-    
-    // 1. 初始化语言
-    this.initLanguage();
 
     if (!wx.cloud) {
       console.error('请使用 2.2.3 或以上的基础库以使用云能力');
@@ -24,6 +21,9 @@ App({
         traceUser: true,
       });
     }
+    
+    // 1. 初始化语言
+    this.initLanguage();
 
     console.log('[App] Initializing auth...');
     this.initAuth();
@@ -58,6 +58,9 @@ App({
     this.globalData.language = lang;
     this.globalData.i18n = lang === 'en' ? en : zh;
     // 不在这里设置 Storage，保持 pf_lang 原样（可能是 system 或为空）
+
+    // 尝试同步到云端 users 表
+    this.syncUserPreferences({ language: lang });
   },
 
   switchLanguage(mode) {
@@ -84,5 +87,23 @@ App({
     this.globalData.userId = userId;
     this.globalData.authSource = auth.getAuthSource();
     console.log('[App] Auth initialized, userId:', userId);
+
+    // 登录成功后，也尝试同步一次
+    this.syncUserPreferences({ language: this.globalData.language });
+  },
+
+  async syncUserPreferences(preferences) {
+    if (!wx.cloud) return;
+    const userId = this.globalData.userId || wx.getStorageSync('pf_user_id');
+    if (!userId || userId === 'anonymous') return;
+
+    try {
+      const db = wx.cloud.database();
+      await db.collection('users').where({ _openid: userId }).update({
+        data: preferences
+      });
+    } catch (err) {
+      console.error('[App] Failed to sync user preferences:', err);
+    }
   }
 });

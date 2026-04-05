@@ -5,6 +5,71 @@ page {
   word-break: break-word; /* M14: 全局防止英文长文本溢出 */
 }
 
+/* Custom Picker */
+.custom-picker-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.3s;
+}
+.custom-picker-mask.show {
+  visibility: visible;
+  opacity: 1;
+}
+
+.custom-picker {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  border-radius: 32rpx 32rpx 0 0;
+  z-index: 1000;
+  transform: translateY(100%);
+  transition: transform 0.3s;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.custom-picker.show {
+  transform: translateY(0);
+}
+
+.custom-picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40rpx;
+  height: 110rpx;
+  border-bottom: 1rpx solid #eee;
+  font-size: 32rpx;
+}
+.custom-picker-cancel {
+  color: #888;
+  padding: 20rpx;
+  margin-left: -20rpx;
+}
+.custom-picker-confirm {
+  color: #07c160;
+  font-weight: 500;
+  padding: 20rpx;
+  margin-right: -20rpx;
+}
+.custom-picker-view {
+  width: 100%;
+  height: 480rpx;
+}
+.custom-picker-item {
+  line-height: 100rpx;
+  text-align: center;
+  font-size: 32rpx;
+  color: #333;
+}
+
 .container {
   min-height: 100vh;
 }

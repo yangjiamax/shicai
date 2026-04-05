@@ -5,7 +5,7 @@ page {
 }
 
 .container {
-  padding: 20rpx 40rpx;
+  padding: 36rpx 40rpx 20rpx;
   display: flex;
   flex-direction: column;
 }
@@ -87,8 +87,8 @@ page {
 }
 
 .brand-name {
-  margin-top: 12rpx;
-  font-size: 26rpx;
+  margin-bottom: 16rpx;
+  font-size: 28rpx;
   font-weight: 800;
   color: #4b6338;
   letter-spacing: 2rpx;
@@ -100,12 +100,17 @@ page {
 }
 
 .brand-slogan {
-  margin-top: 24rpx;
-  font-size: 28rpx;
+  margin-top: 16rpx;
+  font-size: 24rpx;
   font-weight: 500;
   color: #5c7444;
   letter-spacing: 2rpx;
   text-align: center;
+}
+
+.brand-center.english-mode .brand-slogan {
+  margin-top: 24rpx;
+  font-size: 28rpx;
   font-style: italic;
 }
 
@@ -346,8 +351,8 @@ page {
   position: absolute;
   top: 6rpx;
   left: 50%;
-  margin-left: -160rpx; /* Width 320rpx, half is 160rpx */
-  width: 320rpx;
+  margin-left: -130rpx; /* Width 260rpx, half is 130rpx */
+  width: 260rpx;
   height: 88rpx;
   background: #4b6338;
   border-radius: 44rpx;

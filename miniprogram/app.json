@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/onboarding/index",
     "pages/result/index",
     "pages/list/index",
     "pages/history-list/index",
@@ -41,12 +42,12 @@
     ]
   },
   "permission": {
-    "scope.userLocation": {
+    "scope.userFuzzyLocation": {
       "desc": "你的位置信息将用于推荐当地特色菜谱"
     }
   },
   "requiredPrivateInfos": [
-    "getLocation"
+    "getFuzzyLocation"
   ],
   "plugins": {
     "WechatSI": {

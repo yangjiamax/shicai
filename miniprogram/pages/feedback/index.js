@@ -17,7 +17,7 @@ Page({
     const i18n = app.globalData.i18n || {};
     this.setData({ i18n });
     wx.setNavigationBarTitle({
-      title: i18n.feedback_title || '意见反馈'
+      title: i18n.feedback_title
     });
   },
 
@@ -37,7 +37,7 @@ Page({
     const remainingCount = 3 - this.data.images.length;
     if (remainingCount <= 0) {
       wx.showToast({
-        title: this.data.i18n.feedback_upload_limit || '最多只能上传3张图片',
+        title: this.data.i18n.feedback_upload_limit,
         icon: 'none'
       });
       return;
@@ -102,7 +102,7 @@ Page({
     
     if (!this.data.content.trim()) {
       wx.showToast({
-        title: this.data.i18n.feedback_empty_content || '请先输入反馈内容',
+        title: this.data.i18n.feedback_empty_content,
         icon: 'none'
       });
       return;
@@ -110,7 +110,7 @@ Page({
 
     this.setData({ isSubmitting: true });
     wx.showLoading({
-      title: this.data.i18n.feedback_submitting || '提交中...',
+      title: this.data.i18n.feedback_submitting,
     });
 
     try {
@@ -138,7 +138,7 @@ Page({
 
       wx.hideLoading();
       wx.showToast({
-        title: this.data.i18n.feedback_submit_success || '感谢您的反馈！',
+        title: this.data.i18n.feedback_submit_success,
         icon: 'success',
         duration: 2000
       });
@@ -154,7 +154,7 @@ Page({
       // Fallback for MVP: act as if it succeeded to keep UX smooth
       // in case 'feedbacks' collection is not created yet or no network
       wx.showToast({
-        title: this.data.i18n.feedback_submit_success || '感谢您的反馈！',
+        title: this.data.i18n.feedback_submit_success,
         icon: 'success',
         duration: 2000
       });
@@ -173,7 +173,7 @@ Page({
       data: text,
       success: () => {
         wx.showToast({
-          title: this.data.i18n.feedback_copied || '已复制',
+          title: this.data.i18n.feedback_copied,
           icon: 'success'
         });
       }

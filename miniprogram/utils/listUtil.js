@@ -4,7 +4,7 @@
 /**
  * 逐道菜选购 (按菜谱分组)
  * @param {Array<Object>} ingredients - 当前活跃清单的所有食材数据
- * @returns {Array<Object>} 按 source_recipe 分组的数据结构
+ * @returns {Array<Object>} 按 sourceRecipe 分组的数据结构
  */
 function derivePlanningView(ingredients) {
   if (!ingredients || ingredients.length === 0) return [];
@@ -13,10 +13,14 @@ function derivePlanningView(ingredients) {
 
   ingredients.forEach(item => {
     // 如果没有来源菜谱，统一归为"独立食材"
-    let recipeName = item.source_recipe || '独立食材';
+    const independentKey = 'list_independent_ingredients';
+    const otherKey = '其他';
+    const directAddKey = '直接添加';
     
-    if (recipeName === '其他' || recipeName === '直接添加') {
-      recipeName = '独立食材';
+    let recipeName = item.sourceRecipe || independentKey;
+    
+    if (recipeName === otherKey || recipeName === directAddKey) {
+      recipeName = independentKey;
     }
 
     if (!groupMap[recipeName]) {
@@ -32,8 +36,8 @@ function derivePlanningView(ingredients) {
   // 把 "独立食材" 放在数组的最后
   const result = Object.values(groupMap);
   result.sort((a, b) => {
-    if (a.title === '独立食材') return 1;
-    if (b.title === '独立食材') return -1;
+    if (a.title === 'list_independent_ingredients') return 1;
+    if (b.title === 'list_independent_ingredients') return -1;
     return 0;
   });
 
@@ -43,7 +47,7 @@ function derivePlanningView(ingredients) {
 /**
  * 汇总选购 (按超市动线分类分组，并合并同名食材)
  * @param {Array<Object>} ingredients - 当前活跃清单的所有食材数据
- * @returns {Array<Object>} 分为鱼鲜肉蛋、生鲜蔬果、粮油配料、其他，并对相同 standard_name 进行合并
+ * @returns {Array<Object>} 分为鱼鲜肉蛋、生鲜蔬果、粮油配料、其他，并对相同 standardName 进行合并
  */
 function deriveExecutionView(ingredients) {
   if (!ingredients || ingredients.length === 0) return [];
@@ -51,14 +55,14 @@ function deriveExecutionView(ingredients) {
   const mergeItems = (items) => {
     const mergedMap = {};
     items.forEach(item => {
-      const nameKey = item.standard_name || item.name;
+      const nameKey = item.standardName || item.name;
       if (!mergedMap[nameKey]) {
         mergedMap[nameKey] = {
           ...item,
-          original_ids: [item._id]
+          original_ids: [item.id || item._id]
         };
       } else {
-        mergedMap[nameKey].original_ids.push(item._id);
+        mergedMap[nameKey].original_ids.push(item.id || item._id);
         if (item.status === 'pending') {
           mergedMap[nameKey].status = 'pending';
         }
@@ -128,7 +132,7 @@ function deriveExecutionView(ingredients) {
 
     // 如果是“其他”，尝试通过名称推断真实分类
     if (cat === '其他') {
-      const nameToGuess = item.standard_name || item.name;
+      const nameToGuess = item.standardName || item.name;
       cat = guessCategory(nameToGuess);
     }
 
@@ -141,8 +145,8 @@ function deriveExecutionView(ingredients) {
         const itemA = mergedItems[i];
         const itemB = mergedItems[j];
         if (itemA.status === 'pending' && itemB.status === 'pending') {
-          const nameA = itemA.standard_name || itemA.name;
-          const nameB = itemB.standard_name || itemB.name;
+          const nameA = itemA.standardName || itemA.name;
+          const nameB = itemB.standardName || itemB.name;
           if ((nameA.includes(nameB) || nameB.includes(nameA)) && nameA !== nameB) {
             itemA.suggestMerge = true;
             itemA.mergeTargetName = nameB;

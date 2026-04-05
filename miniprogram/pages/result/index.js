@@ -97,9 +97,15 @@ Page({
       }
       
       if (!resultData) return;
+
+      // 兼容历史数据的 snake_case
+      if (resultData.ingredient_name) resultData.ingredientName = resultData.ingredient_name;
+      if (resultData.ingredient_desc) resultData.ingredientDesc = resultData.ingredient_desc;
+      if (resultData.freshness_level) resultData.freshnessLevel = resultData.freshness_level;
+      if (resultData.freshness_reason) resultData.freshnessReason = resultData.freshness_reason;
       
       // 映射新鲜度状态为英文类名
-      resultData.freshness_class = getFreshnessClass(resultData.freshness_level);
+      resultData.freshnessClass = getFreshnessClass(resultData.freshnessLevel);
 
       // 初始化 recipes 结构（如果是第一步刚进来，recipes 会是 undefined）
       if (!resultData.recipes || typeof resultData.recipes !== 'object') {
@@ -113,14 +119,14 @@ Page({
 
       // 如果是从首页新拍摄进来的，触发渐进式请求
       const hasFamiliarRecipes = resultData.recipes && resultData.recipes.familiar && resultData.recipes.familiar.length > 0;
-      if (!isFromHistoryOrShare && !hasFamiliarRecipes && resultData.ingredient_name) {
+      if (!isFromHistoryOrShare && !hasFamiliarRecipes && resultData.ingredientName) {
         const nationality = options.nationality ? decodeURIComponent(options.nationality) : '';
         let location = null;
         try {
           if (options.location) location = JSON.parse(decodeURIComponent(options.location));
         } catch(e) {}
         
-        this.fetchExtraData(resultData.ingredient_name, nationality, location);
+        this.fetchExtraData(resultData.ingredientName, nationality, location);
       } else {
         // 如果是历史记录，直接处理已有的完整数据
         this.processRecipesData();
@@ -158,8 +164,14 @@ Page({
     try {
       const resultData = await analyzeUtil.analyzeImage(imagePath, { forceMock: false });
       
+      // 兼容历史数据
+      if (resultData.ingredient_name) resultData.ingredientName = resultData.ingredient_name;
+      if (resultData.ingredient_desc) resultData.ingredientDesc = resultData.ingredient_desc;
+      if (resultData.freshness_level) resultData.freshnessLevel = resultData.freshness_level;
+      if (resultData.freshness_reason) resultData.freshnessReason = resultData.freshness_reason;
+
       // 映射新鲜度状态为英文类名
-      resultData.freshness_class = getFreshnessClass(resultData.freshness_level);
+      resultData.freshnessClass = getFreshnessClass(resultData.freshnessLevel);
       resultData.recipes = { familiar: [], local: [] };
       resultData.imagePath = imagePath; // 保留本地路径以便显示
 
@@ -171,8 +183,8 @@ Page({
       this.stopTypingEffect();
 
       // 视觉识别完成后，开始获取菜谱
-      if (resultData.ingredient_name) {
-        this.fetchExtraData(resultData.ingredient_name, nationality, location);
+      if (resultData.ingredientName) {
+        this.fetchExtraData(resultData.ingredientName, nationality, location);
       }
 
     } catch (err) {
@@ -223,7 +235,7 @@ Page({
       try {
         const familiarRes = await analyzeUtil.analyzeFamiliar(ingredientName, nationality);
         let currentResult = this.data.result;
-        currentResult.recipes.familiar = familiarRes.recipes_familiar || [];
+        currentResult.recipes.familiar = familiarRes.recipesFamiliar || [];
         
         this.setData({ 
           result: currentResult,
@@ -242,7 +254,7 @@ Page({
       try {
         const localRes = await analyzeUtil.analyzeLocal(ingredientName, location);
         let currentResult = this.data.result;
-        currentResult.recipes.local = localRes.recipes_local || [];
+        currentResult.recipes.local = localRes.recipesLocal || [];
         
         this.setData({ 
           result: currentResult,
@@ -269,10 +281,13 @@ Page({
     const processRecipesArray = (recipesArray) => {
       if (!recipesArray || !Array.isArray(recipesArray)) return [];
       return recipesArray.map(recipe => {
-        if (recipe.ingredients_needed && Array.isArray(recipe.ingredients_needed)) {
+        if (recipe.recipe_name) recipe.recipeName = recipe.recipe_name;
+        if (recipe.ingredients_needed) recipe.ingredientsNeeded = recipe.ingredients_needed;
+
+        if (recipe.ingredientsNeeded && Array.isArray(recipe.ingredientsNeeded)) {
           const separator = app.globalData.language === 'en' ? ', ' : '、';
-          const top3 = recipe.ingredients_needed.slice(0, 3).join(separator);
-          const suffix = recipe.ingredients_needed.length > 3 ? app.t('res_etc') : '';
+          const top3 = recipe.ingredientsNeeded.slice(0, 3).join(separator);
+          const suffix = recipe.ingredientsNeeded.length > 3 ? app.t('res_etc') : '';
           recipe.ingredients_summary = top3 + suffix;
         } else {
           recipe.ingredients_summary = '';
@@ -300,11 +315,11 @@ Page({
 
     let initialIndex = 0;
     if (importedListData && importedListData.recipeName && displayRecipes) {
-      const foundIndex = displayRecipes.findIndex(r => r.recipe_name === importedListData.recipeName);
+      const foundIndex = displayRecipes.findIndex(r => r.recipeName === importedListData.recipeName);
       if (foundIndex !== -1) {
         initialIndex = foundIndex;
       } else if (showTabs && resultData.recipes.local) {
-        const foundLocalIndex = resultData.recipes.local.findIndex(r => r.recipe_name === importedListData.recipeName);
+        const foundLocalIndex = resultData.recipes.local.findIndex(r => r.recipeName === importedListData.recipeName);
         if (foundLocalIndex !== -1) {
           this.setData({
             activeTab: 'local',
@@ -331,7 +346,7 @@ Page({
       activeTab: tab,
       displayRecipes: displayRecipes,
       selectedIndex: 0,
-      selectedIngredients: displayRecipes.length > 0 ? displayRecipes[0].ingredients_needed : []
+      selectedIngredients: displayRecipes.length > 0 ? displayRecipes[0].ingredientsNeeded : []
     });
   },
 
@@ -340,7 +355,7 @@ Page({
     if (displayRecipes && displayRecipes[index]) {
       this.setData({
         selectedIndex: index,
-        selectedIngredients: displayRecipes[index].ingredients_needed
+        selectedIngredients: displayRecipes[index].ingredientsNeeded
       });
     }
   },
@@ -364,19 +379,28 @@ Page({
     const selectedRecipe = this.data.displayRecipes[this.data.selectedIndex];
     const dbUtil = require('../../utils/db.js');
     
-    wx.showLoading({ title: '正在加入...', mask: true });
+    wx.showLoading({ title: app.t('res_adding_to_list'), mask: true });
     
     try {
       // 1. 获取今日活跃清单 ID
       const listId = await dbUtil.getActiveList();
       
-      // 2. 格式化 Ingredient 对象
-      const ingredients = this.data.selectedIngredients.map(name => ({
-        name: name,
-        standard_name: name,
-        category: '其他', // 默认分类
-        source_recipe: selectedRecipe.recipe_name
-      }));
+      // 2. 格式化 Ingredient 对象 (仅加入主食材，不加入菜谱佐料，因为用户还没看菜谱详情)
+      const ingredients = [];
+      
+      // 必须将主食材（ingredientName）作为一个 item 写入
+      if (result.ingredientName) {
+        ingredients.push({
+          name: result.ingredientName,
+          standardName: result.ingredientName,
+          category: 'list_other_ingredients',
+          sourceRecipe: ''
+        });
+      } else {
+        wx.hideLoading();
+        wx.showToast({ title: app.t('res_no_main_ingredient'), icon: 'none' });
+        return;
+      }
       
       // 3. 写入活跃清单
       await dbUtil.addIngredientsToList(listId, ingredients);
@@ -404,13 +428,16 @@ Page({
 
         await db.collection('histories').add({
           data: {
-            ingredient_name: result.ingredient_name,
-            selected_recipe: {
-              recipe_name: selectedRecipe.recipe_name,
-              ingredients_needed: selectedRecipe.ingredients_needed
+            sourceType: 'vision',
+            ingredientName: result.ingredientName || '',
+            selectedRecipe: {
+              recipeName: selectedRecipe.recipeName,
+              ingredientsNeeded: selectedRecipe.ingredientsNeeded
             },
             analysisResult: result,
-            createdAt: db.serverDate()
+            cloudImagePath: result.cloudImagePath || '',
+            createdAt: db.serverDate(),
+            updatedAt: db.serverDate()
           }
         });
       } catch (historyErr) {
@@ -422,7 +449,7 @@ Page({
       
       // 5. 交互优化：弹出提示
       wx.showToast({
-        title: '已加入清单',
+        title: app.t('res_add_list_success'),
         icon: 'success',
         duration: 2000
       });
@@ -436,7 +463,7 @@ Page({
       console.error('加入清单失败:', err);
       wx.hideLoading();
       wx.showToast({
-        title: '加入失败',
+        title: app.t('res_add_list_failed'),
         icon: 'none'
       });
     }
@@ -486,6 +513,32 @@ Page({
   goHome() {
     wx.reLaunch({
       url: '/pages/index/index'
+    });
+  },
+
+  viewRecipe() {
+    const selectedRecipe = this.data.displayRecipes[this.data.selectedIndex];
+    if (!selectedRecipe) return;
+
+    const result = this.data.result;
+
+    // Transform ingredientsNeeded string array to objects
+    const ingredients = (selectedRecipe.ingredientsNeeded || []).map(name => ({
+      name: name,
+      category: 'list_other_ingredients'
+    }));
+
+    const recipeData = {
+      recipeName: selectedRecipe.recipeName,
+      ingredients: ingredients,
+      ingredientName: result.ingredientName || selectedRecipe.recipeName,
+      sourceType: this.data.activeTab || 'custom',
+      imagePath: result.imagePath || '',
+      cloudImagePath: result.cloudImagePath || ''
+    };
+
+    wx.navigateTo({
+      url: `/pages/recipe/index?data=${encodeURIComponent(JSON.stringify(recipeData))}`
     });
   }
 });

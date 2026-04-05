@@ -18,7 +18,7 @@
 
         <!-- Upload Entry integrated under hero -->
         <view class="album-action" catchtap="handleAlbum" hover-class="album-hover">
-          <text class="album-text">{{i18n.album_entry || '相册导入'}}</text>
+          <text class="album-text">{{i18n.album_entry}}</text>
         </view>
       </view>
     </view>
@@ -27,6 +27,7 @@
     <view class="middle-transition">
       <block wx:if="{{language === 'en'}}">
         <view class="brand-center english-mode">
+          <text class="brand-name">{{i18n.app_name}}</text>
           <view class="brand-logo-wrapper">
             <image class="brand-logo" src="/images/app_logo.png" mode="aspectFill"></image>
           </view>
@@ -35,20 +36,21 @@
       </block>
       <block wx:else>
         <view class="transition-left">
-          <text class="transition-text">{{i18n.transition_identify || '鉴食材'}}</text>
+          <text class="transition-text">{{i18n.transition_identify}}</text>
           <view class="transition-line left-line"></view>
         </view>
         
         <view class="brand-center">
+          <text class="brand-name">{{i18n.app_name}}</text>
           <view class="brand-logo-wrapper">
             <image class="brand-logo" src="/images/app_logo.png" mode="aspectFill"></image>
           </view>
-          <text class="brand-name">{{i18n.app_name}}</text>
+          <text class="brand-slogan">{{i18n.app_slogan}}</text>
         </view>
 
         <view class="transition-right">
           <view class="transition-line right-line"></view>
-          <text class="transition-text">{{i18n.transition_list || '列清单'}}</text>
+          <text class="transition-text">{{i18n.transition_list}}</text>
         </view>
       </block>
     </view>
@@ -75,19 +77,19 @@
             <view class="swipe-btn-content">
               <text class="swipe-icon sys-icon icon-flash" wx:if="{{!isRecording}}"></text>
               <text class="swipe-icon sys-icon icon-stop" wx:else></text>
-              <text class="swipe-text">{{isRecording ? '点击停止录音' : '生成采购单'}}</text>
+              <text class="swipe-text">{{isRecording ? i18n.index_stop_record : i18n.index_generate_list}}</text>
             </view>
           </view>
         </view>
         
         <!-- 生成采购单引导词 -->
         <view class="swipe-guide">
-          <text class="swipe-guide-text">{{i18n.swipe_guide || '扫货不遗漏'}}</text>
+          <text class="swipe-guide-text">{{i18n.swipe_guide}}</text>
         </view>
 
         <view class="dashboard-header" bindtap="goToList" hover-class="card-hover" style="margin-top: 32rpx;">
           <view class="dashboard-info">
-            <text class="dashboard-title">{{i18n.list_progress_title || '今日采购清单'}}</text>
+            <text class="dashboard-title">{{i18n.list_progress_title}}</text>
             <text class="dashboard-desc">{{progressText}}</text>
           </view>
           <view class="arrow-icon">></view>
@@ -123,7 +125,7 @@
         </view>
         <text class="loading-text animated-text">{{dynamicLoadingText}}</text>
         <view class="loading-hint">
-          <text>AI大厨正在为您处理，请稍候</text>
+          <text>{{i18n.index_ai_processing}}</text>
         </view>
         <!-- 底部加载进度条动画 -->
         <view class="loading-progress-track">
@@ -139,7 +141,7 @@
         <view class="notebook-line"></view>
         
         <view class="notebook-header">
-          <text class="notebook-title">📝 快速记录食材</text>
+          <text class="notebook-title">{{i18n.index_quick_record}}</text>
           <view class="notebook-close" bindtap="closeTextInput">✕</view>
         </view>
         
@@ -147,7 +149,7 @@
           <textarea class="notebook-textarea" 
                     value="{{textInputValue}}" 
                     bindinput="onTextInput" 
-                    placeholder="可以直接填写菜名（如：西红柿炒鸡蛋）\n或者直接写食材（如：3个西红柿、半斤牛肉）..." 
+                    placeholder="{{i18n.index_record_placeholder}}" 
                     maxlength="-1"
                     focus="{{showTextInput}}"
                     show-confirm-bar="{{false}}"
@@ -156,8 +158,8 @@
         </view>
         
         <view class="notebook-footer">
-          <view class="notebook-btn cancel" bindtap="closeTextInput">取消</view>
-          <view class="notebook-btn confirm" bindtap="confirmTextInput">生成清单</view>
+          <view class="notebook-btn cancel" bindtap="closeTextInput">{{i18n.my_cancel}}</view>
+          <view class="notebook-btn confirm" bindtap="confirmTextInput">{{i18n.index_generate_btn}}</view>
         </view>
       </view>
     </view>
