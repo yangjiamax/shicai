@@ -66,14 +66,7 @@ async function extractFirstImageFromUrl(url, platform = 'general') {
     });
     const html = res.data;
     
-    if (platform === 'foodcom') {
-      // Food.com 特定的图片抓取逻辑
-      const foodImgMatch = html.match(/<img[^>]+class=["'][^"']*recipe-image[^"']*["'][^>]+src=["']([^"']+)["']/i) ||
-                           html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
-      if (foodImgMatch && !foodImgMatch[1].includes('logo')) {
-        return foodImgMatch[1];
-      }
-    } else if (platform === 'xiachufang') {
+    if (platform === 'xiachufang') {
       // 下厨房特定的图片抓取逻辑
       const xcfImgMatch = html.match(/<div[^>]+class=["']cover["'][^>]*>\s*<img[^>]+(?:src|data-src)=["']([^"']+)["']/i) ||
                           html.match(/<img[^>]+itemprop=["']image["'][^>]+(?:src|data-src)=["']([^"']+)["']/i) ||
@@ -149,62 +142,7 @@ async function handleSearchTutorial(keyword, lang) {
   }
 
   if (lang === 'en') {
-    let foodcomResults = [];
-
-    // Food.com Native API
-    try {
-      const fcRes = await axios.get('https://api.food.com/services/mobile/fdc/search/sectionfront', {
-        params: {
-          pn: 1,
-          recordType: 'Recipe',
-          q: keyword
-        },
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        },
-        timeout: 8000
-      });
-      
-      const results = fcRes.data?.response?.results;
-      if (results && Array.isArray(results)) {
-        foodcomResults = results.slice(0, 10).map(v => ({
-          title: v.title,
-          url: v.record_url,
-          thumbnail: v.primary_photo_url || v.recipe_photo_url || 'https://www.food.com/favicon.ico',
-          source: 'foodcom'
-        }));
-      }
-    } catch (err) {
-      console.error('Food.com search failed:', err.message);
-    }
-
-    if (foodcomResults.length > 0) {
-      const result = {
-        error: false,
-        data: {
-          foodcom: foodcomResults
-        }
-      };
-      await setCache(cacheKey, result);
-      return result;
-    }
-
-    // Fallback Mock Data for EN
-    const mockDataEn = {
-      error: false,
-      data: {
-        foodcom: [
-          {
-            title: `Best Ever ${keyword}`,
-            url: "https://www.food.com/search/" + encodeURIComponent(keyword),
-            thumbnail: "https://www.food.com/favicon.ico",
-            source: "foodcom"
-          }
-        ]
-      }
-    };
-    await setCache(cacheKey, mockDataEn);
-    return mockDataEn;
+    return { error: true, message: 'Tutorial search is not supported in English version yet.' };
   }
   
   // 1. 尝试直接请求 B站原生搜索 API (效果最精准)

@@ -24,7 +24,7 @@
 
 详见 docs/ 下的 PRD、接口结构与 Prompt 约定，用于把云函数的 mock 替换为真实多模态模型调用：
 
-- docs/mvp-prd.md
-- docs/api.md
-- docs/prompt.md
-- docs/dev.md
+- docs/prd/mvp-prd.md
+- docs/api/api.md
+- docs/api/prompt.md
+- docs/guide/dev.md

@@ -14,10 +14,6 @@ Page({
     i18n: {},
     lang: 'zh',
     showTutorialSheet: false,
-    tutorialLoading: false,
-    tutorialError: false,
-    tutorialErrorMsg: '',
-    tutorials: [],
     currentTutorialKeyword: '',
     tutorialPlatform: 'bilibili'
   },
@@ -194,73 +190,36 @@ Page({
   },
 
   async saveRecipe() {
-    const authSource = app.globalData.authSource || wx.getStorageSync('pf_auth_source');
-    if (authSource !== 'cloud_openid' || !wx.cloud) {
-      wx.showToast({ title: this.data.i18n.my_err_cloud_user, icon: 'none' });
+    const recipeUtil = require('../../utils/recipeUtil.js');
+    
+    if (!this.data.recipeName || this.data.recipeName === 'list_independent_ingredients' || this.data.recipeName === 'list_other_ingredients' || this.data.recipeName === 'list_direct_add') return;
+
+    if (this.data.isSaved) {
+      wx.showToast({ title: app.t('recipe_saved_already'), icon: 'none' });
       return;
     }
 
-    if (!this.data.recipeName || this.data.recipeName === 'list_independent_ingredients' || this.data.recipeName === 'list_other_ingredients' || this.data.recipeName === 'list_direct_add') return;
+    const res = await recipeUtil.saveRecipe({
+      recipeName: this.data.recipeName,
+      ingredients: this.data.ingredients,
+      sourceType: this.data.sourceType || 'familiar',
+      imagePath: this.data.imagePath,
+      cloudImagePath: this.data.cloudImagePath,
+      ingredientName: this.data.ingredientName
+    });
 
-    wx.showLoading({ title: app.t('recipe_saving'), mask: true });
-
-    try {
-      const db = wx.cloud.database();
-      const userId = app.globalData.userId || wx.getStorageSync('pf_user_id');
-
-      // 如果有图片且是本地图片，先上传
-      let cloudImagePath = this.data.cloudImagePath || '';
-      if (this.data.imagePath && !this.data.imagePath.startsWith('cloud://') && !cloudImagePath) {
-        try {
-          const ext = this.data.imagePath.match(/\.([^.]+)$/)?.[1] || 'jpg';
-          const cloudPath = `recipes/${userId}-${Date.now()}-${Math.floor(Math.random() * 1000)}.${ext}`;
-          const uploadRes = await wx.cloud.uploadFile({
-            cloudPath: cloudPath,
-            filePath: this.data.imagePath
-          });
-          cloudImagePath = uploadRes.fileID;
-          this.setData({ cloudImagePath });
-        } catch (uploadErr) {
-          console.error('上传菜谱封面图失败:', uploadErr);
-        }
-      }
-
-      // 检查是否已经收藏过
-      const { data: existing } = await db.collection('recipes').where({
-        _openid: userId,
-        recipeName: this.data.recipeName
-      }).get();
-
-      if (existing && existing.length > 0) {
-        wx.hideLoading();
-        this.setData({ isSaved: true });
-        wx.showToast({ title: app.t('recipe_saved_already'), icon: 'none' });
-        return;
-      }
-
-      await db.collection('recipes').add({
-        data: {
-          recipeName: this.data.recipeName,
-          ingredientName: this.data.ingredientName || this.data.recipeName,
-          ingredientsNeeded: this.data.ingredients.map(ing => ing.name),
-          sourceType: this.data.sourceType || 'familiar',
-          cloudImagePath: cloudImagePath,
-          createdAt: db.serverDate(),
-          updatedAt: db.serverDate()
-        }
+    if (res.success) {
+      this.setData({ 
+        isSaved: true,
+        cloudImagePath: res.cloudImagePath || this.data.cloudImagePath
       });
-
-      wx.hideLoading();
-      this.setData({ isSaved: true });
-      wx.showToast({ title: app.t('recipe_saved_success'), icon: 'success' });
-    } catch (err) {
-      console.error('收藏食谱失败:', err);
-      wx.hideLoading();
-      wx.showToast({ title: app.t('recipe_save_failed'), icon: 'none' });
+      wx.showToast({ title: res.message, icon: 'success' });
+    } else if (!res.handled) {
+      wx.showToast({ title: res.message, icon: 'none' });
     }
   },
 
-  // --- 视频做法检索功能 ---
+  // --- 视频做法检索功能 (组件化重构后) ---
   searchTutorial(e) {
     const platform = e.currentTarget.dataset.platform || 'bilibili';
     const recipeName = this.data.recipeName;
@@ -268,86 +227,14 @@ Page({
 
     this.setData({
       showTutorialSheet: true,
-      tutorialLoading: true,
-      tutorialError: false,
-      tutorialErrorMsg: '',
-      tutorials: [],
       currentTutorialKeyword: recipeName,
       tutorialPlatform: platform
     });
-
-    this.fetchTutorials(recipeName, platform);
-  },
-
-  async fetchTutorials(keyword, platform) {
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'analyze',
-        data: {
-          action: 'search_tutorial',
-          keyword: keyword,
-          lang: app.globalData.language
-        }
-      });
-
-      if (res.result && !res.result.error && res.result.data) {
-        const results = res.result.data[platform];
-        if (results && results.length > 0) {
-          this.setData({
-            tutorialLoading: false,
-            tutorials: results
-          });
-        } else {
-          throw new Error('Empty response for ' + platform);
-        }
-      } else {
-        throw new Error(res.result?.message || 'Empty response');
-      }
-    } catch (err) {
-      console.error('Fetch tutorials failed:', err);
-      this.setData({
-        tutorialLoading: false,
-        tutorialError: true,
-        tutorialErrorMsg: this.data.i18n.err_cloud_func
-      });
-    }
-  },
-
-  retryTutorial() {
-    if (this.data.currentTutorialKeyword) {
-      this.setData({
-        tutorialLoading: true,
-        tutorialError: false
-      });
-      this.fetchTutorials(this.data.currentTutorialKeyword, this.data.tutorialPlatform);
-    }
   },
 
   closeTutorialSheet() {
     this.setData({
       showTutorialSheet: false
-    });
-  },
-
-  openTutorialLink(e) {
-    const url = e.currentTarget.dataset.url;
-    if (!url) return;
-
-    wx.setClipboardData({
-      data: url,
-      success: () => {
-        wx.showToast({
-          title: this.data.i18n.tutorial_copy_success,
-          icon: 'none',
-          duration: 3000
-        });
-      },
-      fail: () => {
-        wx.showToast({
-          title: this.data.i18n.tutorial_copy_fail,
-          icon: 'none'
-        });
-      }
     });
   }
 });

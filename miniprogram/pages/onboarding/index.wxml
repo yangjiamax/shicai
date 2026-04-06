@@ -20,7 +20,7 @@
         </view>
         <view class="profile-card">
           <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
-            <image class="avatar-img" src="{{userInfo.avatar || '/images/icons/user.svg'}}" mode="aspectFill"></image>
+            <image class="avatar-img" src="{{userInfo.avatar || '/images/icons/user.svg'}}" mode="aspectFill" binderror="onAvatarError"></image>
           </button>
           <view class="nickname-wrapper">
             <input class="nickname-input" type="nickname" placeholder="{{i18n.onboarding_input_nickname}}" value="{{userInfo.nickname}}" bindinput="onNicknameInput" bindblur="onNicknameInput" />

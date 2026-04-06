@@ -81,21 +81,27 @@ App({
     return this.globalData.i18n[key] || key;
   },
 
-  async initAuth() {
+  initAuth() {
     const auth = require('./utils/auth.js');
-    const userId = await auth.initAuth();
-    this.globalData.userId = userId;
-    this.globalData.authSource = auth.getAuthSource();
-    console.log('[App] Auth initialized, userId:', userId);
+    this.authReadyPromise = (async () => {
+      const userId = await auth.initAuth();
+      this.globalData.userId = userId;
+      this.globalData.authSource = auth.getAuthSource();
+      console.log('[App] Auth initialized, userId:', userId);
 
-    // 登录成功后，也尝试同步一次
-    this.syncUserPreferences({ language: this.globalData.language });
+      // 登录成功后，也尝试同步一次
+      this.syncUserPreferences({ language: this.globalData.language });
+      return userId;
+    })();
+    return this.authReadyPromise;
   },
 
   async syncUserPreferences(preferences) {
     if (!wx.cloud) return;
     const userId = this.globalData.userId || wx.getStorageSync('pf_user_id');
-    if (!userId || userId === 'anonymous') return;
+    const authSource = this.globalData.authSource || wx.getStorageSync('pf_auth_source');
+    
+    if (!userId || authSource !== 'cloud_openid') return;
 
     try {
       const db = wx.cloud.database();

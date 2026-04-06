@@ -50,10 +50,7 @@
                   <view wx:if="{{lang !== 'en'}}" class="btn-tutorial-small" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="bilibili">
                     <text class="sys-icon icon-tv"></text> {{i18n.btn_search_tutorial}}
                   </view>
-                  <view wx:if="{{lang === 'en'}}" class="btn-tutorial-small xcf-btn" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="foodcom">
-                    <text class="sys-icon icon-pan"></text> {{i18n.btn_search_tutorial_xcf}}
-                  </view>
-                  <view wx:elif="{{lang !== 'en'}}" class="btn-tutorial-small xcf-btn" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="xiachufang">
+                  <view wx:if="{{lang !== 'en'}}" class="btn-tutorial-small xcf-btn" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="xiachufang">
                     <text class="sys-icon icon-pan"></text> {{i18n.btn_search_tutorial_xcf}}
                   </view>
                 </block>
@@ -109,48 +106,11 @@
     <button class="btn-primary" bindtap="addAllToNewList">{{i18n.list_add_all}}</button>
   </view>
 
-  <!-- Tutorial Bottom Sheet -->
-  <view class="tutorial-mask {{showTutorialSheet ? 'show' : ''}}" bindtap="closeTutorialSheet"></view>
-  <view class="tutorial-sheet {{showTutorialSheet ? 'show' : ''}}">
-    <view class="tutorial-header">
-      <text class="tutorial-title">{{tutorialPlatform === 'xiachufang' || tutorialPlatform === 'foodcom' ? i18n.tutorial_sheet_title_xcf : i18n.tutorial_sheet_title}}</text>
-      <view class="tutorial-close" bindtap="closeTutorialSheet">✕</view>
-    </view>
-    
-    <view class="tutorial-content">
-      <view class="tutorial-loading" wx:if="{{tutorialLoading}}">
-        <view class="loading-spinner"></view>
-        <text class="loading-text">{{i18n.loading}}</text>
-      </view>
-      
-      <view class="tutorial-error" wx:elif="{{tutorialError}}">
-        <image class="error-icon" src="/images/icons/error.svg" mode="aspectFit"></image>
-        <text class="error-text">{{tutorialErrorMsg}}</text>
-        <button class="btn-secondary" bindtap="retryTutorial">{{i18n.res_retake}}</button>
-      </view>
-      
-      <scroll-view scroll-y class="tutorial-list" wx:elif="{{tutorials && tutorials.length > 0}}">
-        <view class="tutorial-card" wx:for="{{tutorials}}" wx:key="index" bindtap="openTutorialLink" data-url="{{item.url}}">
-          <image class="tutorial-thumb" src="{{item.thumbnail}}" mode="aspectFill"></image>
-          <view class="tutorial-info">
-            <text class="tutorial-video-title">{{item.title}}</text>
-            <view class="tutorial-platform">
-              <view class="platform-group">
-                <view class="platform-tag {{item.source === 'xiachufang' || item.source === 'foodcom' ? 'xiachufang' : 'bilibili'}}">
-                  <text wx:if="{{item.source === 'xiachufang' || item.source === 'foodcom'}}">{{i18n.tutorial_platform_xcf}}</text>
-                  <text wx:else>Bilibili</text>
-                </view>
-                <text class="view-count" wx:if="{{item.viewCountFormatted}}">▶ {{item.viewCountFormatted}}</text>
-              </view>
-              <text class="tutorial-link-text"><text class="sys-icon icon-link"></text> {{i18n.tutorial_open}}</text>
-            </view>
-          </view>
-        </view>
-      </scroll-view>
-      
-      <view class="tutorial-empty" wx:else>
-        <text>{{i18n.tutorial_empty}}</text>
-      </view>
-    </view>
-  </view>
+  <!-- Tutorial Bottom Sheet Component -->
+  <tutorial-sheet 
+    visible="{{showTutorialSheet}}" 
+    keyword="{{currentTutorialKeyword}}" 
+    platform="{{tutorialPlatform}}"
+    bind:close="closeTutorialSheet">
+  </tutorial-sheet>
 </view>

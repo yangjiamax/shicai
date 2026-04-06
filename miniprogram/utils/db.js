@@ -1,14 +1,39 @@
 // db.js
 // 数据库配置与实体声明，适配 V2 双引擎架构
 const db = wx.cloud.database();
+const originalCollection = db.collection.bind(db);
 
 const COLLECTIONS = {
   USERS: 'users',
   SHOPPING_LISTS: 'shopping_lists',
   HISTORIES: 'histories',
   CACHES: 'caches',
-  FEEDBACKS: 'feedbacks'
+  FEEDBACKS: 'feedbacks',
+  RECIPES: 'recipes'
 };
+
+/**
+ * 动态路由获取集合：根据当前 authSource 决定是否返回 temp_ 前缀集合
+ * @param {string} name - 集合名称
+ */
+function getCollection(name) {
+  const auth = require('./auth.js');
+  const authSource = auth.getAuthSource();
+  
+  const tempEnabledCollections = [
+    COLLECTIONS.SHOPPING_LISTS,
+    COLLECTIONS.HISTORIES,
+    COLLECTIONS.RECIPES
+  ];
+
+  if (authSource === 'anonymous' && tempEnabledCollections.includes(name)) {
+    return originalCollection(`temp_${name}`);
+  }
+  return originalCollection(name);
+}
+
+// 覆盖默认的 collection 方法，实现全局无缝路由
+db.collection = getCollection;
 
 /**
  * Entity: Shopping List (购物清单)
@@ -55,7 +80,7 @@ function generateId() {
  * @returns {Promise<string>} 返回 active list 的 _id
  */
 async function getActiveList() {
-  const collection = db.collection(COLLECTIONS.SHOPPING_LISTS);
+  const collection = getCollection(COLLECTIONS.SHOPPING_LISTS);
   const auth = require('./auth.js');
   const userId = auth.getUserId();
   const _ = db.command;
@@ -113,7 +138,7 @@ async function getActiveList() {
 async function getListById(listId) {
   if (!listId) return null;
   try {
-    const res = await db.collection(COLLECTIONS.SHOPPING_LISTS).doc(listId).get();
+    const res = await getCollection(COLLECTIONS.SHOPPING_LISTS).doc(listId).get();
     return res.data;
   } catch (err) {
     console.error('getListById error:', err);

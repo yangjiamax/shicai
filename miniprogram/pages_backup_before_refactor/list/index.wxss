@@ -1,0 +1,592 @@
+page {
+  background: #fcf9f8;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, sans-serif;
+  padding-bottom: 40rpx;
+}
+
+.container {
+  padding: 0 40rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Toggle Bar */
+.toggle-bar {
+  display: flex;
+  background: #ffffff;
+  border-radius: 40rpx;
+  margin: 30rpx 0;
+  padding: 8rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+}
+
+.toggle-item {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 28rpx;
+  color: #74796d;
+  position: relative;
+  border-radius: 32rpx;
+  transition: all 0.3s ease;
+}
+
+.toggle-item.active {
+  color: #ffffff;
+  background: #4b6338;
+  font-weight: 600;
+  box-shadow: 0 4rpx 12rpx rgba(75, 99, 56, 0.2);
+}
+
+/* Empty & Loading States */
+.loading-state, .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 6rpx solid #e4e2e1;
+  border-top-color: #4b6338;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.empty-icon {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: 40rpx;
+  opacity: 0.8;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1b1c1c;
+  margin-bottom: 16rpx;
+}
+
+.empty-hint {
+  font-size: 26rpx;
+  color: #74796d;
+}
+
+/* Grouped List */
+.list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+}
+
+.list-group-wrapper {
+  position: relative;
+  border-radius: 32rpx;
+  background: #ff4d4f;
+  overflow: hidden;
+}
+
+.list-group {
+  position: relative;
+  z-index: 1;
+  background: #ffffff;
+  border-radius: 32rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.03);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.list-group-wrapper.touch-move-active .list-group {
+  transform: translateX(-160rpx);
+}
+
+.recipe-delete-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 160rpx;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ff4d4f;
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 500;
+  z-index: 0;
+}
+
+.group-header {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  margin-bottom: 24rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 2rpx solid #f6f3f2;
+  position: relative;
+  min-height: 50rpx;
+}
+
+.group-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #4b6338;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  padding-right: 60rpx; /* 留出空间给右侧的心形 */
+}
+
+.btn-favorite {
+  position: absolute;
+  right: 0rpx;
+  top: -8rpx;
+  background: transparent;
+  padding: 8rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-favorite-hover {
+  transform: scale(0.85);
+  opacity: 0.8;
+}
+
+.icon-heart {
+  width: 44rpx;
+  height: 44rpx;
+}
+
+.group-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.search-action-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12rpx;
+  width: 100%;
+}
+
+.search-action-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.search-action-right {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.btn-tutorial-small {
+  font-size: 22rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 100rpx;
+  background: #f4f5f6;
+  color: #fb7299;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4rpx;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-tutorial-small.xcf-btn {
+  color: #dd3915;
+}
+
+.btn-delete-recipe {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  background: #f6f3f2;
+  color: #a0a59a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+}
+
+.ingredient-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.ingredient-item {
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.item-content {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.checkbox-wrap {
+  padding: 10rpx;
+}
+
+.checkbox {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  border: 4rpx solid #c4c8bb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.checkbox-checked {
+  background: #4b6338;
+  border-color: #4b6338;
+}
+
+.check-icon {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+.ingredient-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ingredient-name {
+  font-size: 30rpx;
+  color: #1b1c1c;
+  transition: all 0.3s ease;
+}
+
+.ingredient-name.checked-text {
+  color: #a0a59a;
+  text-decoration: line-through;
+}
+
+.ingredient-meta {
+  font-size: 24rpx;
+  color: #74796d;
+  margin-top: 4rpx;
+}
+
+.merge-bubble {
+  background: #ffeeea;
+  color: #dd3915;
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 100rpx;
+  margin-right: 10rpx;
+  display: flex;
+  align-items: center;
+  position: relative;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.delete-btn {
+  padding: 16rpx;
+  color: #c4c8bb;
+  font-size: 32rpx;
+}
+
+/* Add New Ingredient */
+.add-ingredient-wrap {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 0;
+  margin-top: 10rpx;
+}
+
+.add-icon-wrap {
+  padding: 10rpx;
+}
+
+.add-icon {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  border: 2rpx dashed #c4c8bb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a0a59a;
+  font-size: 32rpx;
+  font-weight: 300;
+  box-sizing: border-box;
+}
+
+.add-ingredient-input {
+  flex: 1;
+  font-size: 30rpx;
+  color: #1b1c1c;
+  padding: 10rpx 0;
+}
+
+.add-ingredient-placeholder {
+  color: #a0a59a;
+}
+
+/* Add Custom Recipe Button */
+.add-recipe-btn {
+  background: transparent;
+  border: 2rpx dashed #c4c8bb;
+  border-radius: 32rpx;
+  padding: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  color: #74796d;
+  font-size: 30rpx;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.add-recipe-btn:active {
+  background: #f6f3f2;
+  border-color: #a0a59a;
+}
+
+.add-recipe-icon {
+  font-size: 40rpx;
+  font-weight: 300;
+  margin-top: -4rpx;
+}
+
+/* Finish Purchasing Button */
+.finish-btn-container {
+  margin: 60rpx 0 40rpx;
+  padding: 0;
+}
+
+.btn-primary {
+  background: #4b6338;
+  color: #ffffff;
+  font-size: 32rpx;
+  font-weight: 600;
+  border-radius: 40rpx;
+  padding: 24rpx 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(75, 99, 56, 0.2);
+  transition: all 0.3s ease;
+  width: 100% !important;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+  box-shadow: 0 4rpx 12rpx rgba(75, 99, 56, 0.1);
+}
+
+/* Tutorial Sheet (Same as MVP) */
+.tutorial-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.tutorial-mask.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.tutorial-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  background: #ffffff;
+  border-radius: 40rpx 40rpx 0 0;
+  z-index: 1001;
+  transform: translateY(100%);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  padding-bottom: env(safe-area-inset-bottom);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.tutorial-sheet.show {
+  transform: translateY(0);
+}
+
+.tutorial-header {
+  padding: 32rpx 40rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2rpx solid rgba(196, 200, 187, 0.2);
+}
+
+.tutorial-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1b1c1c;
+}
+
+.tutorial-close {
+  padding: 16rpx;
+  font-size: 32rpx;
+  color: #a0a59a;
+}
+
+.tutorial-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  min-height: 400rpx;
+}
+
+.tutorial-loading, .tutorial-error, .tutorial-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24rpx;
+  padding: 60rpx 40rpx;
+  text-align: center;
+}
+
+.tutorial-loading .loading-text,
+.tutorial-error .error-text,
+.tutorial-empty text {
+  font-size: 28rpx;
+  color: #74796d;
+}
+
+.tutorial-error .error-icon {
+  width: 80rpx;
+  height: 80rpx;
+}
+
+.tutorial-list {
+  height: 100%;
+  max-height: 60vh;
+  padding: 20rpx 40rpx;
+  box-sizing: border-box;
+}
+
+.tutorial-card {
+  display: flex;
+  gap: 24rpx;
+  padding: 24rpx 0;
+  border-bottom: 2rpx solid rgba(196, 200, 187, 0.2);
+}
+
+.tutorial-thumb {
+  width: 200rpx;
+  height: 120rpx;
+  border-radius: 16rpx;
+  background: #f6f3f2;
+  flex-shrink: 0;
+}
+
+.tutorial-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.tutorial-video-title {
+  font-size: 28rpx;
+  color: #1b1c1c;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tutorial-platform {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.platform-group {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  min-width: 0;
+  flex: 1;
+}
+
+.platform-tag {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}
+
+.platform-tag.bilibili {
+  background: #fff0f6;
+  color: #fb7299;
+}
+
+.platform-tag.xiachufang {
+  background: #ffeeea;
+  color: #dd3915;
+}
+
+.view-count {
+  font-size: 22rpx;
+  color: #a0a59a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tutorial-link-text {
+  font-size: 24rpx;
+  color: #4b6338;
+  font-weight: 500;
+  flex-shrink: 0;
+  margin-left: 16rpx;
+}

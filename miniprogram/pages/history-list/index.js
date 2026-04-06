@@ -15,10 +15,7 @@ Page({
     
     // Tutorial Sheet State
     showTutorialSheet: false,
-    tutorialLoading: false,
-    tutorialError: false,
-    tutorialErrorMsg: '',
-    tutorials: [],
+    currentTutorialKeyword: '',
     tutorialPlatform: 'bilibili'
   },
 
@@ -140,57 +137,33 @@ Page({
   },
 
   async saveRecipe(e) {
-    const authSource = app.globalData.authSource || wx.getStorageSync('pf_auth_source');
-    if (authSource !== 'cloud_openid' || !wx.cloud) {
-      wx.showToast({ title: this.data.i18n.my_err_cloud_user, icon: 'none' });
-      return;
-    }
+    const auth = require('../../utils/auth.js');
+    if (!auth.checkAndUpgrade()) return;
 
     const title = e.currentTarget.dataset.recipe;
     const items = e.currentTarget.dataset.items;
     if (!title || !items) return;
 
-    wx.showLoading({ title: app.t('recipe_saving'), mask: true });
+    if (this.data.savedRecipesMap && this.data.savedRecipesMap[title]) {
+      wx.showToast({ title: app.t('recipe_saved_already'), icon: 'none' });
+      return;
+    }
 
-    try {
-      const db = wx.cloud.database();
-      const userId = app.globalData.userId || wx.getStorageSync('pf_user_id');
+    const recipeUtil = require('../../utils/recipeUtil.js');
+    const res = await recipeUtil.saveRecipe({
+      recipeName: title,
+      ingredients: items,
+      sourceType: 'familiar',
+      ingredientName: title
+    });
 
-      // 检查是否已经收藏过
-      const { data: existing } = await db.collection('recipes').where({
-        _openid: userId,
-        recipeName: title
-      }).get();
-
-      if (existing && existing.length > 0) {
-        wx.hideLoading();
-        wx.showToast({ title: app.t('recipe_saved_already'), icon: 'none' });
-        return;
-      }
-
-      await db.collection('recipes').add({
-        data: {
-          recipeName: title,
-          ingredientName: title, 
-          ingredientsNeeded: items.map(ing => ing.name),
-          sourceType: 'familiar', 
-          cloudImagePath: '',
-          createdAt: db.serverDate(),
-          updatedAt: db.serverDate()
-        }
-      });
-
-      // 更新本地状态，点亮红心
+    if (res.success) {
       this.setData({
         [`savedRecipesMap.${title}`]: true
       });
-
-      wx.hideLoading();
-      wx.showToast({ title: app.t('recipe_saved_success'), icon: 'success' });
-    } catch (err) {
-      console.error('收藏食谱失败:', err);
-      wx.hideLoading();
-      wx.showToast({ title: app.t('recipe_save_failed'), icon: 'none' });
+      wx.showToast({ title: res.message, icon: 'success' });
+    } else if (!res.handled) {
+      wx.showToast({ title: res.message, icon: 'none' });
     }
   },
 
@@ -225,74 +198,8 @@ Page({
 
     this.setData({ 
       showTutorialSheet: true,
-      tutorialLoading: true,
-      tutorialError: false,
-      tutorialErrorMsg: '',
-      tutorials: [],
       currentTutorialKeyword: recipeName,
       tutorialPlatform: platform
-    });
-
-    this.fetchTutorials(recipeName, platform);
-  },
-
-  async fetchTutorials(keyword, platform) {
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'analyze',
-        data: {
-          action: 'search_tutorial',
-          keyword: keyword,
-          lang: app.globalData.language
-        }
-      });
-
-      if (res.result && !res.result.error && res.result.data) {
-        const results = res.result.data[platform];
-        if (results && results.length > 0) {
-          this.setData({
-            tutorialLoading: false,
-            tutorials: results
-          });
-        } else {
-          throw new Error('Empty response for ' + platform);
-        }
-      } else {
-        throw new Error(res.result?.message || 'Empty response');
-      }
-    } catch (err) {
-      console.error('[HistoryList] Search tutorial failed:', err);
-      this.setData({
-        tutorialLoading: false,
-        tutorialError: true,
-        tutorialErrorMsg: this.data.i18n.err_cloud_func
-      });
-    }
-  },
-
-  retryTutorial() {
-    if (this.data.currentTutorialKeyword) {
-      this.setData({
-        tutorialLoading: true,
-        tutorialError: false
-      });
-      this.fetchTutorials(this.data.currentTutorialKeyword, this.data.tutorialPlatform);
-    }
-  },
-
-  openTutorialLink(e) {
-    const url = e.currentTarget.dataset.url;
-    if (!url) return;
-    
-    wx.setClipboardData({
-      data: url,
-      success: () => {
-        wx.showToast({
-          title: this.data.i18n.tutorial_copy_success,
-          icon: 'none',
-          duration: 3000
-        });
-      }
     });
   },
 

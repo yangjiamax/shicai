@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "菜谱详情",
-  "usingComponents": {}
+  "usingComponents": {
+    "tutorial-sheet": "../../components/tutorial-sheet/index"
+  }
 }

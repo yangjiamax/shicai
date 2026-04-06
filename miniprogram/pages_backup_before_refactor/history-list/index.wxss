@@ -1,0 +1,114 @@
+@import "../list/index.wxss";
+
+/* Redesign ingredient list as tags for read-only history view */
+.ingredient-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 24rpx 20rpx;
+  padding-top: 10rpx;
+}
+
+.ingredient-item {
+  display: inline-flex;
+  flex-direction: row;
+  background: #f4f6f3;
+  padding: 14rpx 32rpx;
+  border-radius: 100rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.3s ease;
+}
+
+.item-content {
+  gap: 0;
+  width: auto;
+}
+
+.ingredient-info {
+  flex: none;
+  opacity: 1;
+}
+
+.ingredient-name {
+  font-size: 28rpx;
+  color: #4b6338;
+  font-weight: 500;
+}
+
+/* Checked/Bought style */
+.ingredient-item.checked {
+  background: #fafaf9;
+  border-color: #e4e2e1;
+}
+
+.ingredient-name.checked-text {
+  color: #a0a59a;
+  text-decoration: line-through;
+  font-weight: 400;
+}
+
+/* Add Buttons */
+.group-header {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 0 8rpx 16rpx;
+  position: relative;
+  min-height: 50rpx;
+}
+
+.group-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #4b6338;
+  padding-right: 60rpx; /* 留出空间给右侧的心形 */
+}
+
+.btn-favorite {
+  position: absolute;
+  right: 0rpx;
+  top: -8rpx;
+  background: transparent;
+  padding: 8rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-favorite-hover {
+  transform: scale(0.85);
+  opacity: 0.8;
+}
+
+.icon-heart {
+  width: 44rpx;
+  height: 44rpx;
+}
+
+.search-action-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12rpx;
+  width: 100%;
+}
+
+.search-action-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.search-action-right {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.group-actions {
+  width: 100%;
+}

@@ -1,0 +1,102 @@
+<view class="onboarding-container" style="padding-top: {{navHeight}}px">
+  <view class="custom-nav" style="height: {{navHeight}}px; padding-top: {{statusBarHeight}}px;">
+    <view class="nav-back" bindtap="onBack" wx:if="{{isEditMode}}">
+      <view class="sys-icon icon-arrow-right back-icon"></view>
+    </view>
+  </view>
+
+  <view class="header">
+    <text class="title">{{i18n.onboarding_title}}</text>
+    <text class="subtitle">{{i18n.onboarding_subtitle}}</text>
+  </view>
+
+  <view class="content">
+    <view class="card-group">
+      <!-- Profile -->
+      <view class="section">
+        <view class="section-header">
+          <view class="section-title">{{i18n.onboarding_profile_title}}</view>
+          <view class="section-desc">{{i18n.onboarding_profile_desc}}</view>
+        </view>
+        <view class="profile-card">
+          <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+            <image class="avatar-img" src="{{userInfo.avatar || '/images/icons/user.svg'}}" mode="aspectFill"></image>
+          </button>
+          <view class="nickname-wrapper">
+            <input class="nickname-input" type="nickname" placeholder="{{i18n.onboarding_input_nickname}}" value="{{userInfo.nickname}}" bindinput="onNicknameInput" bindblur="onNicknameInput" />
+          </view>
+        </view>
+      </view>
+
+      <!-- Culture -->
+      <view class="section">
+        <view class="section-header">
+          <view class="section-title">{{i18n.onboarding_culture_title}}</view>
+          <view class="section-desc">{{i18n.onboarding_culture_desc}}</view>
+        </view>
+        <view class="picker-card" bindtap="showNationalityPicker">
+          <text class="picker-text {{nationality ? 'selected' : ''}}">{{nationality || i18n.onboarding_select_nationality}}</text>
+          <text class="picker-arrow sys-icon icon-arrow-right"></text>
+        </view>
+      </view>
+
+      <!-- Permissions -->
+      <view class="section">
+        <view class="section-header">
+          <view class="section-title">{{i18n.onboarding_location_title}}</view>
+          <view class="section-desc">{{i18n.onboarding_location_desc}}</view>
+        </view>
+        <view class="auth-card" bindtap="requestLocation">
+          <view class="auth-info">
+            <view class="auth-icon-wrap">
+              <view class="auth-icon sys-icon icon-location"></view>
+            </view>
+            <text class="auth-name">{{i18n.onboarding_fuzzy_location}}</text>
+          </view>
+          <view class="auth-status {{locationAuthed ? 'authed' : ''}}">
+            {{locationAuthed ? (i18n.onboarding_btn_authed) : (i18n.onboarding_btn_auth)}}
+          </view>
+        </view>
+      </view>
+
+      <view class="section">
+        <view class="section-header">
+          <view class="section-title">{{i18n.onboarding_record_title}}</view>
+          <view class="section-desc">{{i18n.onboarding_record_desc}}</view>
+        </view>
+        <view class="auth-card" bindtap="requestRecord">
+          <view class="auth-info">
+            <view class="auth-icon-wrap">
+              <view class="auth-icon sys-icon icon-mic"></view>
+            </view>
+            <text class="auth-name">{{i18n.onboarding_mic_record}}</text>
+          </view>
+          <view class="auth-status {{recordAuthed ? 'authed' : ''}}">
+            {{recordAuthed ? (i18n.onboarding_btn_authed) : (i18n.onboarding_btn_auth)}}
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="footer-placeholder"></view>
+  </view>
+
+  <view class="footer">
+    <button class="enter-btn" bindtap="onEnter">
+      {{isEditMode ? i18n.onboarding_btn_save : i18n.onboarding_btn_enter}}
+    </button>
+  </view>
+</view>
+
+<!-- Custom Nationality Picker -->
+<view class="custom-picker-mask {{showPicker ? 'show' : ''}}" bindtap="hideNationalityPicker"></view>
+<view class="custom-picker {{showPicker ? 'show' : ''}}">
+  <view class="custom-picker-header">
+    <view class="custom-picker-cancel" bindtap="hideNationalityPicker">{{i18n.my_cancel || '取消'}}</view>
+    <view class="custom-picker-confirm" bindtap="confirmNationality">{{i18n.my_confirm || '确定'}}</view>
+  </view>
+  <picker-view class="custom-picker-view" value="{{[tempNationalityIndex]}}" bindchange="onNationalityPickerChange">
+    <picker-view-column>
+      <view class="custom-picker-item" wx:for="{{i18n.nationality_list}}" wx:key="id">{{item.name}}</view>
+    </picker-view-column>
+  </picker-view>
+</view>

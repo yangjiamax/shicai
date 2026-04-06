@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "采购清单"
+  "navigationBarTitleText": "采购清单",
+  "usingComponents": {
+    "tutorial-sheet": "../../components/tutorial-sheet/index"
+  }
 }

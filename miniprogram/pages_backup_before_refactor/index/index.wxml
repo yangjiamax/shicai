@@ -1,0 +1,167 @@
+<view class="container">
+  <view class="main-content">
+    <!-- Hero Camera Section (Primary Anchor) -->
+    <view class="hero-section">
+      <view class="camera-card" bindtap="handleCamera" hover-class="camera-card-hover">
+        <!-- 背景图片 -->
+        <image class="camera-bg-img" src="/images/market-bg.jpg" mode="aspectFill"></image>
+        <!-- 渐变蒙版 -->
+        <view class="camera-overlay"></view>
+        
+        <view class="camera-inner">
+          <view class="camera-icon-wrapper">
+            <image class="camera-icon" src="/images/icons/camera.svg" mode="aspectFit"></image>
+          </view>
+          <text class="camera-title">{{i18n.camera_title}}</text>
+          <text class="camera-desc">{{i18n.camera_desc}}</text>
+        </view>
+
+        <!-- Upload Entry integrated under hero -->
+        <view class="album-action" catchtap="handleAlbum" hover-class="album-hover">
+          <text class="album-text">{{i18n.album_entry}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Middle Transition / Brand Section -->
+    <view class="middle-transition">
+      <block wx:if="{{language === 'en'}}">
+        <view class="brand-center english-mode">
+          <text class="brand-name">{{i18n.app_name}}</text>
+          <view class="brand-logo-wrapper">
+            <image class="brand-logo" src="/images/app_logo.png" mode="aspectFill"></image>
+          </view>
+          <text class="brand-slogan">{{i18n.app_slogan}}</text>
+        </view>
+      </block>
+      <block wx:else>
+        <view class="transition-left">
+          <text class="transition-text">{{i18n.transition_identify}}</text>
+          <view class="transition-line left-line"></view>
+        </view>
+        
+        <view class="brand-center">
+          <text class="brand-name">{{i18n.app_name}}</text>
+          <view class="brand-logo-wrapper">
+            <image class="brand-logo" src="/images/app_logo.png" mode="aspectFill"></image>
+          </view>
+          <text class="brand-slogan">{{i18n.app_slogan}}</text>
+        </view>
+
+        <view class="transition-right">
+          <view class="transition-line right-line"></view>
+          <text class="transition-text">{{i18n.transition_list}}</text>
+        </view>
+      </block>
+    </view>
+    
+    <!-- Today's Shopping List Dashboard (Secondary Line) -->
+    <view class="dashboard-section">
+      <view class="list-dashboard-card">
+        <!-- 滑动生成采购单 -->
+        <view class="swipe-record-container">
+          <!-- 背景轨道和提示文字 -->
+          <view class="swipe-track">
+            <view class="swipe-hint left-hint"><text class="sys-icon icon-keyboard"></text></view>
+            <view class="swipe-hint right-hint"><text class="sys-icon icon-mic"></text></view>
+          </view>
+          
+          <!-- 滑动长条按钮 -->
+          <view class="swipe-btn {{isRecording ? 'recording' : ''}}" 
+                style="transform: translateX({{swipeX}}px); transition: {{swipeTransition}};"
+                bindtouchstart="onSwipeStart"
+                bindtouchmove="onSwipeMove"
+                bindtouchend="onSwipeEnd"
+                bindtap="onSwipeTap"
+                hover-class="{{isRecording ? 'btn-hover' : ''}}">
+            <view class="swipe-btn-content">
+              <text class="swipe-icon sys-icon icon-flash" wx:if="{{!isRecording}}"></text>
+              <text class="swipe-icon sys-icon icon-stop" wx:else></text>
+              <text class="swipe-text">{{isRecording ? i18n.index_stop_record : i18n.index_generate_list}}</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 生成采购单引导词 -->
+        <view class="swipe-guide">
+          <text class="swipe-guide-text">{{i18n.swipe_guide}}</text>
+        </view>
+
+        <view class="dashboard-header" bindtap="goToList" hover-class="card-hover" style="margin-top: 32rpx;">
+          <view class="dashboard-info">
+            <text class="dashboard-title">{{i18n.list_progress_title}}</text>
+            <text class="dashboard-desc">{{progressText}}</text>
+          </view>
+          <view class="arrow-icon">></view>
+        </view>
+        
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{totalCount > 0 ? (boughtCount / totalCount) * 100 : 0}}%"></view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 视觉分析 Loading -->
+    <view wx:if="{{analyzing}}" class="loading-overlay">
+      <view class="loading-content">
+        <view class="loading-spinner"></view>
+        <text class="loading-text">{{i18n.analyzing_title}}</text>
+        <view class="loading-hint">
+          <text>{{i18n.analyzing_hint}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 文本提取专属动态 Loading -->
+    <view wx:if="{{isProcessing}}" class="loading-overlay custom-extract-loading">
+      <view class="loading-content extract-loading-content">
+        <view class="chef-icon-container">
+          <text class="sys-icon icon-flash chef-icon"></text>
+          <view class="sparkles">
+            <view class="sparkle s1"></view>
+            <view class="sparkle s2"></view>
+            <view class="sparkle s3"></view>
+          </view>
+        </view>
+        <text class="loading-text animated-text">{{dynamicLoadingText}}</text>
+        <view class="loading-hint">
+          <text>{{i18n.index_ai_processing}}</text>
+        </view>
+        <!-- 底部加载进度条动画 -->
+        <view class="loading-progress-track">
+          <view class="loading-progress-bar"></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- Custom Notebook Text Input Modal -->
+    <view wx:if="{{showTextInput}}" class="notebook-modal-overlay" bindtap="closeTextInput">
+      <view class="notebook-modal-content" catchtap="preventTap">
+        <!-- Notebook red vertical line -->
+        <view class="notebook-line"></view>
+        
+        <view class="notebook-header">
+          <text class="notebook-title">{{i18n.index_quick_record}}</text>
+          <view class="notebook-close" bindtap="closeTextInput">✕</view>
+        </view>
+        
+        <view class="notebook-paper">
+          <textarea class="notebook-textarea" 
+                    value="{{textInputValue}}" 
+                    bindinput="onTextInput" 
+                    placeholder="{{i18n.index_record_placeholder}}" 
+                    maxlength="-1"
+                    focus="{{showTextInput}}"
+                    show-confirm-bar="{{false}}"
+                    cursor-spacing="100">
+          </textarea>
+        </view>
+        
+        <view class="notebook-footer">
+          <view class="notebook-btn cancel" bindtap="closeTextInput">{{i18n.my_cancel}}</view>
+          <view class="notebook-btn confirm" bindtap="confirmTextInput">{{i18n.index_generate_btn}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

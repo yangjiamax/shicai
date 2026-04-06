@@ -20,9 +20,14 @@ Page({
     textInputValue: ''
   },
 
-  onLoad() {
+  async onLoad() {
     console.log('index page loaded, userId:', app.globalData?.userId);
     
+    // 等待 Auth 初始化完成（特别针对清除了缓存但其实是正式老用户的情况）
+    if (app.authReadyPromise) {
+      await app.authReadyPromise;
+    }
+
     // 检查是否已经完成引导授权
     if (!wx.getStorageSync('has_onboarded')) {
       wx.reLaunch({
@@ -38,6 +43,10 @@ Page({
   },
 
   async onShow() {
+    if (app.authReadyPromise) {
+      await app.authReadyPromise;
+    }
+
     // 检查是否已经完成引导授权
     if (!wx.getStorageSync('has_onboarded')) {
       return;
@@ -443,33 +452,23 @@ Page({
               const latitude = res.latitude;
               const longitude = res.longitude;
               
-              // TODO: 请替换为您申请的腾讯位置服务 Key (目前使用的是腾讯官方示例Key)
-              const TENCENT_MAP_KEY = '7JWBZ-2ZVEH-YKLD6-WHB26-IJODE-Q4FVO'; 
-              
-              wx.request({
-                url: 'https://apis.map.qq.com/ws/geocoder/v1/',
+              // 通过云函数调用逆地址解析，保护 Key 安全
+              wx.cloud.callFunction({
+                name: 'reverseGeocode',
                 data: {
-                  location: `${latitude},${longitude}`,
-                  key: TENCENT_MAP_KEY,
-                  get_poi: 0
+                  latitude: latitude,
+                  longitude: longitude
                 },
-                success: (geoRes) => {
+                success: (cloudRes) => {
                   if (!isResolved) {
                     isResolved = true;
                     clearTimeout(timeoutId);
                     
-                    if (geoRes.data && geoRes.data.status === 0) {
-                      const adInfo = geoRes.data.result.ad_info;
-                      resolve({
-                        lat: latitude,
-                        lng: longitude,
-                        nation: adInfo.nation,
-                        city: adInfo.city,
-                        province: adInfo.province
-                      });
+                    const result = cloudRes.result;
+                    if (result && result.code === 0) {
+                      resolve(result.data);
                     } else {
-                      console.warn('Reverse geocode failed:', geoRes.data);
-                      // 解析失败时，降级返回经纬度
+                      console.warn('云函数解析位置失败:', result);
                       resolve({ lat: latitude, lng: longitude });
                     }
                   }
@@ -478,7 +477,7 @@ Page({
                   if (!isResolved) {
                     isResolved = true;
                     clearTimeout(timeoutId);
-                    console.warn('Reverse geocode request failed:', err);
+                    console.warn('调用逆地址解析云函数失败:', err);
                     resolve({ lat: latitude, lng: longitude });
                   }
                 }

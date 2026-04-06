@@ -1,0 +1,79 @@
+<view class="container">
+  <view class="header-section">
+    <view class="header-avatar-wrap">
+      <image class="header-avatar" src="/images/author_avatar.jpg" mode="aspectFill"></image>
+    </view>
+    <view class="header-content">
+      <text class="header-title">{{i18n.feedback_title}}</text>
+      <text class="header-text">{{i18n.feedback_greeting}}</text>
+    </view>
+  </view>
+
+  <view class="form-section">
+    <view class="input-card">
+      <textarea
+        class="feedback-input"
+        placeholder="{{i18n.feedback_placeholder}}"
+        placeholder-class="placeholder-style"
+        bindinput="onContentInput"
+        value="{{content}}"
+        maxlength="500"
+      ></textarea>
+      <view class="word-count {{content.length >= 480 ? 'warning' : ''}}">{{content.length}} / 500</view>
+    </view>
+
+    <view class="image-upload-section">
+      <view class="image-list">
+        <view class="image-item" wx:for="{{images}}" wx:key="*this">
+          <image class="uploaded-img" src="{{item}}" mode="aspectFill" bindtap="previewImage" data-url="{{item}}"></image>
+          <view class="delete-btn" bindtap="removeImage" data-index="{{index}}">×</view>
+        </view>
+        <view class="upload-btn" bindtap="chooseImage" wx:if="{{images.length < 3}}">
+          <text class="upload-icon">+</text>
+          <text class="upload-text">{{images.length}}/3</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="input-card contact-card">
+      <view class="contact-label">{{i18n.feedback_contact_label}}</view>
+      <input
+        class="contact-input"
+        placeholder="{{i18n.feedback_contact_placeholder}}"
+        placeholder-class="placeholder-style"
+        bindinput="onContactInput"
+        value="{{contact}}"
+      />
+    </view>
+  </view>
+
+  <view class="submit-wrap">
+    <button class="submit-btn {{content.length > 0 ? 'active' : ''}}" bindtap="submitFeedback" hover-class="submit-btn-hover">
+      {{i18n.feedback_submit}}
+    </button>
+  </view>
+
+  <view class="author-section">
+    <view class="author-title">{{i18n.feedback_author_title}}</view>
+    
+    <view class="author-card" bindtap="copyText" data-text="yangjia.max.huang@gmail.com">
+      <view class="author-info">
+        <text class="author-label">{{i18n.feedback_author_email}}</text>
+        <text class="author-value">yangjia.max.huang@gmail.com</text>
+      </view>
+      <view class="copy-icon">
+        <text>{{i18n.feedback_copy}}</text>
+      </view>
+    </view>
+    
+    <view class="author-card" bindtap="copyText" data-text="https://www.linkedin.com/in/yangjia-huang/?locale=en">
+      <view class="author-info">
+        <text class="author-label">{{i18n.feedback_author_linkedin}}</text>
+        <text class="author-value link-text">yangjia-huang</text>
+      </view>
+      <view class="copy-icon">
+        <text>{{i18n.feedback_copy}}</text>
+      </view>
+    </view>
+  </view>
+</view>

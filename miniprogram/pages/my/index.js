@@ -35,6 +35,18 @@ Page({
     this.setData({ i18n: app.globalData.i18n });
     this.updateTabBarAndTitle();
     this.checkAuthSource();
+    
+    // Always refresh userInfo from globalData or storage when showing page
+    // This ensures avatar updates from onboarding are reflected immediately
+    let userInfo = app.globalData.userInfo || wx.getStorageSync('userInfo');
+    if (userInfo && (userInfo.avatar || userInfo.nickname)) {
+      this.setData({
+        userInfo,
+        hasUserInfo: true,
+        showLoginPrompt: false
+      });
+    }
+    
     this.loadUserData();
     this.loadNationality();
   },
@@ -129,32 +141,14 @@ Page({
     });
   },
 
-  async retryAuth() {
-    if (!this.data.isAnonymous) return;
-    wx.showLoading({ title: app.t('loading'), mask: true });
-    try {
-      const auth = require('../../utils/auth.js');
-      const newUserId = await auth.initAuth();
-      app.globalData.userId = newUserId;
-      app.globalData.authSource = auth.getAuthSource();
-      
-      this.checkAuthSource();
-      if (!this.data.isAnonymous) {
-        wx.showToast({ title: app.t('success'), icon: 'success' });
-        this.loadUserData();
-      } else {
-        wx.showToast({ title: app.t('my_network_error'), icon: 'none' });
-      }
-    } catch (err) {
-      console.error('Retry auth failed:', err);
-      wx.showToast({ title: app.t('my_network_error'), icon: 'none' });
-    } finally {
-      wx.hideLoading();
+  retryAuth() {
+    if (this.data.isAnonymous) {
+      wx.navigateTo({ url: '/pages/onboarding/index?upgrade=1' });
     }
   },
 
   async loadUserData() {
-    const userInfo = wx.getStorageSync('userInfo');
+    let userInfo = wx.getStorageSync('userInfo');
     if (userInfo && (userInfo.avatar || userInfo.nickname)) {
       this.setData({
         userInfo,
@@ -381,6 +375,15 @@ Page({
     }
   },
 
+  onAvatarError() {
+    if (this.data.userInfo && this.data.userInfo.avatar) {
+      this.setData({
+        'userInfo.avatar': ''
+      });
+      wx.setStorageSync('userInfo', this.data.userInfo);
+    }
+  },
+
   async onChooseAvatar(e) {
     const tempAvatarUrl = e.detail.avatarUrl;
     
@@ -453,6 +456,14 @@ Page({
   async saveUserInfoToCloud() {
     const db = wx.cloud.database();
     const userId = app.globalData.userId || wx.getStorageSync('pf_user_id');
+    const authSource = app.globalData.authSource || wx.getStorageSync('pf_auth_source');
+    
+    // 如果是匿名用户，绝对不允许往正式的 users 表里写数据
+    if (authSource !== 'cloud_openid') {
+      console.log('[My] Anonymous user, skip saving to users table');
+      return;
+    }
+    
     const userInfo = this.data.userInfo || {};
     
     try {
@@ -467,7 +478,7 @@ Page({
           }
         });
       } else {
-        // 新增
+        // 新增 (理论上只在用户正式同意授权后触发)
         await db.collection('users').add({
           data: {
             avatarUrl: userInfo.avatar || '',
@@ -524,6 +535,7 @@ Page({
 
       if (fullHistory.analysisResult) {
         const listData = {
+          historyId: fullHistory._id,
           ingredientName: fullHistory.ingredientName,
           recipeName: fullHistory.selectedRecipe.recipeName,
           ingredients: (fullHistory.selectedRecipe.ingredientsNeeded || []).map(name => ({
@@ -541,6 +553,7 @@ Page({
 
       // 兼容旧的没有 analysisResult 的历史记录，直接跳转到菜谱详情页
       const listData = {
+        historyId: fullHistory._id,
         ingredientName: fullHistory.ingredientName,
         recipeName: fullHistory.selectedRecipe.recipeName,
         ingredients: (fullHistory.selectedRecipe.ingredientsNeeded || []).map(name => ({

@@ -1,0 +1,156 @@
+<view class="container">
+  <!-- Top Toggle Bar -->
+  <view class="toggle-bar">
+    <view class="toggle-item {{activeView === 'planning' ? 'active' : ''}}" bindtap="toggleView">
+      <text>{{i18n.list_tab_planning}}</text>
+      <view class="toggle-indicator"></view>
+    </view>
+    <view class="toggle-item {{activeView === 'execution' ? 'active' : ''}}" bindtap="toggleView">
+      <text>{{i18n.list_tab_execution}}</text>
+      <view class="toggle-indicator"></view>
+    </view>
+  </view>
+
+  <!-- Loading State -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+  </view>
+
+  <!-- Empty State -->
+  <view class="empty-state" wx:elif="{{(activeView === 'planning' && planningGroups.length === 0) || (activeView === 'execution' && executionGroups.length === 0)}}">
+    <image class="empty-icon" src="/images/icons/empty-vegetable.svg" mode="aspectFit"></image>
+    <text class="empty-text">{{i18n.list_empty_title}}</text>
+  </view>
+
+  <!-- Planning View (按菜谱) -->
+  <view class="list-container" wx:elif="{{activeView === 'planning'}}">
+    <view class="list-group-wrapper" 
+          wx:for="{{planningGroups}}" wx:key="title"
+          data-index="{{index}}">
+      
+      <view class="list-group">
+        <view class="group-header">
+          <text class="group-title">{{item.title === 'list_independent_ingredients' ? i18n.list_independent_ingredients : item.title}}</text>
+          
+          <!-- 收藏按钮（绝对定位，与标题对齐） -->
+          <view wx:if="{{item.title && item.title !== 'list_independent_ingredients' && item.title !== 'list_other_ingredients' && item.title !== 'list_direct_add'}}" class="btn-favorite" catchtap="saveRecipe" data-recipe="{{item.title}}" data-items="{{item.items}}" hover-class="btn-favorite-hover">
+            <image src="{{savedRecipesMap[item.title] ? '/images/icons/heart_filled.svg' : '/images/icons/heart.svg'}}" class="icon-heart" mode="aspectFit"></image>
+          </view>
+
+          <view class="group-actions">
+            <!-- 搜索操作行 -->
+            <view class="search-action-wrapper">
+              <view class="search-action-left">
+                <view class="btn-tutorial-small add-btn" wx:if="{{listStatus !== 'active'}}" catchtap="addRecipeToNewList" data-recipe="{{item.title}}" data-items="{{item.items}}">
+                  <text class="sys-icon icon-plus"></text> {{i18n.list_add_to_new}}
+                </view>
+              </view>
+              <view class="search-action-right">
+                <block wx:if="{{item.title && item.title !== 'list_independent_ingredients' && item.title !== 'list_other_ingredients' && item.title !== 'list_direct_add'}}">
+                  <view wx:if="{{lang !== 'en'}}" class="btn-tutorial-small" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="bilibili">
+                    <text class="sys-icon icon-tv"></text> {{i18n.btn_search_tutorial}}
+                  </view>
+                  <view wx:if="{{lang === 'en'}}" class="btn-tutorial-small xcf-btn" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="foodcom">
+                    <text class="sys-icon icon-pan"></text> {{i18n.btn_search_tutorial_xcf}}
+                  </view>
+                  <view wx:elif="{{lang !== 'en'}}" class="btn-tutorial-small xcf-btn" catchtap="searchTutorial" data-recipe="{{item.title}}" data-platform="xiachufang">
+                    <text class="sys-icon icon-pan"></text> {{i18n.btn_search_tutorial_xcf}}
+                  </view>
+                </block>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="ingredient-list">
+          <view 
+            wx:for="{{item.items}}" 
+            wx:key="_id"
+            wx:for-item="ing"
+            class="ingredient-item {{ing.status === 'bought' ? 'checked' : ''}}"
+            bindtap="addSingleIngredient" data-item="{{ing}}">
+            <view class="item-content">
+              <view class="ingredient-info">
+                <text class="ingredient-name {{ing.status === 'bought' ? 'checked-text' : ''}}">{{ing.name}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Execution View (汇总选购按超市动线) -->
+  <view class="list-container" wx:elif="{{activeView === 'execution'}}">
+    <view class="list-group" wx:for="{{executionGroups}}" wx:key="title">
+      <view class="group-header">
+        <text class="group-title">{{item.titleKey ? i18n[item.titleKey] : item.title}}</text>
+      </view>
+
+      <view class="ingredient-list">
+        <view 
+          wx:for="{{item.items}}" 
+          wx:key="name"
+          wx:for-item="ing"
+          class="ingredient-item {{ing.status === 'bought' ? 'checked' : ''}}"
+          bindtap="addSingleIngredient" data-item="{{ing}}">
+          <view class="item-content">
+            <view class="ingredient-info">
+              <text class="ingredient-name {{ing.status === 'bought' ? 'checked-text' : ''}}">{{ing.standardName || ing.name}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Add Entire List Button -->
+  <view class="finish-btn-container" wx:if="{{!loading && listStatus !== 'active' && (planningGroups.length > 0 || executionGroups.length > 0)}}">
+    <button class="btn-primary" bindtap="addAllToNewList">{{i18n.list_add_all}}</button>
+  </view>
+
+  <!-- Tutorial Bottom Sheet -->
+  <view class="tutorial-mask {{showTutorialSheet ? 'show' : ''}}" bindtap="closeTutorialSheet"></view>
+  <view class="tutorial-sheet {{showTutorialSheet ? 'show' : ''}}">
+    <view class="tutorial-header">
+      <text class="tutorial-title">{{tutorialPlatform === 'xiachufang' || tutorialPlatform === 'foodcom' ? i18n.tutorial_sheet_title_xcf : i18n.tutorial_sheet_title}}</text>
+      <view class="tutorial-close" bindtap="closeTutorialSheet">✕</view>
+    </view>
+    
+    <view class="tutorial-content">
+      <view class="tutorial-loading" wx:if="{{tutorialLoading}}">
+        <view class="loading-spinner"></view>
+        <text class="loading-text">{{i18n.loading}}</text>
+      </view>
+      
+      <view class="tutorial-error" wx:elif="{{tutorialError}}">
+        <image class="error-icon" src="/images/icons/error.svg" mode="aspectFit"></image>
+        <text class="error-text">{{tutorialErrorMsg}}</text>
+        <button class="btn-secondary" bindtap="retryTutorial">{{i18n.res_retake}}</button>
+      </view>
+      
+      <scroll-view scroll-y class="tutorial-list" wx:elif="{{tutorials && tutorials.length > 0}}">
+        <view class="tutorial-card" wx:for="{{tutorials}}" wx:key="index" bindtap="openTutorialLink" data-url="{{item.url}}">
+          <image class="tutorial-thumb" src="{{item.thumbnail}}" mode="aspectFill"></image>
+          <view class="tutorial-info">
+            <text class="tutorial-video-title">{{item.title}}</text>
+            <view class="tutorial-platform">
+              <view class="platform-group">
+                <view class="platform-tag {{item.source === 'xiachufang' || item.source === 'foodcom' ? 'xiachufang' : 'bilibili'}}">
+                  <text wx:if="{{item.source === 'xiachufang' || item.source === 'foodcom'}}">{{i18n.tutorial_platform_xcf}}</text>
+                  <text wx:else>Bilibili</text>
+                </view>
+                <text class="view-count" wx:if="{{item.viewCountFormatted}}">▶ {{item.viewCountFormatted}}</text>
+              </view>
+              <text class="tutorial-link-text"><text class="sys-icon icon-link"></text> {{i18n.tutorial_open}}</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+      
+      <view class="tutorial-empty" wx:else>
+        <text>{{i18n.tutorial_empty}}</text>
+      </view>
+    </view>
+  </view>
+</view>

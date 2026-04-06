@@ -1,0 +1,35 @@
+@import "../list/index.wxss";
+
+.container {
+  padding: 40rpx 30rpx;
+  min-height: 100vh;
+  background: #fcf9f8;
+}
+
+.recipe-wrapper {
+  background: #ffffff;
+  border-radius: 32rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.03);
+  padding: 30rpx;
+  border: 2rpx solid rgba(255, 77, 79, 0.15); /* Light red border as shown in screenshot */
+}
+
+.recipe-wrapper .group-title {
+  font-size: 36rpx;
+}
+
+.ingredient-tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  padding-top: 10rpx;
+}
+
+.ingredient-tag {
+  background: #f4f7f4;
+  color: #4a5d4e;
+  font-size: 28rpx;
+  padding: 12rpx 28rpx;
+  border-radius: 100rpx;
+  font-weight: 500;
+}
