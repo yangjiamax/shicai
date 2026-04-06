@@ -129,6 +129,30 @@ Page({
     });
   },
 
+  async retryAuth() {
+    if (!this.data.isAnonymous) return;
+    wx.showLoading({ title: app.t('loading'), mask: true });
+    try {
+      const auth = require('../../utils/auth.js');
+      const newUserId = await auth.initAuth();
+      app.globalData.userId = newUserId;
+      app.globalData.authSource = auth.getAuthSource();
+      
+      this.checkAuthSource();
+      if (!this.data.isAnonymous) {
+        wx.showToast({ title: app.t('success'), icon: 'success' });
+        this.loadUserData();
+      } else {
+        wx.showToast({ title: app.t('my_network_error'), icon: 'none' });
+      }
+    } catch (err) {
+      console.error('Retry auth failed:', err);
+      wx.showToast({ title: app.t('my_network_error'), icon: 'none' });
+    } finally {
+      wx.hideLoading();
+    }
+  },
+
   async loadUserData() {
     const userInfo = wx.getStorageSync('userInfo');
     if (userInfo && (userInfo.avatar || userInfo.nickname)) {

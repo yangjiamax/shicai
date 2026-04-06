@@ -469,6 +469,7 @@ module.exports = {
   my_login_tip: '点击上方头像和昵称即可登录',
   my_history_title: '历史记录',
   my_cloud_tip: '请开启云服务以保存历史',
+  my_tap_to_retry: '(点击重试)',
   my_local_mode: '当前为本地体验模式',
   my_network_error: '网络好像开小差了',
   my_network_retry: '请检查网络后重试',

@@ -32,10 +32,10 @@
       </view>
     </view>
     
-    <view wx:if="{{isAnonymous}}" class="empty-state">
+    <view wx:if="{{isAnonymous}}" class="empty-state" bindtap="retryAuth">
       <view class="empty-icon sys-icon icon-cloud"></view>
       <text class="empty-text">{{i18n.my_cloud_tip}}</text>
-      <text class="empty-hint">{{i18n.my_local_mode}}</text>
+      <text class="empty-hint">{{i18n.my_local_mode}} {{i18n.my_tap_to_retry}}</text>
     </view>
     <view wx:elif="{{loadError}}" class="empty-state">
       <view class="empty-icon sys-icon icon-wifi-off"></view>

@@ -469,6 +469,7 @@ module.exports = {
   my_login_tip: 'Click avatar and nickname above to login',
   my_history_title: 'Recent Scans',
   my_cloud_tip: 'Enable cloud service to save history',
+  my_tap_to_retry: '(Tap to retry)',
   my_local_mode: 'Current is local experience mode',
   my_network_error: 'Network error',
   my_network_retry: 'Please check network and retry',

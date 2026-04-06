@@ -26,7 +26,9 @@ function clearStoredUserId() {
 
 async function initAuth() {
   const storedId = getStoredUserId();
-  if (storedId) {
+  const authSource = getAuthSource();
+  
+  if (storedId && authSource === 'cloud_openid') {
     console.log('[Auth] Using stored userId:', storedId);
     return storedId;
   }
@@ -46,9 +48,13 @@ async function initAuth() {
     console.warn('[Auth] Cloud login failed, trying anonymous:', err);
   }
 
+  if (storedId && authSource === 'anonymous') {
+    console.log('[Auth] Using existing anonymous id:', storedId);
+    return storedId;
+  }
   const anonymousId = generateAnonymousId();
   setStoredUserId(anonymousId, 'anonymous');
-  console.log('[Auth] Using anonymous id:', anonymousId);
+  console.log('[Auth] Using new anonymous id:', anonymousId);
   return anonymousId;
 }
 
