@@ -42,8 +42,9 @@ module.exports = {
   index_generate_list: '生成采购单',
   index_ai_processing: 'AI大厨正在为您处理，请稍候',
   index_quick_record: '📝 快速记录食材',
-  index_record_placeholder: '可以直接填写菜名（如：西红柿炒鸡蛋）\n或者直接写食材（如：3个西红柿、半斤牛肉）...',
+  index_record_placeholder: '可以直接填写菜名（如：西红柿炒鸡蛋），建议单次不超过4道菜更精准，\n或者直接写食材（如：3个西红柿、半斤牛肉）...',
   index_generate_btn: '生成清单',
+  voice_record_hint: '💡 建议单次录音不超过3道菜',
   
   // 引导授权页
   onboarding_title: '欢迎使用知食角',

@@ -121,11 +121,8 @@ Page({
             
             const query = userId ? _.and([
               { status: 'active' },
-              _.or([
-                { _openid: userId },
-                { user_id: userId }
-              ])
-            ]) : { status: 'active', user_id: 'unauthenticated' };
+              { _openid: userId }
+            ]) : { status: 'active', _openid: 'unauthenticated' };
 
             const activeListsRes = await dbUtil.db.collection(dbUtil.COLLECTIONS.SHOPPING_LISTS)
               .where(query)

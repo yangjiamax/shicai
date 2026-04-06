@@ -84,7 +84,7 @@
         
         <!-- 生成采购单引导词 -->
         <view class="swipe-guide">
-          <text class="swipe-guide-text">{{i18n.swipe_guide}}</text>
+          <text class="swipe-guide-text {{isRecording ? 'recording-hint' : ''}}">{{isRecording ? i18n.voice_record_hint : i18n.swipe_guide}}</text>
         </view>
 
         <view class="dashboard-header" bindtap="goToList" hover-class="card-hover" style="margin-top: 32rpx;">

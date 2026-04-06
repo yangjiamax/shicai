@@ -15,18 +15,8 @@ App({
     if (!wx.cloud) {
       console.error('请使用 2.2.3 或以上的基础库以使用云能力');
     } else {
-      // 获取当前小程序的运行版本
-      const accountInfo = wx.getAccountInfoSync();
-      const envVersion = accountInfo.miniProgram.envVersion; 
-      
-      // 默认使用正式环境 ID (生产环境/审核环境)
-      let cloudEnv = 'cloud1-3g7709vbb44fe137'; 
-
-      // 如果是开发版或体验版，使用测试环境 ID
-      // 请将 '你的测试环境ID' 替换为你刚才创建的实际环境ID，例如 'test-env-xxx'
-      if (envVersion === 'develop' || envVersion === 'trial') {
-        cloudEnv = '你的测试环境ID'; 
-      }
+      // 默认使用单一稳定的正式环境 ID
+      const cloudEnv = 'cloud1-3g7709vbb44fe137'; 
 
       wx.cloud.init({
         // 填入你的云环境 ID

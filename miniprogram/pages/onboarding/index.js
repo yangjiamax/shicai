@@ -295,7 +295,8 @@ Page({
               userInfo: {
                 avatarUrl: userInfo.avatar,
                 nickName: userInfo.nickname,
-                nationality: wx.getStorageSync('userNationality') || ''
+                nationality: wx.getStorageSync('userNationality') || '',
+                language: app.globalData.language || wx.getStorageSync('pf_lang') || 'zh'
               }
             }
           });
@@ -325,6 +326,7 @@ Page({
                 avatarUrl: userInfo.avatar,
                 nickName: userInfo.nickname,
                 nationality: wx.getStorageSync('userNationality') || '',
+                language: app.globalData.language || wx.getStorageSync('pf_lang') || 'zh',
                 updatedAt: db.serverDate()
               }
             });

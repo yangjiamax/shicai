@@ -24,6 +24,7 @@ exports.main = async (event, context) => {
           avatarUrl: userInfo?.avatarUrl || '',
           nickName: userInfo?.nickName || '',
           nationality: userInfo?.nationality || '',
+          language: userInfo?.language || 'zh',
           createdAt: db.serverDate(),
           updatedAt: db.serverDate()
         }
@@ -34,6 +35,7 @@ exports.main = async (event, context) => {
           avatarUrl: userInfo.avatarUrl || users[0].avatarUrl,
           nickName: userInfo.nickName || users[0].nickName,
           nationality: userInfo.nationality || users[0].nationality,
+          language: userInfo.language || users[0].language,
           updatedAt: db.serverDate()
         }
       });

@@ -72,26 +72,24 @@ async function initAuth() {
           return realOpenId;
         } else {
           console.log('[Auth] New user detected (no record in users table), falling back to anonymous login');
+          // 未注册用户，使用真实 OpenID 作为游客身份标识
+          setStoredUserId(realOpenId, 'anonymous');
+          return realOpenId;
         }
+      } else {
+        throw new Error('Login cloud function returned invalid result');
       }
     } catch (err) {
       console.warn('[Auth] Cloud login failed or not registered:', err);
-    }
-
-    // 2. 如果未注册，则使用微信官方匿名登录
-    if (storedId && authSource === 'anonymous') {
-      console.log('[Auth] Using existing anonymous id:', storedId);
-      return storedId;
-    }
-
-    try {
-      const { authResult } = await wx.cloud.signInAnonymously();
-      const anonymousId = authResult.openid;
-      setStoredUserId(anonymousId, 'anonymous');
-      console.log('[Auth] Using new anonymous openid:', anonymousId);
-      return anonymousId;
-    } catch (err) {
-      console.error('[Auth] Anonymous login failed:', err);
+      
+      // 2. 如果云函数调用失败，但本地有已存的匿名 ID，则作为降级方案使用
+      if (storedId && authSource === 'anonymous') {
+        console.log('[Auth] Fallback: Using existing anonymous id:', storedId);
+        return storedId;
+      }
+      
+      // 否则抛出错误，因为小程序不能使用 signInAnonymously()
+      console.error('[Auth] Cannot initialize user identity, please check network or cloud environment.', err);
       throw err;
     }
   })();

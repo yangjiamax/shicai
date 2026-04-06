@@ -42,8 +42,9 @@ module.exports = {
   index_generate_list: 'Generate List',
   index_ai_processing: 'AI Chef is processing, please wait',
   index_quick_record: '📝 Quick Record',
-  index_record_placeholder: 'Enter a recipe (e.g. Spanish paella) or ingredients (e.g. 3 tomatoes)...',
+  index_record_placeholder: 'Enter a recipe (e.g. Spanish paella,less than 4 dishes each batch is recommended) or ingredients (e.g. 3 tomatoes)...',
   index_generate_btn: 'Generate List',
+  voice_record_hint: '💡 Max 3 dishes per record recommended',
   
   // Onboarding
   onboarding_title: 'Welcome to Mercadista',

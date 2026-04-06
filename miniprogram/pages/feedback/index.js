@@ -130,7 +130,6 @@ Page({
           content: this.data.content.trim(),
           contact: this.data.contact.trim(),
           images: uploadedImageUrls,
-          userId: wx.getStorageSync('pf_user_id') || 'anonymous',
           createdAt: db.serverDate(),
           status: 'pending'
         }

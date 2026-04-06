@@ -483,6 +483,8 @@ Page({
           data: {
             avatarUrl: userInfo.avatar || '',
             nickName: userInfo.nickname || '',
+            nationality: wx.getStorageSync('userNationality') || '',
+            language: app.globalData.language || wx.getStorageSync('pf_lang') || 'zh',
             createdAt: db.serverDate(),
             updatedAt: db.serverDate()
           }

@@ -88,7 +88,7 @@ async function getActiveList() {
   const query = userId ? _.and([
     { status: 'active' },
     { _openid: userId }
-  ]) : { status: 'active', user_id: 'unauthenticated' };
+  ]) : { status: 'active', _openid: 'unauthenticated' };
 
   const res = await collection.where(query).orderBy('createdAt', 'desc').limit(1).get();
 

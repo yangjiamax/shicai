@@ -300,12 +300,25 @@ page {
   justify-content: center;
   align-items: center;
   margin-top: 16rpx;
+  height: 36rpx; /* Fix height to prevent jumping during text change */
 }
 
 .swipe-guide-text {
   font-size: 24rpx;
   color: #74796d;
   letter-spacing: 1px;
+  transition: all 0.3s ease;
+}
+
+.recording-hint {
+  color: #e53935;
+  font-weight: 600;
+  animation: slideFadeIn 0.3s ease-out forwards;
+}
+
+@keyframes slideFadeIn {
+  from { opacity: 0; transform: translateY(-4rpx); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Swipe Record Container */
