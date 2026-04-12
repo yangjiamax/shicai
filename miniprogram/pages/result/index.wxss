@@ -515,6 +515,10 @@ page {
   justify-content: center;
 }
 
+.btn-secondary.btn-icon-only image {
+  filter: brightness(0) saturate(100%) invert(35%) sepia(21%) saturate(756%) hue-rotate(50deg) brightness(97%) contrast(85%); /* #4b6338 */
+}
+
 .btn-primary::after, .btn-secondary::after {
   border: none;
 }

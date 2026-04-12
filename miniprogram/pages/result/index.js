@@ -581,5 +581,25 @@ Page({
     wx.navigateTo({
       url: `/pages/recipe/index?data=${encodeURIComponent(JSON.stringify(recipeData))}`
     });
+  },
+
+  onShareAppMessage() {
+    const i18n = this.data.i18n;
+    const ingredientName = this.data.result ? this.data.result.ingredientName : '';
+    
+    return {
+      title: i18n.res_share_title ? i18n.res_share_title.replace('{name}', ingredientName) : `快来看看我发现的【${ingredientName}】`,
+      path: '/pages/index/index'
+    };
+  },
+
+  onShareTimeline() {
+    const i18n = this.data.i18n;
+    const ingredientName = this.data.result ? this.data.result.ingredientName : '';
+    
+    return {
+      title: i18n.res_share_title ? i18n.res_share_title.replace('{name}', ingredientName) : `快来看看我发现的【${ingredientName}】`,
+      query: ''
+    };
   }
 });

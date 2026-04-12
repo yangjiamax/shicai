@@ -141,6 +141,9 @@
         <button class="btn-secondary btn-icon-only" bindtap="generateList" style="flex: 0 0 96rpx;">
           <image class="btn-icon-center" src="/images/icons/shopping_cart.svg" mode="aspectFit"></image>
         </button>
+        <button class="btn-secondary btn-icon-only" open-type="share" style="flex: 0 0 96rpx;">
+          <image class="btn-icon-center" src="/images/icons/share.svg" mode="aspectFit"></image>
+        </button>
         <button class="btn-primary" bindtap="viewRecipe" style="flex: 1; padding: 0 10rpx; font-size: 28rpx;">
           <view class="btn-content" style="justify-content: center;">
             <text class="sys-icon icon-menu_book"></text>

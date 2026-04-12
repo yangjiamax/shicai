@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知食角 Mercadista · 面向用户的官网 Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fbf7f1;
+    --surface: rgba(255, 255, 255, 0.82);
+    --surface-strong: rgba(255, 255, 255, 0.94);
+    --surface-soft: #f2eee7;
+    --text: #171915;
+    --muted: #65695d;
+    --soft: #8e9385;
+    --green: #4b6338;
+    --green-deep: #26331c;
+    --green-soft: rgba(179, 207, 154, 0.24);
+    --peach: #f2d8c2;
+    --line: rgba(23, 25, 21, 0.08);
+    --shadow: 0 24px 64px rgba(23, 25, 21, 0.08);
+    --shadow-lg: 0 44px 100px rgba(23, 25, 21, 0.16);
+    --radius-xl: 40px;
+    --radius-lg: 28px;
+    --radius-md: 20px;
+    --radius-sm: 14px;
+    --wrap: 1460px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    min-width: 1320px;
+    color: var(--text);
+    font-family: "Plus Jakarta Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background:
+      radial-gradient(circle at 10% 10%, rgba(179, 207, 154, 0.32), transparent 18%),
+      radial-gradient(circle at 86% 12%, rgba(242, 216, 194, 0.56), transparent 20%),
+      linear-gradient(180deg, #fdfbf8 0%, #f6f1ea 100%);
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.3;
+    background-image: linear-gradient(rgba(23, 25, 21, 0.014) 1px, transparent 1px), linear-gradient(90deg, rgba(23, 25, 21, 0.014) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  .page {
+    width: min(var(--wrap), calc(100vw - 48px));
+    margin: 0 auto;
+    padding: 18px 0 52px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 18px;
+    z-index: 40;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 18px;
+    border-radius: 999px;
+    background: rgba(251, 247, 241, 0.72);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 18px 42px rgba(23, 25, 21, 0.06);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .brand-mark {
+    width: 50px;
+    height: 50px;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #667f4f 0%, #324224 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  }
+
+  .brand-mark img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .brand-copy strong {
+    display: block;
+    font-size: 16px;
+    letter-spacing: -0.02em;
+  }
+
+  .brand-copy span {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .nav {
+    justify-self: center;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .nav a {
+    padding: 10px 14px;
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 13px;
+    transition: transform 0.22s ease, background 0.22s ease, color 0.22s ease;
+  }
+
+  .nav a:hover {
+    background: rgba(255, 255, 255, 0.8);
+    color: var(--green);
+    transform: translateY(-1px);
+  }
+
+  .top-cta {
+    padding: 12px 18px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #688351 0%, #3a4d2b 100%);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 14px 28px rgba(75, 99, 56, 0.22);
+  }
+
+  .hero {
+    position: relative;
+    margin-top: 18px;
+    padding: 34px;
+    min-height: 1000px;
+    border-radius: 44px;
+    overflow: hidden;
+    background:
+      linear-gradient(98deg, rgba(21, 26, 17, 0.92) 0%, rgba(21, 26, 17, 0.72) 36%, rgba(21, 26, 17, 0.18) 64%, rgba(21, 26, 17, 0.06) 100%),
+      url("../miniprogram/images/market-bg.jpg") center/cover no-repeat;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 80% 18%, rgba(179, 207, 154, 0.22), transparent 20%),
+      radial-gradient(circle at 82% 84%, rgba(242, 216, 194, 0.18), transparent 18%);
+    pointer-events: none;
+  }
+
+  .hero-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 0.86fr 1.14fr;
+    gap: 28px;
+    min-height: 930px;
+  }
+
+  .hero-copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: #fff;
+    padding: 12px 4px 6px;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    width: fit-content;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
+  .hero h1 {
+    max-width: 620px;
+    margin: 20px 0 16px;
+    font-size: 92px;
+    line-height: 0.9;
+    letter-spacing: -0.085em;
+  }
+
+  .hero p {
+    max-width: 560px;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.84);
+    font-size: 18px;
+    line-height: 1.82;
+  }
+
+  .hero-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+  }
+
+  .hero-tags span {
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 14px;
+    margin-top: 28px;
+  }
+
+  .button-primary,
+  .button-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 22px;
+    border-radius: 18px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .button-primary {
+    background: linear-gradient(135deg, #86aa64 0%, #597440 54%, #3d512f 100%);
+    color: #fff;
+    box-shadow: 0 18px 34px rgba(134, 170, 100, 0.24);
+  }
+
+  .button-secondary {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
+  .hero-quote {
+    max-width: 470px;
+    padding: 18px 20px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(14px);
+  }
+
+  .hero-quote strong {
+    display: block;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.76);
+  }
+
+  .hero-quote span {
+    display: block;
+    margin-top: 10px;
+    font-size: 18px;
+    line-height: 1.72;
+  }
+
+  .hero-stage {
+    position: relative;
+  }
+
+  .glass {
+    position: absolute;
+    border-radius: 30px;
+    backdrop-filter: blur(18px);
+    box-shadow: var(--shadow);
+  }
+
+  .hero-card-main {
+    right: 6px;
+    top: 0;
+    width: 500px;
+    height: 760px;
+    padding: 22px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08)),
+      rgba(255, 255, 255, 0.08);
+  }
+
+  .arch-window {
+    height: 100%;
+    border-radius: 220px 220px 28px 28px;
+    overflow: hidden;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
+      rgba(255, 255, 255, 0.08);
+    position: relative;
+  }
+
+  .arch-window::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 82% 18%, rgba(179, 207, 154, 0.14), transparent 18%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
+    pointer-events: none;
+  }
+
+  .hero-phone {
+    position: absolute;
+    width: 250px;
+    padding: 12px;
+    border-radius: 34px;
+    background: rgba(251, 247, 241, 0.94);
+    box-shadow: 0 30px 80px rgba(23, 25, 21, 0.16);
+  }
+
+  .hero-phone.primary {
+    right: 36px;
+    top: 76px;
+  }
+
+  .hero-phone.secondary {
+    left: 28px;
+    top: 184px;
+    transform: rotate(-8deg);
+  }
+
+  .hero-phone img {
+    width: 100%;
+    border-radius: 24px;
+  }
+
+  .hero-label {
+    position: absolute;
+    left: 34px;
+    top: 52px;
+    width: 250px;
+    padding: 20px;
+    border-radius: 24px;
+    background: rgba(251, 247, 241, 0.88);
+  }
+
+  .hero-label strong,
+  .hero-list strong,
+  .hero-mini strong {
+    display: block;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--green);
+  }
+
+  .hero-label h3,
+  .hero-mini h3 {
+    margin: 10px 0 10px;
+    font-size: 30px;
+    line-height: 0.98;
+    letter-spacing: -0.06em;
+  }
+
+  .hero-label p,
+  .hero-mini p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.78;
+  }
+
+  .hero-list {
+    right: 18px;
+    bottom: 28px;
+    width: 288px;
+    padding: 18px;
+    background: rgba(251, 247, 241, 0.92);
+  }
+
+  .hero-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 14px 0 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .hero-list li {
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: var(--surface-soft);
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.68;
+  }
+
+  .hero-mini {
+    left: 112px;
+    bottom: 62px;
+    width: 236px;
+    padding: 18px;
+    background: rgba(255, 247, 241, 0.9);
+    transform: rotate(-7deg);
+  }
+
+  .hero-metrics {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -92px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    padding: 0 34px;
+  }
+
+  .metric {
+    padding: 20px 20px 22px;
+    border-radius: 24px;
+    background: rgba(251, 247, 241, 0.9);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(16px);
+  }
+
+  .metric strong {
+    display: block;
+    color: var(--green);
+    font-size: 38px;
+    line-height: 1;
+    letter-spacing: -0.08em;
+  }
+
+  .metric span {
+    display: block;
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.68;
+  }
+
+  .section {
+    margin-top: 128px;
+    padding: 0 8px;
+  }
+
+  .section-head {
+    display: grid;
+    grid-template-columns: 1.08fr 0.92fr;
+    gap: 28px;
+    align-items: end;
+    margin-bottom: 28px;
+  }
+
+  .kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    margin-bottom: 16px;
+    border-radius: 999px;
+    background: var(--green-soft);
+    color: var(--green);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .section-head h2 {
+    margin: 0;
+    max-width: 760px;
+    font-size: 58px;
+    line-height: 0.96;
+    letter-spacing: -0.075em;
+  }
+
+  .section-head p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.86;
+  }
+
+  .desire-grid {
+    display: grid;
+    grid-template-columns: 1.08fr 0.92fr;
+    gap: 20px;
+  }
+
+  .desire-main,
+  .desire-side article {
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .desire-main {
+    min-height: 640px;
+    padding: 36px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: #fff;
+    background:
+      linear-gradient(180deg, rgba(22, 28, 18, 0.16), rgba(22, 28, 18, 0.72)),
+      url("../miniprogram/images/market-bg.jpg") center/cover no-repeat;
+  }
+
+  .desire-main h3 {
+    margin: 10px 0 12px;
+    max-width: 620px;
+    font-size: 54px;
+    line-height: 0.95;
+    letter-spacing: -0.075em;
+  }
+
+  .desire-main p {
+    max-width: 540px;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.86);
+    font-size: 16px;
+    line-height: 1.84;
+  }
+
+  .desire-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .desire-pills span {
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .desire-foot {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .desire-foot div {
+    padding: 16px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .desire-foot strong {
+    display: block;
+    font-size: 26px;
+    line-height: 1;
+    letter-spacing: -0.05em;
+  }
+
+  .desire-foot span {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.66;
+    color: rgba(255, 255, 255, 0.74);
+  }
+
+  .desire-side {
+    display: grid;
+    gap: 20px;
+  }
+
+  .desire-card {
+    padding: 28px;
+    background: var(--surface);
+  }
+
+  .desire-card.deep {
+    background: linear-gradient(135deg, rgba(75, 99, 56, 0.98), rgba(105, 129, 82, 0.92));
+    color: #fff;
+  }
+
+  .desire-card.warm {
+    background: linear-gradient(180deg, rgba(250, 241, 231, 0.96), rgba(255, 251, 246, 0.98));
+  }
+
+  .desire-card strong {
+    display: block;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .desire-card h3 {
+    margin: 12px 0 10px;
+    font-size: 34px;
+    line-height: 1;
+    letter-spacing: -0.06em;
+  }
+
+  .desire-card p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.82;
+    color: inherit;
+    opacity: 0.9;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .chips span {
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.74);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .desire-card.deep .chips span {
+    background: rgba(255, 255, 255, 0.14);
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .product-wall {
+    padding: 34px;
+    border-radius: 42px;
+    background: linear-gradient(135deg, rgba(31, 42, 23, 0.98), rgba(57, 74, 43, 0.96));
+    box-shadow: var(--shadow-lg);
+    color: #fff;
+  }
+
+  .product-top {
+    display: grid;
+    grid-template-columns: 0.94fr 1.06fr;
+    gap: 22px;
+    align-items: end;
+    margin-bottom: 28px;
+  }
+
+  .product-top h2 {
+    margin: 12px 0 0;
+    font-size: 62px;
+    line-height: 0.94;
+    letter-spacing: -0.08em;
+  }
+
+  .product-top p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 16px;
+    line-height: 1.86;
+  }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: 0.88fr 1.12fr;
+    gap: 22px;
+    align-items: stretch;
+  }
+
+  .product-copy {
+    padding: 30px;
+    border-radius: 30px;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .product-copy h3 {
+    margin: 12px 0;
+    font-size: 40px;
+    line-height: 0.98;
+    letter-spacing: -0.07em;
+  }
+
+  .product-copy p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 15px;
+    line-height: 1.82;
+  }
+
+  .beats {
+    display: grid;
+    gap: 14px;
+    margin-top: 24px;
+  }
+
+  .beat {
+    display: grid;
+    grid-template-columns: 62px 1fr;
+    gap: 14px;
+    padding: 16px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .beat b {
+    width: 62px;
+    height: 62px;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    background: rgba(179, 207, 154, 0.16);
+    color: #dbe8cf;
+    font-size: 18px;
+  }
+
+  .beat strong {
+    display: block;
+    font-size: 16px;
+    line-height: 1.25;
+  }
+
+  .beat span {
+    display: block;
+    margin-top: 4px;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 13px;
+    line-height: 1.72;
+  }
+
+  .phones {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .phone {
+    padding: 18px;
+    border-radius: 30px;
+    background: rgba(255, 255, 255, 0.94);
+    color: var(--text);
+    box-shadow: 0 20px 48px rgba(10, 14, 8, 0.16);
+    transition: transform 0.28s ease, box-shadow 0.28s ease;
+  }
+
+  .phone:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 30px 68px rgba(10, 14, 8, 0.2);
+  }
+
+  .phone img {
+    width: 100%;
+    border-radius: 22px;
+  }
+
+  .phone h3 {
+    margin: 16px 0 8px;
+    font-size: 24px;
+    line-height: 1.04;
+    letter-spacing: -0.05em;
+  }
+
+  .phone p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.78;
+  }
+
+  .journey-grid {
+    display: grid;
+    grid-template-columns: 0.92fr 1.08fr;
+    gap: 22px;
+  }
+
+  .journey-copy {
+    padding: 34px;
+    border-radius: 40px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .journey-copy h3 {
+    margin: 12px 0 12px;
+    font-size: 48px;
+    line-height: 0.96;
+    letter-spacing: -0.075em;
+  }
+
+  .journey-copy > p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.84;
+  }
+
+  .steps {
+    display: grid;
+    gap: 14px;
+    margin-top: 24px;
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 66px 1fr;
+    gap: 14px;
+    padding: 18px;
+    border-radius: 24px;
+    background: var(--surface-soft);
+  }
+
+  .step b {
+    width: 66px;
+    height: 66px;
+    border-radius: 20px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #678250 0%, #415630 100%);
+    color: #fff;
+    font-size: 18px;
+  }
+
+  .step strong {
+    display: block;
+    font-size: 17px;
+    line-height: 1.3;
+  }
+
+  .step span {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.72;
+  }
+
+  .journey-visual {
+    position: relative;
+    min-height: 760px;
+    border-radius: 42px;
+    overflow: hidden;
+    background:
+      linear-gradient(180deg, rgba(22, 28, 18, 0.1), rgba(22, 28, 18, 0.72)),
+      url("../miniprogram/images/market-bg.jpg") center/cover no-repeat;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .journey-panel {
+    position: absolute;
+    left: 28px;
+    right: 28px;
+    bottom: 28px;
+    display: grid;
+    grid-template-columns: 0.95fr 1.05fr;
+    gap: 14px;
+  }
+
+  .journey-note,
+  .journey-photo {
+    border-radius: 26px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .journey-note {
+    padding: 22px;
+    background: rgba(251, 247, 241, 0.9);
+  }
+
+  .journey-note strong {
+    display: block;
+    color: var(--green);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .journey-note h3 {
+    margin: 10px 0 8px;
+    font-size: 32px;
+    line-height: 0.98;
+    letter-spacing: -0.06em;
+  }
+
+  .journey-note p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.76;
+  }
+
+  .journey-photo {
+    padding: 12px;
+    background: rgba(251, 247, 241, 0.9);
+  }
+
+  .journey-photo img {
+    width: 100%;
+    border-radius: 20px;
+  }
+
+  .people {
+    padding: 36px;
+    border-radius: 42px;
+    background: linear-gradient(135deg, rgba(75, 99, 56, 0.98) 0%, rgba(39, 53, 28, 0.96) 100%);
+    box-shadow: var(--shadow-lg);
+    color: #fff;
+  }
+
+  .people-top {
+    display: grid;
+    grid-template-columns: 1.04fr 0.96fr;
+    gap: 24px;
+    align-items: end;
+    margin-bottom: 24px;
+  }
+
+  .people-top h2 {
+    margin: 12px 0 0;
+    font-size: 62px;
+    line-height: 0.94;
+    letter-spacing: -0.08em;
+  }
+
+  .people-top p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 16px;
+    line-height: 1.84;
+  }
+
+  .people-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .persona {
+    padding: 24px;
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+  }
+
+  .persona strong {
+    display: inline-flex;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .persona h3 {
+    margin: 16px 0 10px;
+    font-size: 30px;
+    line-height: 1;
+    letter-spacing: -0.06em;
+  }
+
+  .persona p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    line-height: 1.78;
+  }
+
+  .persona ul {
+    list-style: none;
+    padding: 0;
+    margin: 18px 0 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .persona li {
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    font-size: 13px;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.76);
+  }
+
+  .cta {
+    margin-top: 40px;
+    padding: 40px;
+    border-radius: 42px;
+    background:
+      radial-gradient(circle at 82% 18%, rgba(179, 207, 154, 0.32), transparent 18%),
+      radial-gradient(circle at 10% 84%, rgba(242, 216, 194, 0.46), transparent 18%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(245, 241, 234, 0.98));
+    box-shadow: var(--shadow-lg);
+  }
+
+  .cta-grid {
+    display: grid;
+    grid-template-columns: 1.08fr 0.92fr;
+    gap: 22px;
+    align-items: center;
+  }
+
+  .cta h2 {
+    margin: 12px 0 14px;
+    font-size: 68px;
+    line-height: 0.92;
+    letter-spacing: -0.085em;
+  }
+
+  .cta p {
+    max-width: 760px;
+    margin: 0;
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 1.86;
+  }
+
+  .cta-box {
+    padding: 28px;
+    border-radius: 30px;
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow: var(--shadow);
+  }
+
+  .cta-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .cta-logo {
+    width: 76px;
+    height: 76px;
+    border-radius: 24px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #667f4f 0%, #324224 100%);
+  }
+
+  .cta-logo img {
+    width: 42px;
+    height: 42px;
+  }
+
+  .cta-box h3 {
+    margin: 0;
+    font-size: 30px;
+    line-height: 1;
+    letter-spacing: -0.05em;
+  }
+
+  .cta-box p {
+    margin-top: 6px;
+    font-size: 14px;
+    line-height: 1.76;
+  }
+
+  .cta-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 22px;
+  }
+
+  .cta-actions a {
+    flex: 1;
+    text-align: center;
+    padding: 14px 16px;
+    border-radius: 18px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .cta-actions a:first-child {
+    background: linear-gradient(135deg, #66814f, #425831);
+    color: #fff;
+  }
+
+  .cta-actions a:last-child {
+    background: var(--surface-soft);
+    color: var(--green);
+  }
+
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 8px 0;
+    color: var(--soft);
+    font-size: 13px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-phone.primary,
+    .hero-mini {
+      animation: floatUp 8s ease-in-out infinite;
+    }
+
+    .hero-phone.secondary,
+    .hero-label,
+    .hero-list {
+      animation: floatDown 9s ease-in-out infinite;
+    }
+  }
+
+  @keyframes floatUp {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes floatDown {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(12px);
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">
+          <img src="../miniprogram/images/app_logo.png" alt="知食角">
+        </div>
+        <div class="brand-copy">
+          <strong>知食角 Mercadista</strong>
+          <span>拍一下，认食材 · 看鲜度 · 找做法 · 自动补清单</span>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="#desire">为什么想用</a>
+        <a href="#product">产品界面</a>
+        <a href="#journey">真实场景</a>
+        <a href="#people">适合谁</a>
+      </nav>
+      <a class="top-cta" href="#cta">继续往下看</a>
+    </header>
+
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <div>
+            <span class="eyebrow">For everyday markets · for curious eaters</span>
+            <h1>拍一下，把陌生食材变成熟悉生活。</h1>
+            <p>你不需要再站在货架前猜，不需要回家后再搜，不需要临做饭时才发现少买了关键配料。知食角把识别、鲜度、做法和清单，连成一个顺手完成的动作。</p>
+            <div class="hero-tags">
+              <span>第一次见也敢买</span>
+              <span>鲜不鲜更有底气</span>
+              <span>今晚怎么做立刻有答案</span>
+              <span>缺什么顺手就补齐</span>
+            </div>
+            <div class="hero-actions">
+              <a class="button-primary" href="#product">先看产品样子</a>
+              <a class="button-secondary" href="#journey">看它怎么接住你</a>
+            </div>
+          </div>
+
+          <div class="hero-quote">
+            <strong>最容易让人心动的地方</strong>
+            <span>不是“它有 AI”，而是“它刚好把我最容易卡住的那一秒，变得轻松了”。</span>
+          </div>
+        </div>
+
+        <div class="hero-stage">
+          <div class="glass hero-card-main">
+            <div class="arch-window">
+              <div class="hero-label">
+                <strong>现在就能做到</strong>
+                <h3>认出它，再顺手决定今晚怎么吃。</h3>
+                <p>不是先认识再自己想下一步，而是识别结果、鲜度判断、做法灵感和购物清单被整理在同一个体验里。</p>
+              </div>
+
+              <div class="hero-phone primary">
+                <img src="./result-page.png" alt="知食角结果页">
+              </div>
+
+              <div class="hero-phone secondary">
+                <img src="./index-page.png" alt="知食角首页">
+              </div>
+
+              <div class="hero-list">
+                <strong>你会实际感受到的变化</strong>
+                <ul>
+                  <li>看到陌生食材时，不再只能靠猜。</li>
+                  <li>知道为什么它看起来新鲜，买得更有底气。</li>
+                  <li>结果页不只告诉你名字，还继续告诉你能做什么。</li>
+                  <li>缺的配料一键进清单，出门采购更轻松。</li>
+                </ul>
+              </div>
+
+              <div class="hero-mini">
+                <strong>What it feels like</strong>
+                <h3>像身边多了一个懂买菜的人。</h3>
+                <p>不吵闹，但每一步都接得刚好。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-metrics">
+        <article class="metric">
+          <strong>认</strong>
+          <span>先知道眼前的食材是什么，敢买才会发生。</span>
+        </article>
+        <article class="metric">
+          <strong>鲜</strong>
+          <span>把“够不够鲜”的直觉，变成更有依据的判断。</span>
+        </article>
+        <article class="metric">
+          <strong>做</strong>
+          <span>不会做也没关系，做法灵感直接接上来。</span>
+        </article>
+        <article class="metric">
+          <strong>买</strong>
+          <span>该补什么料一眼知道，采购不再来回折返。</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="desire">
+      <div class="section-head">
+        <div>
+          <span class="kicker">Why people want this</span>
+          <h2>它不是一个“识别完就走”的小工具，而是把买菜、做饭、探索新食材这几件事重新缝在一起。</h2>
+        </div>
+        <p>真正让用户想继续打开的，不是功能列表，而是那种“它刚好懂我现在卡在哪”的感觉。知食角做的就是这件事：把陌生感变短，把下一步变近。</p>
+      </div>
+
+      <div class="desire-grid">
+        <article class="desire-main">
+          <div>
+            <span class="kicker" style="background:rgba(255,255,255,0.14); color:#fff;">At the market, in the kitchen, on the way home</span>
+            <h3>你看到的是热闹的市场，知食角给你的是更清楚的判断力。</h3>
+            <p>不认识的蘑菇、分不清差别的番茄、拿不准够不够鲜的鱼虾，这些“要不要买”的瞬间，往往决定了这顿饭会不会开始。知食角把它们变成更轻松的决定。</p>
+            <div class="desire-pills">
+              <span>国外超市第一次也敢买</span>
+              <span>周末市场逛得更开心</span>
+              <span>家里做饭的人更省心</span>
+            </div>
+          </div>
+
+          <div class="desire-foot">
+            <div>
+              <strong>看见</strong>
+              <span>不再只是看到食材，而是快速理解它。</span>
+            </div>
+            <div>
+              <strong>决定</strong>
+              <span>不再拖着犹豫，而是知道是否值得买。</span>
+            </div>
+            <div>
+              <strong>做成</strong>
+              <span>从灵感走向行动，这顿饭更容易真的开做。</span>
+            </div>
+          </div>
+        </article>
+
+        <div class="desire-side">
+          <article class="desire-card">
+            <strong>For first-time cooks</strong>
+            <h3>第一次做饭的人，也能少犯很多错。</h3>
+            <p>看不懂食材时先拍一下，回到厨房时就不再是“瞎试”，而是有名字、有鲜度、有建议的开始。</p>
+            <div class="chips">
+              <span>更少犹豫</span>
+              <span>更少浪费</span>
+              <span>更容易下厨</span>
+            </div>
+          </article>
+
+          <article class="desire-card deep">
+            <strong>For grocery planners</strong>
+            <h3>知道做什么，也知道缺什么。</h3>
+            <p>识别之后直接补足需要的配料，让逛超市更像按图完成，不用边走边想，也不用回家后再发现少买了一样。</p>
+            <div class="chips">
+              <span>自动补料</span>
+              <span>更顺手采购</span>
+              <span>少回头重买</span>
+            </div>
+          </article>
+
+          <article class="desire-card warm">
+            <strong>For curious food lovers</strong>
+            <h3>每次认识新食材，都值得被留住。</h3>
+            <p>扫过的食材、试过的做法、看过的鲜度，会慢慢变成自己的食材经验，而不是一次性使用过就消失。</p>
+            <div class="chips">
+              <span>图鉴感</span>
+              <span>分享欲</span>
+              <span>持续探索</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="product">
+      <div class="product-wall">
+        <div class="product-top">
+          <div>
+            <span class="kicker" style="background:rgba(255,255,255,0.12); color:#dbe8cf;">Product moments</span>
+            <h2>真正让人想点开的官网，不只是讲功能，而是让你一眼看见“这件事会更顺”。</h2>
+          </div>
+          <p>所以这一段直接把真实产品放在前面。首页入口、结果页、购物清单不是辅助说明，而是这页官网最重要的主角。用户一看到，就知道它会怎样进入自己的生活。</p>
+        </div>
+
+        <div class="product-grid">
+          <article class="product-copy">
+            <span class="kicker" style="background:rgba(255,255,255,0.12); color:#dbe8cf;">Three moments that matter</span>
+            <h3>从看到食材，到把今晚这顿饭安排明白。</h3>
+            <p>知食角最舒服的地方，不是哪一页单独多炫，而是每一步都自然接上下一步。拍一下时轻、看结果时清楚、去采购时不乱，整个闭环像一口气完成。</p>
+            <div class="beats">
+              <div class="beat">
+                <b>01</b>
+                <div>
+                  <strong>首页像一个明确入口</strong>
+                  <span>相机入口足够直接，第一次打开也不会迷路，用户天然知道从哪里开始。</span>
+                </div>
+              </div>
+              <div class="beat">
+                <b>02</b>
+                <div>
+                  <strong>结果页给出可理解的判断</strong>
+                  <span>不是只贴一个结论，而是把鲜度依据、营养、推荐做法一起整理好。</span>
+                </div>
+              </div>
+              <div class="beat">
+                <b>03</b>
+                <div>
+                  <strong>清单页让行动更顺</strong>
+                  <span>缺什么、该买什么、哪些是关键佐料，一眼就知道，出门采购也更踏实。</span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <div class="phones">
+            <article class="phone">
+              <img src="./index-page.png" alt="知食角首页">
+              <h3>先拍一下</h3>
+              <p>首页入口大、情绪明确，第一次打开也不会迷路，天然就是用户愿意点的起点。</p>
+            </article>
+            <article class="phone">
+              <img src="./result-page.png" alt="知食角结果页">
+              <h3>再看鲜度与做法</h3>
+              <p>识别之后继续提供鲜度依据、营养信息和推荐做法，答案不是一句话，而是一整套理解。</p>
+            </article>
+            <article class="phone">
+              <img src="./shopping-list-page.png" alt="知食角采购清单页">
+              <h3>最后直接去买</h3>
+              <p>清单干净、重点明确，出门采购时不容易漏掉关键配料，也不需要回家之后再补买。</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="journey">
+      <div class="section-head">
+        <div>
+          <span class="kicker">How it fits real life</span>
+          <h2>它最好的体验，不在于哪一页多炫，而在于每个生活场景都被刚好接住。</h2>
+        </div>
+        <p>你在市场里看到一个不确定的食材，在厨房里想不到怎么做，在超市里怕漏买东西。这些时刻本来是碎的，知食角把它们接成一条连续的路径。</p>
+      </div>
+
+      <div class="journey-grid">
+        <article class="journey-copy">
+          <span class="kicker">One app, many moments</span>
+          <h3>从市场到餐桌，不再断线。</h3>
+          <p>你认出来、你判断完、你选了做法、你把清单带走。每一步都延续上一步，而不是重新开始。对用户来说，这才是它真正让人上头的地方。</p>
+          <div class="steps">
+            <div class="step">
+              <b>01</b>
+              <div>
+                <strong>在菜市场看见陌生食材</strong>
+                <span>先拍照识别，知道它是什么、适合怎么处理，第一次看到也不会手足无措。</span>
+              </div>
+            </div>
+            <div class="step">
+              <b>02</b>
+              <div>
+                <strong>不确定够不够新鲜</strong>
+                <span>不仅告诉你结论，还把能看得懂的鲜度依据一起展示，让判断更有把握。</span>
+              </div>
+            </div>
+            <div class="step">
+              <b>03</b>
+              <div>
+                <strong>回家前就想好今晚做什么</strong>
+                <span>系统顺手给出做法灵感，家常路线和更有探索感的路线都能接住。</span>
+              </div>
+            </div>
+            <div class="step">
+              <b>04</b>
+              <div>
+                <strong>去超市或继续补料时更轻松</strong>
+                <span>需要补的配料直接进清单，采购变成按步骤完成，而不是边走边想。</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <div class="journey-visual">
+          <div class="journey-panel">
+            <div class="journey-note">
+              <strong>What changes for users</strong>
+              <h3>从“我不确定”到“我现在就能决定”。</h3>
+              <p>用户不需要切出去搜、不需要自己重新组织信息，结果已经把下一步准备好了。</p>
+            </div>
+            <div class="journey-photo">
+              <img src="./shopping-list-page.png" alt="知食角清单页局部">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="people">
+      <div class="people">
+        <div class="people-top">
+          <div>
+            <span class="kicker" style="background:rgba(255,255,255,0.14); color:#fff;">For markets, supermarkets, new cities</span>
+            <h2>适合喜欢吃，也愿意更会买的人。</h2>
+          </div>
+          <p>无论你是在国外超市第一次见到不认识的蔬菜，还是在周末市场里被新鲜海鲜吸引得想下手，知食角都能让你从“我好像想买”走到“我知道该怎么处理它”。</p>
+        </div>
+
+        <div class="people-grid">
+          <article class="persona">
+            <strong>Persona 01</strong>
+            <h3>留学生或刚搬去新城市的人</h3>
+            <p>看到陌生食材不再只敢路过，可以更自然地开始探索当地饮食，也更容易把“看不懂”变成“想试试”。</p>
+            <ul>
+              <li>第一次见到也敢买</li>
+              <li>陌生超市不再像开盲盒</li>
+              <li>探索当地饮食更自然</li>
+            </ul>
+          </article>
+          <article class="persona">
+            <strong>Persona 02</strong>
+            <h3>家里负责买菜和做饭的人</h3>
+            <p>判断、决定和补料都更高效，少花很多重复思考的精力，也少掉很多“忘记买”的来回折返。</p>
+            <ul>
+              <li>少犹豫，少漏买</li>
+              <li>从识别直接走到清单</li>
+              <li>厨房决策压力更小</li>
+            </ul>
+          </article>
+          <article class="persona">
+            <strong>Persona 03</strong>
+            <h3>喜欢记录和分享食材的人</h3>
+            <p>每一次扫描都不是一次性使用，而是在慢慢积累自己的食材经验，让探索这件事变得更有收藏感和分享欲。</p>
+            <ul>
+              <li>扫过的食材更容易记住</li>
+              <li>做法与清单更适合分享</li>
+              <li>越用越像自己的食材图鉴</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta" id="cta">
+      <div class="cta-grid">
+        <div>
+          <span class="kicker">Ready to try</span>
+          <h2>下次看到不认识的食材，别再猜了。</h2>
+          <p>让知食角帮你认出它、判断它、安排它。你会更快做决定，也会更快把“今天想吃什么”真正变成一顿饭。</p>
+        </div>
+
+        <aside class="cta-box">
+          <div class="cta-top">
+            <div class="cta-logo">
+              <img src="../miniprogram/images/app_logo.png" alt="知食角 logo">
+            </div>
+            <div>
+              <h3>知食角 Mercadista</h3>
+              <p>拍一下认食材，顺手把今晚做饭这件事安排明白。</p>
+            </div>
+          </div>
+          <div class="cta-actions">
+            <a href="#product">看看产品</a>
+            <a href="#journey">了解体验</a>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>知食角 Mercadista · User-facing desktop landing page demo</span>
+      <span>Organic Precision · Botanical Archivist</span>
+    </footer>
+  </div>
+</body>
+</html>

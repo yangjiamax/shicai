@@ -33,9 +33,12 @@
       </view>
     </view>
 
-    <!-- Add to new list button -->
-    <view class="finish-btn-container">
-      <button class="btn-primary" bindtap="addAllToNewList">
+    <!-- Actions -->
+    <view class="finish-btn-container" style="display:flex; gap: 16rpx;">
+      <button class="btn-secondary btn-icon-only" open-type="share" style="flex: 0 0 96rpx; height: 96rpx;">
+        <image class="btn-icon-center" src="/images/icons/share.svg" mode="aspectFit"></image>
+      </button>
+      <button class="btn-primary" bindtap="addAllToNewList" style="flex: 1;">
         {{i18n.recipe_add_to_list}}
       </button>
     </view>

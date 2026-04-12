@@ -1,6 +1,36 @@
 const zh = require('./utils/zh.js');
 const en = require('./utils/en.js');
 
+// 重写 Page 构造器，实现全局分享兜底功能
+const originalPage = Page;
+Page = function (config) {
+  // 注入全局分享给朋友
+  if (!config.onShareAppMessage) {
+    config.onShareAppMessage = function () {
+      const app = getApp();
+      const isEn = app && app.globalData && app.globalData.language === 'en';
+      return {
+        title: isEn ? 'Elevate Your Everyday Market Finds' : '聚集全球爱动手的吃货',
+        path: '/pages/index/index'
+      };
+    };
+  }
+
+  // 注入全局分享到朋友圈
+  if (!config.onShareTimeline) {
+    config.onShareTimeline = function () {
+      const app = getApp();
+      const isEn = app && app.globalData && app.globalData.language === 'en';
+      return {
+        title: isEn ? 'Elevate Your Everyday Market Finds' : '聚集全球爱动手的吃货',
+        query: ''
+      };
+    };
+  }
+
+  return originalPage(config);
+};
+
 App({
   globalData: {
     userId: null,
@@ -11,6 +41,14 @@ App({
 
   onLaunch() {
     console.log('[App] Launching...');
+
+    // 监听路由变化，确保所有页面都点亮右上角分享菜单
+    wx.onAppRoute(() => {
+      wx.showShareMenu({
+        withShareTicket: true,
+        menus: ['shareAppMessage', 'shareTimeline']
+      });
+    });
 
     if (!wx.cloud) {
       console.error('请使用 2.2.3 或以上的基础库以使用云能力');

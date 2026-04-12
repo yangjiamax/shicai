@@ -519,5 +519,43 @@ Page({
     this.setData({
       showTutorialSheet: false
     });
+  },
+
+  onShareAppMessage() {
+    const i18n = this.data.i18n;
+    const planningGroups = this.data.planningGroups || [];
+    const validRecipes = planningGroups
+      .map(g => g.title)
+      .filter(title => title && title !== 'list_independent_ingredients' && title !== 'list_other_ingredients' && title !== 'list_direct_add');
+    
+    let shareTitle = i18n.list_share_title || '我的采购清单';
+    if (validRecipes.length > 0) {
+      const recipesText = validRecipes.slice(0, 2).join('、') + (validRecipes.length > 2 ? '等' : '');
+      shareTitle = i18n.list_share_title ? i18n.list_share_title.replace('{recipe}', recipesText) : `今晚准备做【${recipesText}】，快来看看需要买什么！`;
+    }
+    
+    return {
+      title: shareTitle,
+      path: '/pages/index/index'
+    };
+  },
+
+  onShareTimeline() {
+    const i18n = this.data.i18n;
+    const planningGroups = this.data.planningGroups || [];
+    const validRecipes = planningGroups
+      .map(g => g.title)
+      .filter(title => title && title !== 'list_independent_ingredients' && title !== 'list_other_ingredients' && title !== 'list_direct_add');
+    
+    let shareTitle = i18n.list_share_title || '我的采购清单';
+    if (validRecipes.length > 0) {
+      const recipesText = validRecipes.slice(0, 2).join('、') + (validRecipes.length > 2 ? '等' : '');
+      shareTitle = i18n.list_share_title ? i18n.list_share_title.replace('{recipe}', recipesText) : `今晚准备做【${recipesText}】，快来看看需要买什么！`;
+    }
+    
+    return {
+      title: shareTitle,
+      query: ''
+    };
   }
 });

@@ -4,7 +4,6 @@ Page({
   data: {
     i18n: {},
     content: '',
-    contact: '',
     images: [],
     isSubmitting: false
   },
@@ -24,12 +23,6 @@ Page({
   onContentInput(e) {
     this.setData({
       content: e.detail.value
-    });
-  },
-
-  onContactInput(e) {
-    this.setData({
-      contact: e.detail.value
     });
   },
 
@@ -128,7 +121,6 @@ Page({
       await db.collection('feedbacks').add({
         data: {
           content: this.data.content.trim(),
-          contact: this.data.contact.trim(),
           images: uploadedImageUrls,
           createdAt: db.serverDate(),
           status: 'pending'

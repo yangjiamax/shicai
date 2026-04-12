@@ -35,16 +35,6 @@
       </view>
     </view>
 
-    <view class="input-card contact-card">
-      <view class="contact-label">{{i18n.feedback_contact_label}}</view>
-      <input
-        class="contact-input"
-        placeholder="{{i18n.feedback_contact_placeholder}}"
-        placeholder-class="placeholder-style"
-        bindinput="onContactInput"
-        value="{{contact}}"
-      />
-    </view>
   </view>
 
   <view class="submit-wrap">

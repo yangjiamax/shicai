@@ -236,5 +236,25 @@ Page({
     this.setData({
       showTutorialSheet: false
     });
+  },
+
+  onShareAppMessage() {
+    const i18n = this.data.i18n;
+    const recipeName = this.data.recipeName || '';
+    
+    return {
+      title: i18n.list_share_title ? i18n.list_share_title.replace('{recipe}', recipeName) : `今晚准备做【${recipeName}】，快来看看！`,
+      path: '/pages/index/index'
+    };
+  },
+
+  onShareTimeline() {
+    const i18n = this.data.i18n;
+    const recipeName = this.data.recipeName || '';
+    
+    return {
+      title: i18n.list_share_title ? i18n.list_share_title.replace('{recipe}', recipeName) : `今晚准备做【${recipeName}】，快来看看！`,
+      query: ''
+    };
   }
 });
