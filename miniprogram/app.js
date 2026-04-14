@@ -53,11 +53,11 @@ App({
     if (!wx.cloud) {
       console.error('请使用 2.2.3 或以上的基础库以使用云能力');
     } else {
-      // 默认使用单一稳定的正式环境 ID
-      const cloudEnv = 'cloud1-3g7709vbb44fe137'; 
+      // 引入环境道岔
+      const env = require('./env.js');
+      const cloudEnv = env.getActiveEnv(); 
 
       wx.cloud.init({
-        // 填入你的云环境 ID
         env: cloudEnv,
         traceUser: true,
       });
