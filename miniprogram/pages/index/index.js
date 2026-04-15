@@ -81,7 +81,9 @@ Page({
 
   async loadListProgress() {
     try {
-      const listId = await dbUtil.getActiveList();
+      const { makeDefaultListTitle } = require('../../utils/listTitle.js');
+      const listTitle = makeDefaultListTitle(app.globalData.i18n);
+      const listId = await dbUtil.ensureActiveList({ title: listTitle });
       const listData = await dbUtil.getListById(listId);
       
       const allIngredients = listData && listData.items ? listData.items.filter(item => item.status !== 'deleted') : [];
@@ -297,7 +299,9 @@ Page({
       }
 
       // 获取当前活跃清单并存入数据库
-      const listId = await dbUtil.getActiveList();
+      const { makeDefaultListTitle } = require('../../utils/listTitle.js');
+      const listTitle = makeDefaultListTitle(app.globalData.i18n);
+      const listId = await dbUtil.ensureActiveList({ title: listTitle });
       await dbUtil.addIngredientsToList(listId, ingredients);
 
       // 追加写入 histories 操作，携带 sourceType: 'text'

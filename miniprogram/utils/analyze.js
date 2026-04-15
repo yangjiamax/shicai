@@ -1,8 +1,8 @@
 // 模式：'cloudfunction' | 'mock'
 // 在 MVP 阶段，如果云环境未配置好，可以手动改成 'mock'
 const MODE = 'cloudfunction'; 
-const TIMEOUT_MS = 95000; // 95秒超时保护
-const TEXT_TIMEOUT_MS = 30000; // 文本生成超时时间
+const TIMEOUT_MS = 60000; // 统一60秒超时保护
+const TEXT_TIMEOUT_MS = 60000; // 文本生成统一60秒超时
 
 function getMockResult(lang) {
   return new Promise((resolve) => {
@@ -138,9 +138,9 @@ function executeCompress(src, targetWidth, targetHeight) {
 }
 
 /**
- * Step 1: 视觉分析（仅识别食材名称、鲜度等基本信息）
+ * Step 1: 极速认物（仅识别食材名称）
  */
-async function analyzeImage(filePath, options = {}) {
+async function analyzeIdentify(filePath, options = {}) {
   const forceMock = typeof options === 'boolean' ? options : !!options.forceMock;
 
   const app = getApp();
@@ -151,10 +151,8 @@ async function analyzeImage(filePath, options = {}) {
     const mockResult = await getMockResult(lang);
     return { 
       ingredientName: mockResult.ingredientName,
-      ingredientDesc: mockResult.ingredientDesc,
-      freshnessLevel: mockResult.freshnessLevel,
-      freshnessReason: mockResult.freshnessReason,
-      imagePath: filePath 
+      imagePath: filePath,
+      base64Data: 'mock_base64_data'
     };
   }
 
@@ -190,7 +188,7 @@ async function analyzeImage(filePath, options = {}) {
             name: 'analyze',
             data: {
               action: 'analyze',
-              analyzeType: 'vision',
+              analyzeType: 'identify',
               imageBase64: base64Data, // 直接传 base64
               userId: userId,
               source: 'wx_miniprogram',
@@ -209,13 +207,8 @@ async function analyzeImage(filePath, options = {}) {
                 const data = res.result;
                 resolve({
                   ingredientName: data.ingredientName || data.ingredient_name || (lang === 'en' ? 'Unknown Ingredient' : '未知食材'),
-                  ingredientDesc: data.ingredientDesc || data.ingredient_desc || (lang === 'en' ? 'No description' : '暂无描述'),
-                  freshnessLevel: data.freshnessLevel || data.freshness_level || (lang === 'en' ? 'Unknown' : '未知'),
-                  freshnessReason: data.freshnessReason || data.freshness_reason || (lang === 'en' ? 'Unable to recognize freshness reason' : '未能识别鲜度原因'),
-                  taste: data.taste || '',
-                  texture: data.texture || '',
-                  similar: data.similar || '',
-                  imagePath: targetPath
+                  imagePath: targetPath,
+                  base64Data: base64Data
                 });
               } else {
                 reject(new Error('bad_response'));
@@ -237,6 +230,103 @@ async function analyzeImage(filePath, options = {}) {
         }
       });
     }
+  });
+}
+
+/**
+ * Step 2 Track A: 视觉分析（仅鉴定鲜度）
+ */
+async function analyzeVision(base64Data, ingredientName, options = {}) {
+  const forceMock = typeof options === 'boolean' ? options : !!options.forceMock;
+  const app = getApp();
+  const lang = app ? app.globalData.language : 'zh';
+
+  if (MODE === 'mock' || forceMock) {
+    const mockResult = await getMockResult(lang);
+    return {
+      freshnessLevel: mockResult.freshnessLevel,
+      freshnessReason: mockResult.freshnessReason
+    };
+  }
+
+  const userId = wx.getStorageSync('pf_user_id') || 'anonymous';
+
+  return new Promise((resolve, reject) => {
+    wx.cloud.callFunction({
+      name: 'analyze',
+      data: {
+        action: 'analyze',
+        analyzeType: 'vision',
+        imageBase64: base64Data,
+        ingredientName: ingredientName,
+        userId: userId,
+        lang: lang
+      },
+      success: (res) => {
+        if (res.result && !res.result.error) {
+          const data = res.result;
+          resolve({
+            freshnessLevel: data.freshnessLevel || data.freshness_level || (lang === 'en' ? 'Unknown' : '未知'),
+            freshnessReason: data.freshnessReason || data.freshness_reason || (lang === 'en' ? 'Unable to recognize freshness reason' : '未能识别鲜度原因')
+          });
+        } else {
+          reject(new Error(res.result?.errorType || 'model_error'));
+        }
+      },
+      fail: (err) => {
+        reject(new Error('network_error: ' + (err.errMsg || JSON.stringify(err))));
+      }
+    });
+  });
+}
+
+/**
+ * Step 2 Track B1: 知识百科分析（口感、简介等）
+ */
+async function analyzeKnowledge(ingredientName, options = {}) {
+  const forceMock = typeof options === 'boolean' ? options : !!options.forceMock;
+  const app = getApp();
+  const lang = app ? app.globalData.language : 'zh';
+
+  if (MODE === 'mock' || forceMock) {
+    const mockResult = await getMockResult(lang);
+    return {
+      ingredientDesc: mockResult.ingredientDesc,
+      taste: mockResult.taste,
+      texture: mockResult.texture,
+      similar: mockResult.similar
+    };
+  }
+
+  const userId = wx.getStorageSync('pf_user_id') || 'anonymous';
+
+  return new Promise((resolve, reject) => {
+    wx.cloud.callFunction({
+      name: 'analyze',
+      data: {
+        action: 'analyze',
+        analyzeType: 'knowledge',
+        ingredientName: ingredientName,
+        userId: userId,
+        lang: lang
+      },
+      success: (res) => {
+        if (res.result && !res.result.error) {
+          const data = res.result;
+          resolve({
+            ingredientDesc: data.ingredientDesc || data.ingredient_desc || (lang === 'en' ? 'No description' : '暂无描述'),
+            taste: data.taste || '',
+            texture: data.texture || '',
+            similar: data.similar || ''
+          });
+        } else {
+          reject(new Error(res.result?.errorType || 'model_error'));
+        }
+      },
+      fail: (err) => {
+        reject(new Error('network_error: ' + (err.errMsg || JSON.stringify(err))));
+      }
+    });
   });
 }
 
@@ -333,7 +423,9 @@ async function analyzeLocal(ingredientName, location, options = {}) {
 }
 
 module.exports = {
-  analyzeImage,
+  analyzeIdentify,
+  analyzeVision,
+  analyzeKnowledge,
   analyzeFamiliar,
   analyzeLocal
 };

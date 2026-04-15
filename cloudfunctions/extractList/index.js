@@ -92,13 +92,32 @@ Return ONLY JSON object. Do not include any other text or markdown wrappers like
     });
 
     let content = response.data.choices[0].message.content;
-    content = content.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+    
+    // 更稳健的 JSON 提取逻辑
+    let cleanContent = content.trim();
+    const jsonMatch = cleanContent.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (jsonMatch) {
+      cleanContent = jsonMatch[1].trim();
+    } else {
+      const firstBrace = cleanContent.indexOf('{');
+      const lastBrace = cleanContent.lastIndexOf('}');
+      const firstBracket = cleanContent.indexOf('[');
+      const lastBracket = cleanContent.lastIndexOf(']');
+      
+      // 判断返回的是对象还是数组
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace && 
+         (firstBracket === -1 || firstBrace < firstBracket)) {
+        cleanContent = cleanContent.substring(firstBrace, lastBrace + 1);
+      } else if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+        cleanContent = cleanContent.substring(firstBracket, lastBracket + 1);
+      }
+    }
 
     let resultData;
     try {
-      resultData = JSON.parse(content);
+      resultData = JSON.parse(cleanContent);
     } catch (parseErr) {
-      console.error('模型返回解析失败', content);
+      console.error('模型返回解析失败. RAW:', content, 'CLEANED:', cleanContent);
       return { error: true, errorType: 'model_error', message: '提取失败，请重试' };
     }
     

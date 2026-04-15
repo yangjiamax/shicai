@@ -18,7 +18,24 @@ Page({
     tutorialPlatform: 'bilibili'
   },
 
-  onLoad(options) {
+  async onLoad(options) {
+    if (app.authReadyPromise) {
+      await app.authReadyPromise;
+    }
+
+    if (!wx.getStorageSync('has_onboarded')) {
+      const optionsArray = [];
+      for (let key in options) {
+        optionsArray.push(`${key}=${encodeURIComponent(options[key])}`);
+      }
+      const fullPath = `/pages/recipe/index${optionsArray.length > 0 ? '?' + optionsArray.join('&') : ''}`;
+      
+      wx.redirectTo({
+        url: `/pages/onboarding/index?redirectUrl=${encodeURIComponent(fullPath)}`
+      });
+      return;
+    }
+
     if (options.data) {
       try {
         const data = JSON.parse(decodeURIComponent(options.data));
@@ -158,7 +175,9 @@ Page({
 
     wx.showLoading({ title: app.t('recipe_adding') });
     try {
-      const activeListId = await dbUtil.getActiveList();
+      const { makeDefaultListTitle } = require('../../utils/listTitle.js');
+      const listTitle = makeDefaultListTitle(app.globalData.i18n);
+      const activeListId = await dbUtil.ensureActiveList({ title: listTitle });
       const itemsToAdd = this.data.ingredients.map(ing => ({
         name: ing.name,
         standardName: ing.name,
@@ -242,9 +261,18 @@ Page({
     const i18n = this.data.i18n;
     const recipeName = this.data.recipeName || '';
     
+    const shareData = {
+      recipeName: this.data.recipeName,
+      ingredients: this.data.ingredients || [],
+      ingredientName: this.data.ingredientName,
+      sourceType: this.data.sourceType,
+      imagePath: this.data.imagePath,
+      cloudImagePath: this.data.cloudImagePath
+    };
+    
     return {
       title: i18n.list_share_title ? i18n.list_share_title.replace('{recipe}', recipeName) : `今晚准备做【${recipeName}】，快来看看！`,
-      path: '/pages/index/index'
+      path: `/pages/recipe/index?data=${encodeURIComponent(JSON.stringify(shareData))}&shared=1`
     };
   },
 

@@ -23,6 +23,7 @@ Page({
     // Check if we are entering from 'My' page
     const isEditMode = options.mode === 'edit';
     const isUpgradeMode = options.upgrade === '1';
+    const redirectUrl = options.redirectUrl ? decodeURIComponent(options.redirectUrl) : '';
 
     // Load existing user info if any
     const savedUserInfo = wx.getStorageSync('userInfo');
@@ -37,6 +38,7 @@ Page({
       statusBarHeight: sysInfo.statusBarHeight,
       isEditMode,
       isUpgradeMode,
+      redirectUrl,
       userInfo: initUserInfo
     });
     
@@ -341,6 +343,8 @@ Page({
     
     if (this.data.isEditMode || this.data.isUpgradeMode) {
       wx.navigateBack();
+    } else if (this.data.redirectUrl) {
+      wx.redirectTo({ url: this.data.redirectUrl });
     } else {
       wx.switchTab({ url: '/pages/index/index' });
     }

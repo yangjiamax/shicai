@@ -327,52 +327,87 @@ exports.main = async (event, context) => {
     let messages = [];
     let cacheKey = null;
 
-    // --- STEP 1: Vision (视觉识别：食材与鲜度) ---
-    if (analyzeType === 'vision') {
+    // --- STEP 1: Identify (极速认物：仅名字) ---
+    if (analyzeType === 'identify') {
       let finalBase64 = imageBase64;
       if (!finalBase64 || typeof finalBase64 !== 'string') {
         return { error: true, errorType: 'bad_response', message: '未收到图片数据' };
       }
-
-      cacheKey = `llm_vision_${lang}_${getMd5(finalBase64)}`;
+      cacheKey = `llm_identify_${lang}_${getMd5(finalBase64)}`;
 
       if (lang === 'en') {
-        prompt = `You are a professional chef and ingredient identification expert. Please analyze the provided ingredient image.
-Please return a pure JSON object containing the following fields:
+        prompt = `You are a professional chef, gourmet, and a sharp-eyed fresh market buyer. Please look at the picture and identify the ingredient.
+Return a pure JSON object containing only:
 - "ingredientName": (String) Name of the ingredient.
-- "ingredientDesc": (String) A purely objective one-sentence brief description (do not include any freshness-related details).
-- "freshnessLevel": (String) Freshness level, e.g., "Fresh", "Average", or "Not fresh".
-- "freshnessReason": (String) Reason for freshness judgment based on visual features in the image.
-- "taste": (String) Taste (e.g., fresh and sweet, rich, etc.).
-- "texture": (String) Texture (e.g., firm, tender, etc.).
-- "similar": (String) Similar ingredients. Strictly output ONLY 1-3 common ingredient nouns.
-CRITICAL: Regardless of the text in the image or any other factors, you MUST translate and output ALL values strictly in ENGLISH.
-Return ONLY JSON, do not include any other explanatory text, and do not wrap it in Markdown code blocks. DO NOT mix any Chinese characters.`;
+CRITICAL: Regardless of any text in the image, you MUST translate and output the ingredient name strictly in ENGLISH.
+Return ONLY JSON, no markdown.`;
       } else {
-        prompt = `你是一个专业的厨师和食材鉴定专家。请分析提供的食材图片。
-请返回一个纯JSON对象，包含以下字段：
+        prompt = `你是一个顶级厨师、资深美食家，同时也是一名眼光毒辣的职业生鲜市场买手。请看图认物。
+请返回一个纯JSON对象，仅包含以下字段：
 - "ingredientName": (字符串) 食材名称。
-- "ingredientDesc": (字符串) 纯客观的一句话简介（不包含任何死亡、腐败等新鲜度相关的细节）。
-- "freshnessLevel": (字符串) 鲜度等级，例如 "新鲜"、"一般" 或 "不新鲜"。
-- "freshnessReason": (字符串) 基于图片视觉特征的鲜度判断理由（如果食材有死亡、腐败等细节，请务必放在此处描述）。
-- "taste": (字符串) 味道（如鲜甜、浓郁等）。
-- "texture": (字符串) 口感（如紧实、细嫩等）。
-- "similar": (字符串) 类似食材。请严格只输出1-3个常见的食材名词（如"龙眼"、"鲅鱼"）。
-极其重要：无论图片中包含什么语言的文字，或者识别出的是外国食材，你都必须将所有内容（食材名称、描述、鲜度原因、口感等）严格翻译并用【中文】输出。
+极其重要：无论图片中包含什么语言的文字，或者识别出的是外国食材，你都必须将其翻译并用【中文】输出。
 只返回JSON，不要包含任何其他说明文字，也不要用Markdown代码块包裹。`;
       }
-      
       messages = [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: prompt },
-            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${finalBase64}`, detail: 'low' } }
-          ]
-        }
+        { role: 'user', content: [ { type: 'text', text: prompt }, { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${finalBase64}`, detail: 'low' } } ] }
       ];
-    } 
-    // --- STEP 2: Familiar (文本生成：熟悉的味道与做法) ---
+    }
+    // --- STEP 2 Track A: Vision (看图路：鲜度鉴定) ---
+    else if (analyzeType === 'vision') {
+      let finalBase64 = imageBase64;
+      if (!finalBase64 || typeof finalBase64 !== 'string') {
+        return { error: true, errorType: 'bad_response', message: '未收到图片数据' };
+      }
+      if (!ingredientName) return { error: true, errorType: 'bad_request', message: 'Missing ingredientName' };
+
+      cacheKey = `llm_freshness_${lang}_${ingredientName}_${getMd5(finalBase64)}`;
+
+      if (lang === 'en') {
+        prompt = `You are a sharp-eyed professional fresh market buyer. The user is inspecting this ingredient: [${ingredientName}].
+Please carefully examine the visual details of this ingredient in the image (e.g., gloss, skin, color, texture, signs of freshness or decay).
+Return a pure JSON object containing:
+- "freshnessLevel": (String) Freshness level ("Fresh", "Average", or "Not fresh").
+- "freshnessReason": (String) Reason for your freshness judgment based strictly on the visual evidence in the picture. Speak in the professional tone of a market buyer.
+CRITICAL: You MUST translate and output ALL values strictly in ENGLISH. Return ONLY JSON.`;
+      } else {
+        prompt = `你是一名眼光毒辣的职业生鲜市场买手。图片中是用户正在考察的食材：【${ingredientName}】。
+请仔细审视图片中该食材的细节（如光泽、颜色、纹理、新鲜痕迹或腐败特征等真实状态）。
+请返回一个纯JSON对象，包含以下字段：
+- "freshnessLevel": (字符串) 鲜度等级（"新鲜"、"一般" 或 "不新鲜"）。
+- "freshnessReason": (字符串) 鲜度判断理由。请用买手的专业口吻，客观指出图片中具体的视觉证据（如“鱼眼清澈”、“叶片边缘发黄萎蔫”等）。
+极其重要：所有内容必须用【中文】输出。只返回JSON，不要Markdown。`;
+      }
+      messages = [
+        { role: 'user', content: [ { type: 'text', text: prompt }, { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${finalBase64}`, detail: 'low' } } ] }
+      ];
+    }
+    // --- STEP 2 Track B1: Knowledge (纯文路：知识与属性) ---
+    else if (analyzeType === 'knowledge') {
+      if (!ingredientName) return { error: true, errorType: 'bad_request', message: 'Missing ingredientName' };
+      cacheKey = `llm_knowledge_${lang}_${ingredientName}`;
+
+      if (lang === 'en') {
+        prompt = `You are a top chef and experienced gourmet.
+Ingredient: [${ingredientName}].
+Return a pure JSON object containing:
+- "ingredientDesc": (String) A purely objective one-sentence brief description.
+- "taste": (String) Typical taste (e.g., fresh and sweet, rich, etc.).
+- "texture": (String) Typical texture (e.g., firm, tender, etc.).
+- "similar": (String) Similar ingredients. Strictly output ONLY 1-3 common ingredient nouns.
+CRITICAL: You MUST translate and output ALL values strictly in ENGLISH. Return ONLY JSON.`;
+      } else {
+        prompt = `你是一个顶级厨师与资深美食家。
+食材：【${ingredientName}】。
+请返回一个纯JSON对象，包含以下字段：
+- "ingredientDesc": (字符串) 纯客观的一句话简介。
+- "taste": (字符串) 这种食材典型的味道（如鲜甜、浓郁等）。
+- "texture": (字符串) 这种食材典型的口感（如紧实、细嫩等）。
+- "similar": (字符串) 类似食材。请严格只输出1-3个常见的食材名词（如"龙眼"、"鲅鱼"）。
+极其重要：所有内容必须用【中文】输出。只返回JSON，不要Markdown。`;
+      }
+      messages = [ { role: 'user', content: prompt } ];
+    }
+    // --- STEP 2 Track B2: Familiar (文本生成：熟悉的味道与做法) ---
     else if (analyzeType === 'familiar') {
       if (!ingredientName) return { error: true, errorType: 'bad_request', message: 'Missing ingredientName' };
       
@@ -380,26 +415,23 @@ Return ONLY JSON, do not include any other explanatory text, and do not wrap it 
       cacheKey = `llm_familiar_v2_${lang}_${nationalityStr}_${ingredientName}`;
 
       if (lang === 'en') {
-        prompt = `You are a top local chef and food expert from ${nationalityStr}. You know exactly what tastes like "home" for people from your country.
+        prompt = `You are a top local chef, experienced gourmet, and a professional fresh market buyer from ${nationalityStr}. You know exactly what tastes like "home" for people from your country.
 Ingredient: "${ingredientName}".
 Return a pure JSON object:
 - "recipesFamiliar": (Array) 1-2 authentic, home-style recipes from ${nationalityStr} using this ingredient. The recipes MUST be easy to cook for a beginner (doable with basic kitchenware and simple steps). Each object has "recipeName" (String) and "ingredientsNeeded" (Array of Strings, focusing on local spices and condiments from ${nationalityStr}. CRITICAL: 1. Provide ONLY ingredient names without any quantities or weights; 2. DO NOT include the main ingredient "${ingredientName}" in this array, as it's already added separately).
 CRITICAL: Regardless of the language of the input ingredient name, you MUST translate and output ALL content (including recipe names and ingredient names) strictly in ENGLISH.
 Return ONLY JSON.`;
       } else {
-        prompt = `你是一位来自${nationalityStr}的顶级本土厨师和美食家，最懂家乡胃，深知你们国家老百姓平时怎么做这道菜。
+        prompt = `你是一位来自${nationalityStr}的顶级本土厨师、美食家和职业生鲜买手，最懂家乡胃，深知你们国家老百姓平时怎么做这道菜。
 食材：“${ingredientName}”。
 返回纯JSON对象：
 - "recipesFamiliar": (数组) 推荐1-2种在${nationalityStr}最地道、最常见的家常做法。注意：做法必须简单易学，是普通人稍微垫垫脚就能在家做出来的（无需复杂厨具和高难度技巧）。包含"recipeName"(字符串，做法名称)和"ingredientsNeeded"(字符串数组，需包含做这道菜常用的特色佐料。极其重要：1. 只需要提供食材种类名称，绝对不要包含数量或重量信息（例如只需“姜”，不要“老姜一大块”）；2. 绝对不要在这个数组里包含主食材“${ingredientName}”或其别名，因为它已经被单独列出)。
 极其重要：无论输入的食材名称原本是什么语言，你都必须将所有的内容（包括菜谱名称、配料名称等）翻译并严格用【中文】输出。
 只返回JSON。`;
       }
-      
-      messages = [
-        { role: 'user', content: prompt }
-      ];
+      messages = [ { role: 'user', content: prompt } ];
     }
-    // --- STEP 3: Local (文本生成：当地做法) ---
+    // --- STEP 2 Track B3: Local (文本生成：当地做法) ---
     else if (analyzeType === 'local') {
       if (!ingredientName) return { error: true, errorType: 'bad_request', message: 'Missing ingredientName' };
       
@@ -423,69 +455,110 @@ Return ONLY JSON.`;
       cacheKey = `llm_local_v2_${lang}_${cacheLocationKey}_${ingredientName}`;
 
       if (lang === 'en') {
-        prompt = `You are a native chef and local food expert living right here at ${locStr}. You know exactly how locals cook and eat in this specific region.
+        prompt = `You are a native chef, experienced gourmet, and local fresh market buyer living right here at ${locStr}. You know exactly how locals cook and eat in this specific region.
 Ingredient: "${ingredientName}".
 Return a pure JSON object:
 - "recipesLocal": (Array) 1-2 local specialty recipes using this ingredient, exactly how locals make it here. The recipes MUST be simple and easy for a beginner to cook at home. Each object has "recipeName" (String) and "ingredientsNeeded" (Array of Strings, highlighting regional condiments. CRITICAL: 1. Provide ONLY ingredient names without any quantities or weights; 2. DO NOT include the main ingredient "${ingredientName}" in this array, as it's already added separately).
 CRITICAL: Regardless of the language of the input ingredient name, you MUST translate and output ALL content (including recipe names and ingredient names) strictly in ENGLISH.
 Return ONLY JSON.`;
       } else {
-        prompt = `你是一位土生土长的本地厨师和美食家，目前生活在 ${locStr}。你对这片土地上的饮食文化和当地人烹饪这道食材的习惯了如指掌。
+        prompt = `你是一位土生土长的本地厨师、美食家和职业生鲜买手，目前生活在 ${locStr}。你对这片土地上的饮食文化和当地人烹饪这道食材的习惯了如指掌。
 食材：“${ingredientName}”。
 返回纯JSON对象：
 - "recipesLocal": (数组) 推荐1-2种这片区域当地人最常吃的特色做法。注意：做法必须接地气且简单易上手，是普通人稍微垫脚就能做出来的。包含"recipeName"(字符串，使用当地人的叫法)和"ingredientsNeeded"(字符串数组，需体现当地特色佐料。极其重要：1. 只需要提供食材种类名称，绝对不要包含数量或重量信息（例如只需“葱”，不要“小葱5根”）；2. 绝对不要在这个数组里包含主食材“${ingredientName}”或其别名，因为它已经被单独列出)。
 极其重要：无论输入的食材名称原本是什么语言，你都必须将所有的内容（包括菜谱名称、配料名称等）翻译并严格用【中文】输出。
 只返回JSON。`;
       }
-      
-      messages = [
-        { role: 'user', content: prompt }
-      ];
+      messages = [ { role: 'user', content: prompt } ];
     }
 
     if (cacheKey) {
       const cachedResult = await getCache(getMd5(cacheKey));
       if (cachedResult) {
-        console.log('[Cache Hit] LLM Text:', cacheKey);
+        console.log(`[Analyze Step: ${analyzeType}] [Cache Hit] LLM Text:`, cacheKey);
         return cachedResult;
       }
     }
 
     // 发起大模型请求
-    const response = await axios.post(apiUrl, {
-      model: modelName,
-      messages: messages
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      timeout: analyzeType === 'vision' ? 90000 : 30000 // 文本生成超时可以设短一些
-    });
+    console.log(`\n=========================================`);
+    console.log(`[Analyze Step: ${analyzeType}] === START ===`);
+    console.log(`[Analyze Step: ${analyzeType}] INPUT PROMPT:\n${prompt}`);
+    console.log(`[Analyze Step: ${analyzeType}] INPUT PARAMS: lang=${lang}, ingredientName=${ingredientName || 'N/A'}, nationality=${nationality || 'N/A'}, location=${JSON.stringify(location || 'N/A')}`);
+    console.log(`=========================================\n`);
+
+    let response;
+    try {
+      response = await axios.post(apiUrl, {
+        model: modelName,
+        messages: messages
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        timeout: 60000 // 所有分析请求统一 60 秒超时
+      });
+    } catch (reqErr) {
+      console.error(`\n=========================================`);
+      console.error(`[Analyze Step: ${analyzeType}] === FAILED ===`);
+      console.error(`[Analyze Step: ${analyzeType}] ERROR DETAILS:`, reqErr.message || reqErr);
+      console.error(`=========================================\n`);
+      throw reqErr; // 抛给外层的 catch
+    }
 
     let content = response.data.choices[0].message.content;
-    content = content.replace(/^```json\s*/i, '').replace(/```\s*$/i, '');
     
+    console.log(`\n=========================================`);
+    console.log(`[Analyze Step: ${analyzeType}] === OUTPUT SUCCESS ===`);
+    console.log(`[Analyze Step: ${analyzeType}] RAW OUTPUT:\n${content}`);
+    console.log(`=========================================\n`);
+
+    // 更稳健的 JSON 提取逻辑
+    let cleanContent = content.trim();
+    // 如果有 markdown 代码块，尝试提取内部内容
+    const jsonMatch = cleanContent.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (jsonMatch) {
+      cleanContent = jsonMatch[1].trim();
+    } else {
+      // 尝试找第一个 { 和最后一个 }
+      const firstBrace = cleanContent.indexOf('{');
+      const lastBrace = cleanContent.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        cleanContent = cleanContent.substring(firstBrace, lastBrace + 1);
+      }
+    }
+
     let resultData;
     try {
-      resultData = JSON.parse(content);
+      resultData = JSON.parse(cleanContent);
     } catch (parseErr) {
-      console.error('模型返回解析失败', content);
+      console.error(`\n=========================================`);
+      console.error(`[Analyze Step: ${analyzeType}] === JSON PARSE FAILED ===`);
+      console.error(`[Analyze Step: ${analyzeType}] RAW OUTPUT WAS:\n`, content);
+      console.error(`[Analyze Step: ${analyzeType}] CLEANED CONTENT WAS:\n`, cleanContent);
+      console.error(`=========================================\n`);
       return { error: true, errorType: 'model_error', message: '模型返回格式异常' };
     }
 
     // 根据不同步骤格式化返回结果
     let finalResult = null;
-    if (analyzeType === 'vision') {
+    if (analyzeType === 'identify') {
+      finalResult = {
+        ingredientName: resultData.ingredientName || (lang === 'en' ? 'Unknown Ingredient' : '未知食材')
+      };
+    } else if (analyzeType === 'vision') {
+      finalResult = {
+        freshnessLevel: resultData.freshnessLevel || (lang === 'en' ? 'Unknown' : '未知'),
+        freshnessReason: resultData.freshnessReason || (lang === 'en' ? 'Unable to recognize freshness reason' : '未能识别鲜度原因')
+      };
+    } else if (analyzeType === 'knowledge') {
       let cleanSimilar = resultData.similar || '';
       if (cleanSimilar) {
         cleanSimilar = cleanSimilar.replace(/^(类似[于]?|口感[像]?|像)/, '').trim();
       }
       finalResult = {
-        ingredientName: resultData.ingredientName || (lang === 'en' ? 'Unknown Ingredient' : '未知食材'),
         ingredientDesc: resultData.ingredientDesc || (lang === 'en' ? 'No description' : '暂无描述'),
-        freshnessLevel: resultData.freshnessLevel || (lang === 'en' ? 'Unknown' : '未知'),
-        freshnessReason: resultData.freshnessReason || (lang === 'en' ? 'Unable to recognize freshness reason' : '未能识别鲜度原因'),
         taste: resultData.taste || '',
         texture: resultData.texture || '',
         similar: cleanSimilar,

@@ -19,7 +19,24 @@ Page({
     tutorialPlatform: 'bilibili'
   },
 
-  onLoad(options) {
+  async onLoad(options) {
+    if (app.authReadyPromise) {
+      await app.authReadyPromise;
+    }
+
+    if (!wx.getStorageSync('has_onboarded')) {
+      const optionsArray = [];
+      for (let key in options) {
+        optionsArray.push(`${key}=${encodeURIComponent(options[key])}`);
+      }
+      const fullPath = `/pages/history-list/index${optionsArray.length > 0 ? '?' + optionsArray.join('&') : ''}`;
+      
+      wx.redirectTo({
+        url: `/pages/onboarding/index?redirectUrl=${encodeURIComponent(fullPath)}`
+      });
+      return;
+    }
+
     this.setData({ 
       i18n: app.globalData.i18n,
       lang: app.globalData.language,
@@ -76,7 +93,7 @@ Page({
         executionGroups,
         savedRecipesMap,
         loading: false,
-        listStatus: list ? list.status : 'completed'
+        listStatus: this.data.isShared ? 'shared' : (list ? list.status : 'completed')
       });
     } catch (err) {
       console.error('Failed to load history list:', err);
@@ -100,7 +117,9 @@ Page({
 
     wx.showLoading({ title: app.t('recipe_adding') });
     try {
-      const activeListId = await dbUtil.getActiveList();
+      const { makeDefaultListTitle } = require('../../utils/listTitle.js');
+      const listTitle = makeDefaultListTitle(app.globalData.i18n);
+      const activeListId = await dbUtil.ensureActiveList({ title: listTitle });
       await dbUtil.addIngredientsToList(activeListId, items);
       wx.hideLoading();
       wx.showToast({
@@ -122,7 +141,9 @@ Page({
 
     wx.showLoading({ title: app.t('recipe_adding') });
     try {
-      const activeListId = await dbUtil.getActiveList();
+      const { makeDefaultListTitle } = require('../../utils/listTitle.js');
+      const listTitle = makeDefaultListTitle(app.globalData.i18n);
+      const activeListId = await dbUtil.ensureActiveList({ title: listTitle });
       await dbUtil.addIngredientsToList(activeListId, allItems);
       wx.hideLoading();
       wx.showToast({
@@ -176,7 +197,9 @@ Page({
 
     wx.showLoading({ title: app.t('recipe_adding') });
     try {
-      const activeListId = await dbUtil.getActiveList();
+      const { makeDefaultListTitle } = require('../../utils/listTitle.js');
+      const listTitle = makeDefaultListTitle(app.globalData.i18n);
+      const activeListId = await dbUtil.ensureActiveList({ title: listTitle });
       await dbUtil.addIngredientsToList(activeListId, [item]);
       wx.hideLoading();
       wx.showToast({
@@ -224,7 +247,7 @@ Page({
     
     return {
       title: shareTitle,
-      path: '/pages/index/index'
+      path: `/pages/history-list/index?listId=${this.data.listId}&shared=1`
     };
   },
 

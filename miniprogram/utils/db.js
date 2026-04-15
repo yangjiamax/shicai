@@ -63,6 +63,7 @@ module.exports = {
   db,
   COLLECTIONS,
   getActiveList,
+  ensureActiveList,
   getListById,
   addIngredientsToList,
   updateIngredientStatus,
@@ -76,10 +77,12 @@ function generateId() {
 }
 
 /**
- * [M2.1] 获取今日活跃清单
+ * 获取活跃清单，如不存在则创建。标题由外部传入，解耦 i18n
+ * @param {Object} options
+ * @param {string} options.title - 清单标题
  * @returns {Promise<string>} 返回 active list 的 _id
  */
-async function getActiveList() {
+async function ensureActiveList({ title }) {
   const collection = getCollection(COLLECTIONS.SHOPPING_LISTS);
   const auth = require('./auth.js');
   const userId = auth.getUserId();
@@ -96,29 +99,8 @@ async function getActiveList() {
     return res.data[0]._id;
   }
 
-  const dateObj = new Date();
-  const mm = (dateObj.getMonth() + 1).toString();
-  const dd = dateObj.getDate().toString();
-  const hour = dateObj.getHours();
-  
-  const app = getApp();
-  
-  let timePrefix = '';
-  let title = '';
-
-  if (app && app.t) {
-    const timePrefixKey = hour >= 5 && hour < 12 ? 'my_time_morning' : (hour >= 12 && hour < 18 ? 'my_time_noon' : 'my_time_evening');
-    timePrefix = app.t(timePrefixKey);
-    title = app.t('my_shopping_list_title').replace('{mm}', mm).replace('{dd}', dd).replace('{timePrefix}', timePrefix);
-  } else {
-    if (hour >= 5 && hour < 12) timePrefix = '早上';
-    else if (hour >= 12 && hour < 18) timePrefix = '中午';
-    else timePrefix = '晚上';
-    title = `${mm}月${dd}日${timePrefix}的采购单`;
-  }
-  
   const newList = {
-    title: title,
+    title: title || 'Shopping List',
     status: 'active',
     items: [],
     createdAt: db.serverDate(),
@@ -130,6 +112,18 @@ async function getActiveList() {
   });
 
   return addRes._id;
+}
+
+/**
+ * @deprecated 请使用 ensureActiveList 并从外部传入 title
+ * [M2.1] 获取今日活跃清单
+ * @returns {Promise<string>} 返回 active list 的 _id
+ */
+async function getActiveList() {
+  const app = getApp();
+  const { makeDefaultListTitle } = require('./listTitle.js');
+  const title = makeDefaultListTitle(app ? app.globalData.i18n : null);
+  return ensureActiveList({ title });
 }
 
 /**

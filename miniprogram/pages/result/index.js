@@ -24,7 +24,9 @@ Page({
     selectedIngredients: [],
     importedListData: null,
     i18n: {},
+    loadingIdentify: false,
     loadingVision: false,
+    loadingKnowledge: false,
     loadingFamiliar: false,
     loadingLocal: false,
     errorVision: false,
@@ -53,7 +55,24 @@ Page({
     currentTutorialKeyword: ''
   },
 
-  onLoad(options) {
+  async onLoad(options) {
+    if (app.authReadyPromise) {
+      await app.authReadyPromise;
+    }
+
+    if (!wx.getStorageSync('has_onboarded')) {
+      const optionsArray = [];
+      for (let key in options) {
+        optionsArray.push(`${key}=${encodeURIComponent(options[key])}`);
+      }
+      const fullPath = `/pages/result/index${optionsArray.length > 0 ? '?' + optionsArray.join('&') : ''}`;
+      
+      wx.redirectTo({
+        url: `/pages/onboarding/index?redirectUrl=${encodeURIComponent(fullPath)}`
+      });
+      return;
+    }
+
     const i18nData = app.globalData.i18n;
     this.setData({ i18n: i18nData });
 
@@ -73,7 +92,7 @@ Page({
       });
 
       this.startTypingEffect();
-      this.analyzeVision(imagePath, nationality, location);
+      this.startAnalysis(imagePath, nationality, location);
     } else if (options.data) {
       let data;
       try {
@@ -90,9 +109,15 @@ Page({
       if (options.fromHistory === '1' || options.shared === '1') {
         isFromHistoryOrShare = true;
         importedListData = data;
-        resultData = data.analysisResult;
         
-        if (options.fromHistory === '1') {
+        if (options.shared === '1') {
+          resultData = data;
+          this.setData({
+            isFavorited: false,
+            historyId: null
+          });
+        } else {
+          resultData = data.analysisResult;
           this.setData({
             isFavorited: true,
             historyId: data.historyId || null
@@ -171,35 +196,66 @@ Page({
     }
   },
 
-  async analyzeVision(imagePath, nationality, location) {
+  async uploadImageToCloud(tempFilePath) {
     try {
-      const resultData = await analyzeUtil.analyzeImage(imagePath, { forceMock: false });
-      
-      // 兼容历史数据
-      if (resultData.ingredient_name) resultData.ingredientName = resultData.ingredient_name;
-      if (resultData.ingredient_desc) resultData.ingredientDesc = resultData.ingredient_desc;
-      if (resultData.freshness_level) resultData.freshnessLevel = resultData.freshness_level;
-      if (resultData.freshness_reason) resultData.freshnessReason = resultData.freshness_reason;
-
-      // 映射新鲜度状态为英文类名
-      resultData.freshnessClass = getFreshnessClass(resultData.freshnessLevel);
-      resultData.recipes = { familiar: [], local: [] };
-      resultData.imagePath = imagePath; // 保留本地路径以便显示
-
-      this.setData({ 
-        loadingVision: false,
-        errorVision: false,
-        result: resultData
+      const userId = app.globalData.userId || wx.getStorageSync('pf_user_id') || 'anonymous';
+      const ext = tempFilePath.match(/\.([^.]+)$/)?.[1] || 'jpg';
+      const cloudPath = `shares/${userId}-${Date.now()}-${Math.floor(Math.random() * 1000)}.${ext}`;
+      const uploadRes = await wx.cloud.uploadFile({
+        cloudPath: cloudPath,
+        filePath: tempFilePath
       });
-      this.stopTypingEffect();
+      if (uploadRes.fileID) {
+        this.setData({ 'result.cloudImagePath': uploadRes.fileID });
+      }
+    } catch (err) {
+      console.error('静默上传图片到云存储失败:', err);
+    }
+  },
 
-      // 视觉识别完成后，开始获取菜谱
-      if (resultData.ingredientName) {
-        this.fetchExtraData(resultData.ingredientName, nationality, location);
+  async startAnalysis(imagePath, nationality, location) {
+    this.setData({ 
+      loadingIdentify: true,
+      errorIdentify: false,
+      loadingVision: true,
+      errorVision: false,
+      loadingKnowledge: true,
+      errorKnowledge: false,
+      loadingFamiliar: true,
+      errorFamiliar: false,
+      loadingLocal: true,
+      errorLocal: false,
+      result: {
+        ingredientName: '',
+        imagePath: imagePath,
+        recipes: { familiar: [], local: [] }
+      }
+    });
+
+    this.startTypingEffect();
+
+    try {
+      // Step 1: 极速认物 (Flash Identify)
+      const identifyRes = await analyzeUtil.analyzeIdentify(imagePath, { forceMock: false });
+      
+      let currentResult = this.data.result;
+      currentResult.ingredientName = identifyRes.ingredientName;
+      
+      this.setData({ 
+        loadingIdentify: false,
+        result: currentResult
+      });
+
+      // 极速认物成功后，发起四路并行请求 (Track A & Track B)
+      this.fetchParallelData(identifyRes.base64Data, identifyRes.ingredientName, nationality, location);
+
+      // 后台静默上传图片到云端，防碎防过期
+      if (imagePath && !imagePath.startsWith('cloud://') && !currentResult.cloudImagePath) {
+        this.uploadImageToCloud(imagePath);
       }
 
     } catch (err) {
-      console.error('Vision analysis error:', err);
+      console.error('Identify analysis error:', err);
       let title = app.t('err_analyze_failed');
       
       if (err.message === 'timeout') {
@@ -211,12 +267,8 @@ Page({
           content: err.message,
           showCancel: false
         });
-      } else if (err.message === 'network_error') {
-        title = app.t('err_network');
-      } else if (err.message === 'model_error') {
-        title = app.t('err_model');
-      } else if (err.message === 'file_read_error') {
-        title = app.t('err_file_read');
+      } else if (err.message === 'file_read_error' || err.message.startsWith('image_compress_failed')) {
+        title = app.t('err_file_read') || err.message;
       }
       
       wx.showToast({
@@ -226,22 +278,61 @@ Page({
       });
 
       this.setData({ 
+        loadingIdentify: false,
+        errorIdentify: true,
+        // 中止所有后续 loading
         loadingVision: false,
-        errorVision: true 
+        loadingKnowledge: false,
+        loadingFamiliar: false,
+        loadingLocal: false
       });
       this.stopTypingEffect();
     }
   },
 
-  async fetchExtraData(ingredientName, nationality, location) {
-    this.setData({ 
-      loadingFamiliar: true, 
-      errorFamiliar: false,
-      loadingLocal: true,
-      errorLocal: false
-    });
+  fetchParallelData(base64Data, ingredientName, nationality, location) {
+    // Track A: 视觉鲜度鉴定
+    const fetchVision = async () => {
+      try {
+        const visionRes = await analyzeUtil.analyzeVision(base64Data, ingredientName);
+        let currentResult = this.data.result;
+        currentResult.freshnessLevel = visionRes.freshnessLevel;
+        currentResult.freshnessReason = visionRes.freshnessReason;
+        currentResult.freshnessClass = getFreshnessClass(visionRes.freshnessLevel);
+        
+        this.setData({ 
+          result: currentResult,
+          loadingVision: false
+        });
+      } catch (err) {
+        console.error('Fetch vision data failed:', err);
+        this.setData({ loadingVision: false, errorVision: true });
+      }
+      this.checkAllDone();
+    };
 
-    // 1. 并行请求熟悉味道 (Familiar)
+    // Track B1: 知识百科
+    const fetchKnowledge = async () => {
+      try {
+        const knowRes = await analyzeUtil.analyzeKnowledge(ingredientName);
+        let currentResult = this.data.result;
+        currentResult.ingredientDesc = knowRes.ingredientDesc;
+        currentResult.taste = knowRes.taste;
+        currentResult.texture = knowRes.texture;
+        currentResult.similar = knowRes.similar;
+        
+        this.setData({ 
+          result: currentResult,
+          loadingKnowledge: false
+        });
+      } catch (err) {
+        console.error('Fetch knowledge data failed:', err);
+        this.setData({ loadingKnowledge: false, errorKnowledge: true });
+      }
+      this.checkAllDone();
+    };
+
+    // Track B2: 熟悉做法
     const fetchFamiliar = async () => {
       try {
         const familiarRes = await analyzeUtil.analyzeFamiliar(ingredientName, nationality);
@@ -258,9 +349,10 @@ Page({
         console.error('Fetch familiar data failed:', err);
         this.setData({ loadingFamiliar: false, errorFamiliar: true });
       }
+      this.checkAllDone();
     };
 
-    // 2. 并行请求当地做法 (Local)
+    // Track B3: 当地做法
     const fetchLocal = async () => {
       try {
         const localRes = await analyzeUtil.analyzeLocal(ingredientName, location);
@@ -277,11 +369,20 @@ Page({
         console.error('Fetch local data failed:', err);
         this.setData({ loadingLocal: false, errorLocal: true });
       }
+      this.checkAllDone();
     };
 
-    // 同时发起两个请求，互不阻塞
+    // 并发启动四路请求
+    fetchVision();
+    fetchKnowledge();
     fetchFamiliar();
     fetchLocal();
+  },
+
+  checkAllDone() {
+    if (!this.data.loadingVision && !this.data.loadingKnowledge && !this.data.loadingFamiliar && !this.data.loadingLocal) {
+      this.stopTypingEffect();
+    }
   },
 
   processRecipesData() {
@@ -459,12 +560,14 @@ Page({
   async generateList() {
     const result = this.data.result;
     const dbUtil = require('../../utils/db.js');
+    const { makeDefaultListTitle } = require('../../utils/listTitle.js');
     
     wx.showLoading({ title: app.t('res_adding_to_list'), mask: true });
     
     try {
       // 1. 获取今日活跃清单 ID
-      const listId = await dbUtil.getActiveList();
+      const listTitle = makeDefaultListTitle(app.globalData.i18n);
+      const listId = await dbUtil.ensureActiveList({ title: listTitle });
       
       // 2. 格式化 Ingredient 对象 (仅加入主食材，不加入菜谱佐料，因为用户还没看菜谱详情)
       const ingredients = [];
@@ -536,18 +639,12 @@ Page({
     const pages = getCurrentPages();
     const isFromHistoryOrShare = this.data.importedListData !== null;
 
-    if (isFromHistoryOrShare) {
+    if (isFromHistoryOrShare || pages.length === 1) {
       wx.reLaunch({
         url: '/pages/index/index'
       });
     } else {
-      if (pages.length > 1) {
-        wx.navigateBack();
-      } else {
-        wx.reLaunch({
-          url: '/pages/index/index'
-        });
-      }
+      wx.navigateBack();
     }
   },
 
@@ -587,9 +684,18 @@ Page({
     const i18n = this.data.i18n;
     const ingredientName = this.data.result ? this.data.result.ingredientName : '';
     
+    let shareDataStr = '';
+    if (this.data.result) {
+      const shareData = { ...this.data.result };
+      if (shareData.cloudImagePath) {
+        shareData.imagePath = shareData.cloudImagePath;
+      }
+      shareDataStr = encodeURIComponent(JSON.stringify(shareData));
+    }
+    
     return {
       title: i18n.res_share_title ? i18n.res_share_title.replace('{name}', ingredientName) : `快来看看我发现的【${ingredientName}】`,
-      path: '/pages/index/index'
+      path: `/pages/result/index?data=${shareDataStr}&shared=1`
     };
   },
 

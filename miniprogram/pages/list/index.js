@@ -50,7 +50,9 @@ Page({
       this.setData({ loading: true });
     }
     try {
-      const listId = await dbUtil.getActiveList();
+      const { makeDefaultListTitle } = require('../../utils/listTitle.js');
+      const listTitle = makeDefaultListTitle(app.globalData.i18n);
+      const listId = await dbUtil.ensureActiveList({ title: listTitle });
       this.setData({ listId });
       
       const list = await dbUtil.getListById(listId);
@@ -536,7 +538,7 @@ Page({
     
     return {
       title: shareTitle,
-      path: '/pages/index/index'
+      path: `/pages/history-list/index?listId=${this.data.listId}&shared=1`
     };
   },
 
