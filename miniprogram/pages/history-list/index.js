@@ -157,6 +157,77 @@ Page({
     }
   },
 
+  finishPurchasing() {
+    const auth = require('../../utils/auth.js');
+    if (!auth.checkAndUpgrade()) return;
+
+    wx.showModal({
+      title: this.data.i18n.title_finish_purchase,
+      content: this.data.i18n.content_finish_purchase,
+      confirmText: this.data.i18n.confirm_finish,
+      cancelText: this.data.i18n.cancel,
+      confirmColor: '#4b6338',
+      success: async (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: this.data.i18n.saving });
+          try {
+            const userId = auth.getUserId();
+            const _ = dbUtil.db.command;
+            
+            const query = userId ? _.and([
+              { status: 'active' },
+              { _openid: userId }
+            ]) : { status: 'active', _openid: 'unauthenticated' };
+
+            const activeListsRes = await dbUtil.db.collection(dbUtil.COLLECTIONS.SHOPPING_LISTS)
+              .where(query)
+              .get();
+
+            const activeLists = activeListsRes.data || [];
+            const promises = activeLists.map(list => {
+              return dbUtil.db.collection(dbUtil.COLLECTIONS.SHOPPING_LISTS)
+                .doc(list._id)
+                .update({
+                  data: { status: 'completed' }
+                });
+            });
+
+            // 兜底：如果当前 listId 不在上述查询结果中，也强制更新
+            if (this.data.listId && !activeLists.find(l => l._id === this.data.listId)) {
+              promises.push(
+                dbUtil.db.collection(dbUtil.COLLECTIONS.SHOPPING_LISTS)
+                  .doc(this.data.listId)
+                  .update({
+                    data: { status: 'completed' }
+                  })
+              );
+            }
+
+            await Promise.all(promises);
+
+            wx.hideLoading();
+            wx.showToast({
+              title: this.data.i18n.purchase_finished,
+              icon: 'success',
+              duration: 1500
+            });
+
+            setTimeout(() => {
+              wx.navigateBack({ delta: 1 });
+            }, 1500);
+          } catch (err) {
+            console.error('Failed to finish purchasing:', err);
+            wx.hideLoading();
+            wx.showToast({
+              title: this.data.i18n.save_failed,
+              icon: 'none'
+            });
+          }
+        }
+      }
+    });
+  },
+
   async saveRecipe(e) {
     const auth = require('../../utils/auth.js');
     if (!auth.checkAndUpgrade()) return;

@@ -72,6 +72,7 @@
                 bindtouchstart="onSwipeStart"
                 bindtouchmove="onSwipeMove"
                 bindtouchend="onSwipeEnd"
+                bindtouchcancel="onSwipeCancel"
                 bindtap="onSwipeTap"
                 hover-class="{{isRecording ? 'btn-hover' : ''}}">
             <view class="swipe-btn-content">

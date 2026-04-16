@@ -77,9 +77,9 @@ function compressToTargetSize(filePath, targetSizeKB = 250) {
           // 进一步降低画质和尺寸
           currentPath = await executeCompress(currentPath, Math.floor(originWidth * 0.2), Math.floor(originHeight * 0.2));
           
-          // 终极绝杀：如果在兜底重压后依然大于 500KB (极罕见异常)，为了保命，不再传给云端，抛出错误提示用户重拍
+          // 终极绝杀：如果在兜底重压后依然大于 800KB (极罕见异常)，为了保命，不再传给云端，抛出错误提示用户重拍
           const killFileInfo = await new Promise((res, rej) => wx.getFileInfo({ filePath: currentPath, success: res, fail: rej }));
-          if (killFileInfo.size > 600 * 1024) {
+          if (killFileInfo.size > 800 * 1024) {
              throw new Error('Image too complex to compress');
           }
       }
@@ -106,13 +106,46 @@ function executeCompress(src, targetWidth, targetHeight) {
       // 将原图绘制到缩小的画布上
       context.drawImage(image, 0, 0, targetWidth, targetHeight);
       
+      let quality = 0.8;
       // 导出纯净的 JPEG 图片数据
       // 导出的数据已经不含任何 EXIF 信息，并且被压缩到了指定宽高
-      const base64Data = offscreenCanvas.toDataURL('image/jpeg', 0.8);
+      let base64Data = offscreenCanvas.toDataURL('image/jpeg', quality);
+      let base64Content = base64Data.replace(/^data:image\/\w+;base64,/, "");
       
-      // toDataURL 返回的是 "data:image/jpeg;base64,xxxx"
-      // 我们需要把它存为临时文件，以便后续流程统一处理
-      const base64Content = base64Data.replace(/^data:image\/\w+;base64,/, "");
+      const MAX_PAYLOAD_SIZE = 850000; // 850KB 安全水位
+      
+      // 1. 动态递归降质兜底（主要对 PC/安卓有效）
+      while (base64Content.length >= MAX_PAYLOAD_SIZE && quality > 0.2) {
+        const oldQuality = quality;
+        quality = parseFloat((quality - 0.2).toFixed(1));
+        console.warn(`[ImageCompress] 递归降质触发: 从 ${oldQuality} 降级到 ${quality}`);
+        base64Data = offscreenCanvas.toDataURL('image/jpeg', quality);
+        base64Content = base64Data.replace(/^data:image\/\w+;base64,/, "");
+      }
+      
+      // 2. 降分辨率兜底（针对 iOS 微信 toDataURL quality 失效的 Bug）
+      let currentWidth = targetWidth;
+      let currentHeight = targetHeight;
+      while (base64Content.length >= MAX_PAYLOAD_SIZE && currentWidth > 150) {
+        currentWidth = Math.floor(currentWidth * 0.6);
+        currentHeight = Math.floor(currentHeight * 0.6);
+        console.warn(`[ImageCompress] 触发 iOS 终极兜底：降分辨率重绘至 ${currentWidth}x${currentHeight}`);
+        
+        offscreenCanvas.width = currentWidth;
+        offscreenCanvas.height = currentHeight;
+        // iOS 必须重新绘制才能生效
+        context.drawImage(image, 0, 0, currentWidth, currentHeight);
+        
+        base64Data = offscreenCanvas.toDataURL('image/jpeg', 0.6);
+        base64Content = base64Data.replace(/^data:image\/\w+;base64,/, "");
+      }
+      
+      if (base64Content.length >= MAX_PAYLOAD_SIZE) {
+        console.warn(`[ImageCompress] 终极兜底后体积依然为 ${Math.round(base64Content.length / 1024)} KB，可能超限`);
+      } else {
+        console.log(`[ImageCompress] 最终导出体积: ${Math.round(base64Content.length / 1024)} KB`);
+      }
+      
       const fsm = wx.getFileSystemManager();
       const tempFilePath = `${wx.env.USER_DATA_PATH}/pf_compressed_${Date.now()}.jpg`;
       

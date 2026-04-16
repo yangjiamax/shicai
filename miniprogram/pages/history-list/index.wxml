@@ -101,12 +101,13 @@
     </view>
   </view>
 
-  <!-- Add Entire List Button -->
-  <view class="finish-btn-container" wx:if="{{!loading && listStatus !== 'active' && (planningGroups.length > 0 || executionGroups.length > 0)}}" style="display:flex; gap: 16rpx;">
+  <!-- Add Entire List / Finish Purchasing Button -->
+  <view class="finish-btn-container" wx:if="{{!loading && (planningGroups.length > 0 || executionGroups.length > 0)}}" style="display:flex; gap: 16rpx;">
     <button class="btn-secondary btn-icon-only" open-type="share" style="flex: 0 0 96rpx; height: 96rpx;">
       <image class="btn-icon-center" src="/images/icons/share.svg" mode="aspectFit"></image>
     </button>
-    <button class="btn-primary" bindtap="addAllToNewList" style="flex: 1;">{{i18n.list_add_all}}</button>
+    <button class="btn-primary" wx:if="{{listStatus !== 'active'}}" bindtap="addAllToNewList" style="flex: 1;">{{i18n.list_add_all}}</button>
+    <button class="btn-primary" wx:if="{{listStatus === 'active'}}" bindtap="finishPurchasing" style="flex: 1;">{{i18n.btn_finish_purchase}}</button>
   </view>
 
   <!-- Tutorial Bottom Sheet Component -->

@@ -42,6 +42,10 @@ Page({
     // Custom Modal State
     showSuccessModal: false,
     
+    // Edit Name Modal State
+    showEditModal: false,
+    editTempName: '',
+    
     // Favorite State
     isFavorited: false,
     historyId: null,
@@ -633,6 +637,40 @@ Page({
 
   preventTouchMove() {
     // Prevent scrolling when modal is open
+  },
+
+  openEditModal() {
+    this.setData({
+      showEditModal: true,
+      editTempName: this.data.result ? this.data.result.ingredientName : ''
+    });
+  },
+
+  onEditNameInput(e) {
+    this.setData({
+      editTempName: e.detail.value
+    });
+  },
+
+  closeEditModal() {
+    this.setData({
+      showEditModal: false
+    });
+  },
+
+  saveEditName() {
+    const newName = this.data.editTempName.trim();
+    if (!newName) {
+      wx.showToast({
+        title: this.data.i18n.index_input_empty || '请输入食材内容',
+        icon: 'none'
+      });
+      return;
+    }
+    this.setData({
+      'result.ingredientName': newName,
+      showEditModal: false
+    });
   },
 
   retry() {

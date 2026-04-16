@@ -3,7 +3,10 @@
     <view class="ingredient-info">
       <view class="ingredient-header-wrap">
         <view class="ingredient-header-left" wx:if="{{!loadingIdentify}}">
-          <text class="ingredient-name">{{result.ingredientName}}</text>
+          <view class="ingredient-name-wrapper">
+            <text class="ingredient-name">{{result.ingredientName}}</text>
+            <image class="icon-edit" src="/images/icons/edit.svg" mode="aspectFit" bindtap="openEditModal"></image>
+          </view>
           <text class="ingredient-desc" wx:if="{{!loadingKnowledge}}">{{result.ingredientDesc}}</text>
           <view class="skeleton-text skeleton-desc" wx:else></view>
         </view>
@@ -186,6 +189,20 @@
         <view class="custom-modal-btn" bindtap="modalClose">{{i18n.res_modal_back}}</view>
         <view class="custom-modal-btn" bindtap="modalContinue">{{i18n.res_modal_continue}}</view>
         <view class="custom-modal-btn btn-primary-text" bindtap="modalViewList">{{i18n.res_modal_view_list}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Edit Name Modal -->
+  <view class="custom-modal-mask {{showEditModal ? 'show' : ''}}" catchtouchmove="preventTouchMove">
+    <view class="custom-modal-dialog {{showEditModal ? 'show' : ''}}">
+      <view class="custom-modal-content" style="padding-bottom: 20rpx;">
+        <view class="custom-modal-title">{{i18n.res_edit_name_title}}</view>
+        <input class="edit-name-input" value="{{editTempName}}" bindinput="onEditNameInput" placeholder="{{i18n.res_edit_name_placeholder}}" focus="{{showEditModal}}" cursor-spacing="100"/>
+      </view>
+      <view class="custom-modal-footer">
+        <view class="custom-modal-btn" bindtap="closeEditModal">{{i18n.res_btn_cancel}}</view>
+        <view class="custom-modal-btn btn-primary-text" bindtap="saveEditName">{{i18n.res_btn_save}}</view>
       </view>
     </view>
   </view>

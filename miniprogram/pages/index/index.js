@@ -126,7 +126,7 @@ Page({
   },
 
   onSwipeStart(e) {
-    if (this.data.isRecording) return;
+    if (this.data.isRecording || this._isVoiceStarting) return;
     this.setData({
       startX: e.touches[0].clientX,
       swipeTransition: 'none'
@@ -134,7 +134,7 @@ Page({
   },
 
   onSwipeMove(e) {
-    if (this.data.isRecording) return;
+    if (this.data.isRecording || this._isVoiceStarting) return;
     const currentX = e.touches[0].clientX;
     let deltaX = currentX - this.data.startX;
     
@@ -147,7 +147,7 @@ Page({
   },
 
   onSwipeEnd(e) {
-    if (this.data.isRecording) return;
+    if (this.data.isRecording || this._isVoiceStarting) return;
     const deltaX = this.data.swipeX;
     const threshold = 60; // 降低阈值，确保在可用滑动空间内能触发
     
@@ -163,8 +163,16 @@ Page({
     }
   },
 
+  onSwipeCancel(e) {
+    this.setData({
+      swipeX: 0,
+      swipeTransition: 'transform 0.3s ease'
+    });
+    // 若此时正在初始化录音，视情况可以调用 stopRecord()
+  },
+
   onSwipeTap() {
-    if (this.data.isRecording) {
+    if (this.data.isRecording || this._isVoiceStarting) {
       this.handleVoiceRecord();
     } else {
       wx.showToast({
@@ -211,15 +219,20 @@ Page({
   },
 
   startVoiceRecord() {
+    if (this._isVoiceStarting) return; // 同步竞态锁
+    this._isVoiceStarting = true; // 立即上锁
+
     const voiceUtil = require('../../utils/voice.js');
     voiceUtil.initRecordManager({
       onStart: () => {
+        this._isVoiceStarting = false; // 底层真正启动后，释放启动锁
         this.setData({ isRecording: true });
       },
       onRecognize: (text) => {
         // 可以实时展示识别结果，目前先忽略
       },
       onStop: async (res) => {
+        this._isVoiceStarting = false; // 确保释放
         this.setData({ isRecording: false });
         const text = res.result;
         console.log('语音识别最终结果:', text);
@@ -233,6 +246,7 @@ Page({
         await this.processTextToList(text);
       },
       onError: (errMsg) => {
+        this._isVoiceStarting = false; // 异常时释放启动锁
         this.setData({ isRecording: false });
         if (errMsg !== 'user_denied') {
           wx.showToast({ title: app.t('index_record_failed') + errMsg, icon: 'none' });

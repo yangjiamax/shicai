@@ -31,7 +31,11 @@ Page({
     this.setData({ i18n: app.globalData.i18n });
   },
 
-  onShow() {
+  async onShow() {
+    if (app.authReadyPromise) {
+      await app.authReadyPromise;
+    }
+
     this.setData({ i18n: app.globalData.i18n });
     this.updateTabBarAndTitle();
     this.checkAuthSource();
@@ -395,7 +399,10 @@ Page({
       return;
     }
 
-    wx.showLoading({ title: app.t('my_uploading_avatar') });
+    // 乐观更新 UI 与缓存
+    this.setData({ 'userInfo.avatar': tempAvatarUrl });
+    this.saveUserInfoLocal();
+
     try {
       const userId = app.globalData.userId || wx.getStorageSync('pf_user_id');
       const ext = tempAvatarUrl.match(/\.([^.]+)$/)?.[1] || 'png';
@@ -406,19 +413,15 @@ Page({
         filePath: tempAvatarUrl
       });
       
+      // 更新为云端的 fileID
       this.setData({ 'userInfo.avatar': uploadRes.fileID });
-      await this.saveUserInfoToCloud();
       this.saveUserInfoLocal();
       
-      wx.hideLoading();
-      wx.showToast({ title: app.t('my_upload_avatar_success'), icon: 'success' });
+      // 后台静默同步
+      await this.saveUserInfoToCloud();
     } catch (err) {
       console.error('[My] Upload avatar failed:', err);
-      wx.hideLoading();
-      wx.showToast({ title: app.t('my_upload_avatar_fail'), icon: 'none' });
-      // 降级使用本地临时路径
-      this.setData({ 'userInfo.avatar': tempAvatarUrl });
-      this.saveUserInfoLocal();
+      // 失败则保留临时路径兜底
     }
   },
 
@@ -434,17 +437,14 @@ Page({
       return;
     }
 
-    wx.showLoading({ title: app.t('my_saving_nickname') });
+    // 乐观更新 UI 与缓存
+    this.saveUserInfoLocal();
+
     try {
+      // 后台静默同步
       await this.saveUserInfoToCloud();
-      this.saveUserInfoLocal();
-      wx.hideLoading();
-      wx.showToast({ title: app.t('my_save_nickname_success'), icon: 'success' });
     } catch (err) {
       console.error('[My] Save nickname failed:', err);
-      wx.hideLoading();
-      wx.showToast({ title: app.t('my_save_nickname_fail'), icon: 'none' });
-      this.saveUserInfoLocal();
     }
   },
 

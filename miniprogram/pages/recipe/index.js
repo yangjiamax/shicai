@@ -61,6 +61,9 @@ Page({
   },
 
   async onShow() {
+    if (app.authReadyPromise) {
+      await app.authReadyPromise;
+    }
     await this.loadRecipeDetails();
   },
 

@@ -28,6 +28,10 @@ Page({
   },
 
   async onShow() {
+    if (app.authReadyPromise) {
+      await app.authReadyPromise;
+    }
+
     this.setData({ 
       i18n: app.globalData.i18n,
       lang: app.globalData.language
